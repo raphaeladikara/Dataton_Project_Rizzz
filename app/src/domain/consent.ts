@@ -1,4 +1,6 @@
-import type { SessionPurpose } from "./types";
+import type { SessionAuditLog } from "../audit/sessionLog";
+
+type SessionPurpose = SessionAuditLog["purpose"];
 
 export const CHILD_AGE_MIN_MONTHS = 16;
 export const CHILD_AGE_MAX_MONTHS = 30;
