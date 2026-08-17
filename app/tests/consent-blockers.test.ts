@@ -3,7 +3,7 @@ import test from "node:test";
 import { consentBlockers, type ConsentInput } from "../src/domain/consent";
 
 const child: ConsentInput = {
-  purpose: "child_live",
+  purpose: "target_population_research",
   childId: "NG-0001",
   ageMonths: "24",
   consented: true,
