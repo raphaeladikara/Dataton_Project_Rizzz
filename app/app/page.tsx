@@ -37,7 +37,7 @@ import { summarizeJointAttention } from "../src/inference/jointAttention";
 import { createFrameTrace } from "../src/capture/frameTrace";
 import { buildPhenotypeProfile, type PhenotypeProfile } from "../src/phenotype/profile";
 import { activeGeoprefAsset } from "../src/geopref/stimulusMeta";
-import { geoprefLayout } from "../src/geopref/protocol";
+import { geoprefLayout, GEOPREF_VIDEO_ASPECT } from "../src/geopref/protocol";
 import { scoreGeopref } from "../src/geopref/score";
 import { resolveSessionOutcome } from "../src/outcome/sessionOutcome";
 import {
@@ -535,6 +535,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [points, setPoints] = useState<Point[]>([]);
   const [phenotype, setPhenotype] = useState<PhenotypeProfile>(() => EMPTY_PHENOTYPE);
   const [riskInterpretable, setRiskInterpretable] = useState(false);
+  // Captured when the stimulus starts, not at render time: a later resize must
+  // not move the AOIs away from where the child was actually looking.
+  const [stageAspect, setStageAspect] = useState(GEOPREF_VIDEO_ASPECT);
   const [quality, setQuality] = useState<Quality | null>(null);
   const [validity, setValidity] = useState<SessionValidityResult | null>(null);
   const [risk, setRisk] = useState<number | null>(null);
@@ -765,8 +768,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     return scoreGeopref(geoprefPoints, {
       ...geoprefLayout(profile.childId || "NG-0000"),
       validatedProtocol: geoprefAsset.validatedProtocol,
+      viewportAspect: stageAspect,
     });
-  }, [points, profile.childId, geoprefAsset]);
+  }, [points, profile.childId, geoprefAsset, stageAspect]);
   const jointAttention = useMemo(() => summarizeJointAttention(cueSummary), [cueSummary]);
   const sessionOutcome = useMemo(() => resolveSessionOutcome({
     mode,
@@ -1252,7 +1256,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStimulusPhase(runPhases[0]);
     setStimulusCueActive(runPhases[0].cueOnsetMs === 0);
     setStimulusOstensiveActive(runPhases[0].ostensiveOnsetMs === 0);
-    recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0 });
+    const capturedStageAspect = window.innerWidth / Math.max(window.innerHeight, 1);
+    setStageAspect(capturedStageAspect);
+    recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0, stageAspect: Number(capturedStageAspect.toFixed(4)) });
     let captured: Point[] = [];
     const rawCaptured: Point[] = [];
     const rawSignals: Array<{ u: number; v: number }> = [];
@@ -2195,7 +2201,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           {!busy && <div className="stimulusHeader"><Logo /><span>{isEngineeringStudy ? "Uji peserta dewasa" : "Anak cukup menonton"} · siap</span>{mode === "live" && <span className={`stimulusTracking ${tracking?.accepted ? "good" : "bad"}`}><i />{trackingCopy(tracking).title}</span>}<button onClick={restart}><IconArrowLeft size={15} /> Kembali</button></div>}
           {busy && <div className="stimulusOperatorControls"><button onClick={() => { const next = !stimulusPausedRef.current; stimulusPausedRef.current = next; setStimulusPaused(next); recordAudit(next ? "stimulus.paused" : "stimulus.resumed"); }} aria-pressed={stimulusPaused}>{stimulusPaused ? <><IconPlay size={14} /> Lanjutkan</> : "Jeda"}</button><button onClick={restart} aria-label="Hentikan stimulus"><IconArrowLeft size={14} /> Hentikan</button></div>}
           <div className={`stimulusCanvas phase-${stimulusPhase?.id ?? "ready"}`} aria-label="Adegan perhatian bersama dengan wajah dan dua mainan">
-            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} />
+            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} geoprefSource={geoprefAsset.path} geometricSide={geoprefLayout(profile.childId || "NG-0000").geometricSide} />
             {!busy && progress === 0 && <div className={`stimulusIntro ${isEngineeringStudy ? "gateA" : "child"}`}>
               <span className="stimulusAudience">{isEngineeringStudy ? `Peserta dewasa · ${isGateB ? "Gate B" : "Gate A"}` : "Instruksi untuk pengasuh"}</span>
               <strong>{isEngineeringStudy ? "Ikuti petunjuk sosial di layar." : "Tugas anak hanya menonton."}</strong>
