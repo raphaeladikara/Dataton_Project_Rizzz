@@ -1,0 +1,11 @@
+{
+  "auc_logreg": 0.47778471932990885,
+  "auc_gbm": 0.6756768013327781,
+  "fitur": [
+    "width",
+    "height",
+    "bytes",
+    "aspect",
+    "bpp"
+  ]
+}

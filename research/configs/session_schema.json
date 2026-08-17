@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 3,
+  "appVersion": "3.0.0-child-flow",
+  "stimulusVersion": "ID-joint-cues-vector-v3",
+  "stimulusDurationSeconds": 66,
+  "phases": 10,
+  "scoredTrials": 8,
+  "sessionPurposes": [
+    "demo_replay",
+    "gate_a_adult",
+    "target_population_research"
+  ],
+  "liveCameraScoring": false,
+  "requiredHierarchy": [
+    "child_id",
+    "visit_id",
+    "session_id"
+  ],
+  "privacy": {
+    "pseudonymRequired": true,
+    "rawMediaDefault": false,
+    "retention": "until_tab_closed_or_operator_export"
+  },
+  "referenceOutcomeStorage": "separate_and_blinded"
+}

@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* Neurogaze design system — see tokens.css for the "Paper & Instrument" rationale. */
+@import "./tokens.css";
+@import "./base.css";
+@import "./chrome.css";
+@import "./hero.css";
+@import "./home.css";
+@import "./session.css";
+@import "./responsive.css";

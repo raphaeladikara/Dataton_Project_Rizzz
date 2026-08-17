@@ -1,0 +1,25 @@
+{
+  "python.defaultInterpreterPath": "/Users/timotiuspatrick/Documents/Patrick/Kuliah & Coding/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
+  "jupyter.interactiveWindow.creationMode": "perFile",
+  "notebook.output.textLineLimit": 80,
+  "notebook.output.scrolling": true,
+
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.ipynb_checkpoints": true,
+    "**/.pytest_cache": true,
+    "**/.DS_Store": true
+  },
+  "files.watcherExclude": {
+    "**/autism eye tracking dataset/**": true,
+    "**/Multimodal Autism Dataset/**": true
+  },
+  "search.exclude": {
+    "**/autism eye tracking dataset": true,
+    "**/Multimodal Autism Dataset": true
+  }
+}

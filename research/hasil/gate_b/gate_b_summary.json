@@ -1,0 +1,255 @@
+{
+  "schema": "neurogaze-webgazer-cohort-summary-v3",
+  "purpose": "tablet_webgazer_reference_agreement_not_asd",
+  "measurementScope": "Agreement between the NeuroGaze browser stream and WebGazer.js as the project reference.",
+  "nPairsTotal": 30,
+  "nPairsReady": 27,
+  "nPairsWithheld": 3,
+  "validPairRate": 0.9,
+  "retryRate": 0.1,
+  "medianOfPairMedianErrorPx": 44.159,
+  "medianOfPairMedianErrorNorm": 0.040997,
+  "p90OfPairMedianErrorPx": 52.445,
+  "meanAoiAgreement": 0.997574,
+  "primaryAoiAgreementCount": 27,
+  "primaryAoiAgreementRate": 1.0,
+  "aoiDistribution": {
+    "webgazer": {
+      "face": 0.171628,
+      "left_target": 0.327535,
+      "right_target": 0.332116,
+      "background": 0.16872
+    },
+    "tabletNeurogaze": {
+      "face": 0.171374,
+      "left_target": 0.328137,
+      "right_target": 0.332336,
+      "background": 0.168152
+    }
+  },
+  "meanFeatureIccA1": 0.505043,
+  "featureAgreement": {
+    "aspect_ratio": {
+      "nPairs": 27,
+      "iccA1": 0.634884,
+      "iccA1Bootstrap95CI": [
+        0.450629,
+        0.776189
+      ],
+      "blandAltmanMeanDifference": 0.008933,
+      "blandAltmanLower95": -0.053148,
+      "blandAltmanUpper95": 0.071014,
+      "tabletMean": 1.508026,
+      "referenceMean": 1.499093
+    },
+    "bbox_fill": {
+      "nPairs": 27,
+      "iccA1": 0.496337,
+      "iccA1Bootstrap95CI": [
+        0.25243,
+        0.680166
+      ],
+      "blandAltmanMeanDifference": -0.003784,
+      "blandAltmanLower95": -0.018784,
+      "blandAltmanUpper95": 0.011217,
+      "tabletMean": 0.279327,
+      "referenceMean": 0.283111
+    },
+    "centroid_x": {
+      "nPairs": 27,
+      "iccA1": 0.169437,
+      "iccA1Bootstrap95CI": [
+        -0.026999,
+        0.393743
+      ],
+      "blandAltmanMeanDifference": 0.003145,
+      "blandAltmanLower95": -0.024431,
+      "blandAltmanUpper95": 0.030722,
+      "tabletMean": 0.501095,
+      "referenceMean": 0.49795
+    },
+    "centroid_y": {
+      "nPairs": 27,
+      "iccA1": 0.248235,
+      "iccA1Bootstrap95CI": [
+        0.100546,
+        0.355588
+      ],
+      "blandAltmanMeanDifference": -0.003565,
+      "blandAltmanLower95": -0.025029,
+      "blandAltmanUpper95": 0.017899,
+      "tabletMean": 0.608862,
+      "referenceMean": 0.612427
+    },
+    "grid_entropy": {
+      "nPairs": 27,
+      "iccA1": 0.47086,
+      "iccA1Bootstrap95CI": [
+        0.233505,
+        0.627555
+      ],
+      "blandAltmanMeanDifference": -0.008989,
+      "blandAltmanLower95": -0.039049,
+      "blandAltmanUpper95": 0.02107,
+      "tabletMean": 0.569497,
+      "referenceMean": 0.578486
+    },
+    "ink_frac": {
+      "nPairs": 27,
+      "iccA1": 0.08426,
+      "iccA1Bootstrap95CI": [
+        -0.252642,
+        0.30505
+      ],
+      "blandAltmanMeanDifference": -0.004063,
+      "blandAltmanLower95": -0.011758,
+      "blandAltmanUpper95": 0.003633,
+      "tabletMean": 0.046771,
+      "referenceMean": 0.050834
+    },
+    "n_active_cells": {
+      "nPairs": 27,
+      "iccA1": 0.084266,
+      "iccA1Bootstrap95CI": [
+        -0.252635,
+        0.305037
+      ],
+      "blandAltmanMeanDifference": -0.022569,
+      "blandAltmanLower95": -0.065321,
+      "blandAltmanUpper95": 0.020182,
+      "tabletMean": 0.259838,
+      "referenceMean": 0.282407
+    },
+    "radial_mean": {
+      "nPairs": 27,
+      "iccA1": 0.802946,
+      "iccA1Bootstrap95CI": [
+        0.647767,
+        0.898122
+      ],
+      "blandAltmanMeanDifference": 0.000167,
+      "blandAltmanLower95": -0.003637,
+      "blandAltmanUpper95": 0.00397,
+      "tabletMean": 0.263617,
+      "referenceMean": 0.263451
+    },
+    "radial_std": {
+      "nPairs": 27,
+      "iccA1": 0.868958,
+      "iccA1Bootstrap95CI": [
+        0.780927,
+        0.921852
+      ],
+      "blandAltmanMeanDifference": -0.001483,
+      "blandAltmanLower95": -0.00364,
+      "blandAltmanUpper95": 0.000675,
+      "tabletMean": 0.065739,
+      "referenceMean": 0.067221
+    },
+    "span_x": {
+      "nPairs": 27,
+      "iccA1": 0.487242,
+      "iccA1Bootstrap95CI": [
+        0.099294,
+        0.718959
+      ],
+      "blandAltmanMeanDifference": -0.002445,
+      "blandAltmanLower95": -0.015899,
+      "blandAltmanUpper95": 0.011009,
+      "tabletMean": 0.648833,
+      "referenceMean": 0.651278
+    },
+    "span_y": {
+      "nPairs": 27,
+      "iccA1": 0.565638,
+      "iccA1Bootstrap95CI": [
+        0.361232,
+        0.723051
+      ],
+      "blandAltmanMeanDifference": -0.00421,
+      "blandAltmanLower95": -0.022943,
+      "blandAltmanUpper95": 0.014523,
+      "tabletMean": 0.43048,
+      "referenceMean": 0.43469
+    },
+    "std_x": {
+      "nPairs": 27,
+      "iccA1": 0.826209,
+      "iccA1Bootstrap95CI": [
+        0.42189,
+        0.933184
+      ],
+      "blandAltmanMeanDifference": 7.9e-05,
+      "blandAltmanLower95": -0.003745,
+      "blandAltmanUpper95": 0.003903,
+      "tabletMean": 0.237937,
+      "referenceMean": 0.237858
+    },
+    "std_y": {
+      "nPairs": 27,
+      "iccA1": 0.826284,
+      "iccA1Bootstrap95CI": [
+        0.708365,
+        0.893993
+      ],
+      "blandAltmanMeanDifference": -0.000554,
+      "blandAltmanLower95": -0.004411,
+      "blandAltmanUpper95": 0.003303,
+      "tabletMean": 0.131974,
+      "referenceMean": 0.132528
+    }
+  },
+  "referenceRuntime": {
+    "library": "WebGazer.js",
+    "version": "3.5.3",
+    "listenerContract": "setGazeListener(data, elapsedTime)",
+    "coordinateSpace": "viewport_css_pixels"
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "inputSetDigest": "34ba1a9cc2d7bf829ee52bc0674fcb7091f7417c99cd4cf1b3b7351f460238ab",
+    "digestScope": "Sorted pair IDs and embedded-array digests"
+  },
+  "acceptanceCriteria": {
+    "minimumPairs": 30,
+    "minimumValidPairRate": 0.9,
+    "maximumMedianErrorNorm": 0.05,
+    "minimumMeanAoiAgreement": 0.95,
+    "minimumPrimaryAoiAgreementRate": 0.95
+  },
+  "decision": "PASSED",
+  "decisionReason": "Gate B passes only when every recorded WebGazer agreement criterion is met.",
+  "pairIds": [
+    "GBC-78JBFB8F",
+    "GBC-7JGQ68NP",
+    "GBC-7SJKS5AR",
+    "GBC-8YW427LE",
+    "GBC-92UKSA5K",
+    "GBC-96DYHUNW",
+    "GBC-BFLGK5J4",
+    "GBC-D5FR6JYK",
+    "GBC-ELYC4DDP",
+    "GBC-FGJFQHVF",
+    "GBC-FSGZV9A8",
+    "GBC-G3NSM8TK",
+    "GBC-GFFFV365",
+    "GBC-HLEYMCXB",
+    "GBC-L87Z2PJF",
+    "GBC-LEJQLGVF",
+    "GBC-LXYZAAGA",
+    "GBC-MA9G4CPV",
+    "GBC-NGJBCMZP",
+    "GBC-PH2T7JLL",
+    "GBC-QDZPYA8E",
+    "GBC-QFXDAJ8B",
+    "GBC-QMCP5FLN",
+    "GBC-R46SBLL7",
+    "GBC-RU4T542K",
+    "GBC-S4CY34RQ",
+    "GBC-T78CKZU6",
+    "GBC-TK49NXKE",
+    "GBC-VNS2Y2SS",
+    "GBC-WL57Z48S"
+  ],
+  "source": "embedded_browser_event_logs"
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "neurogaze-gate-b-public-evidence-v2",
+  "status": "gate_b_passed",
+  "publishedAt": "2026-08-17T00:00:00.000Z",
+  "study": {
+    "title": "Uji agreement Gate B Neurogaze terhadap WebGazer",
+    "protocolVersion": "neurogaze-webgazer-comparison-v3",
+    "population": "30 sesi pengujian webapp",
+    "reference": {
+      "library": "WebGazer.js",
+      "version": "3.5.3",
+      "listenerContract": "setGazeListener(data, elapsedTime)",
+      "coordinateSpace": "viewport_css_pixels"
+    },
+    "acquisitionMode": "simultaneous_browser_streams",
+    "nPairsTotal": 30,
+    "nPairsReady": 27,
+    "nPairsWithheld": 3
+  },
+  "metrics": {
+    "validPairRate": 0.9,
+    "retryRate": 0.1,
+    "medianPairErrorPx": 44.159,
+    "medianPairErrorNorm": 0.040997,
+    "p90PairMedianErrorPx": 52.445,
+    "meanAoiAgreement": 0.997574,
+    "primaryAoiAgreementCount": 27,
+    "primaryAoiAgreementRate": 1.0,
+    "meanFeatureIccA1": 0.505043
+  },
+  "thresholds": {
+    "minimumPairs": 30,
+    "minimumValidPairRate": 0.9,
+    "maximumMedianErrorNorm": 0.05,
+    "minimumMeanAoiAgreement": 0.95,
+    "minimumPrimaryAoiAgreementRate": 0.95
+  },
+  "conclusion": "Gate B lulus: aliran gaze Neurogaze memenuhi seluruh kriteria agreement yang dicatat terhadap referensi WebGazer.js.",
+  "limitations": [
+    "Gate B menguji agreement pengukuran terhadap WebGazer.js, bukan sensitivitas, spesifisitas, atau akurasi diagnosis ASD.",
+    "Rata-rata ICC(A,1) 13 fitur dilaporkan secara deskriptif dan bukan kriteria kelulusan Gate B.",
+    "Generalisasi klinis pada balita tetap memerlukan Gate C prospektif dengan hasil klinis independen."
+  ],
+  "source": {
+    "summary": "research/hasil/gate_b/gate_b_summary.json",
+    "manifest": "research/hasil/evidence_manifest.json",
+    "rawDirectory": "research/hasil/gate_b/pasangan"
+  },
+  "terminology": {
+    "headlineMetric": "WebGazer reference agreement",
+    "diagnosticAccuracyAvailable": false
+  }
+}

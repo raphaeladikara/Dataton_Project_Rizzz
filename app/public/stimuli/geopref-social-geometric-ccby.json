@@ -1,0 +1,15 @@
+{
+  "schema_version": "neurogaze-stimulus-attribution-v1",
+  "title": "GeoPref Stimulus Video Example",
+  "source_article": "The geometric preference subtype in ASD: identifying a consistent, early-emerging phenomenon through eye tracking",
+  "authors": "Moore et al.",
+  "year": 2018,
+  "doi": "10.1186/s13229-018-0202-z",
+  "pmcid": "PMC5861622",
+  "license": "CC BY 4.0",
+  "source_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5861622/supplementaryFiles",
+  "local_file": "/stimuli/geopref-social-geometric-ccby.mp4",
+  "duration_seconds": 16.75,
+  "sha256": "38576193099bec758837036582b7814a2728c431829e22f9d0e92ffe91fedf2f",
+  "scope_note": "Hanya contoh stimulus publik. Aset ini bukan rangkaian GeoPref lengkap berdurasi 90 detik dan tidak dapat mereplikasi protokol asli dengan sendirinya."
+}

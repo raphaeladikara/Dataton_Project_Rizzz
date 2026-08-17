@@ -1,0 +1,25 @@
+{
+  "measured_at": "2026-08-03T08:10:48.393Z",
+  "environment": {
+    "type": "desktop_reference_not_tablet",
+    "platform": "win32",
+    "release": "10.0.26200",
+    "architecture": "x64",
+    "cpu": "Intel(R) Core(TM) Ultra 5 135H",
+    "logical_cores": 18,
+    "node": "v24.14.1"
+  },
+  "workload": "360 gaze points -> 640x480 raster -> 13 geometry features -> calibrated LR",
+  "iterations": 250,
+  "latency_ms": {
+    "median": 4.933400000000006,
+    "p90": 7.6678,
+    "p99": 10.981400000000008,
+    "max": 18.95029999999997
+  },
+  "tablet_measurement": {
+    "status": "pending_physical_android_device",
+    "harness": "The PWA report records performance.now() extraction+inference latency on every run.",
+    "claim_allowed": false
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "pertanyaan": "Apakah membuang 6 fitur turunan warna merugikan performa secara berarti?",
+  "aturan_keputusan": {
+    "K1_ambang_auc_anak": 0.8,
+    "K2_margin_noninferioritas": -0.05,
+    "ditetapkan": "sebelum melihat hasil"
+  },
+  "n_citra": 547,
+  "n_partisipan": 54,
+  "n_fitur_penuh": 19,
+  "n_fitur_geometri": 13,
+  "fitur_dibuang": [
+    "vel_mean",
+    "vel_std",
+    "acc_mean",
+    "jerk_mean",
+    "fixation_ratio",
+    "saccade_ratio"
+  ],
+  "fitur_geometri": [
+    "ink_frac",
+    "centroid_x",
+    "centroid_y",
+    "std_x",
+    "std_y",
+    "span_x",
+    "span_y",
+    "radial_mean",
+    "radial_std",
+    "grid_entropy",
+    "n_active_cells",
+    "bbox_fill",
+    "aspect_ratio"
+  ],
+  "model_pra_tetap": "Logistic Regression",
+  "hasil": {
+    "penuh": {
+      "auc_anak": 0.8448,
+      "ci95": [
+        0.7296,
+        0.9439
+      ],
+      "auc_citra": 0.7531,
+      "titik_kerja": {
+        "threshold": 0.3025,
+        "sensitivity": 0.9231,
+        "specificity": 0.4286,
+        "ppv": 0.6
+      },
+      "ppv_prevalensi_1persen": 0.0161
+    },
+    "geometri": {
+      "auc_anak": 0.831,
+      "ci95": [
+        0.7117,
+        0.9327
+      ],
+      "auc_citra": 0.77,
+      "titik_kerja": {
+        "threshold": 0.1514,
+        "sensitivity": 1.0,
+        "specificity": 0.2143,
+        "ppv": 0.5417
+      },
+      "ppv_prevalensi_1persen": 0.0127
+    }
+  },
+  "selisih_berpasangan": {
+    "delta": -0.0137,
+    "ci_low": -0.0593,
+    "ci_high": 0.0247
+  },
+  "auc_semua_model": [
+    {
+      "set_fitur": "penuh",
+      "model": "Logistic Regression",
+      "auc_citra": 0.7531,
+      "auc_anak": 0.8448
+    },
+    {
+      "set_fitur": "penuh",
+      "model": "SVM (RBF)",
+      "auc_citra": 0.7333,
+      "auc_anak": 0.8489
+    },
+    {
+      "set_fitur": "penuh",
+      "model": "Naive Bayes",
+      "auc_citra": 0.7753,
+      "auc_anak": 0.8338
+    },
+    {
+      "set_fitur": "penuh",
+      "model": "Random Forest",
+      "auc_citra": 0.7627,
+      "auc_anak": 0.864
+    },
+    {
+      "set_fitur": "penuh",
+      "model": "Gradient Boosting",
+      "auc_citra": 0.7655,
+      "auc_anak": 0.8626
+    },
+    {
+      "set_fitur": "geometri",
+      "model": "Logistic Regression",
+      "auc_citra": 0.77,
+      "auc_anak": 0.831
+    },
+    {
+      "set_fitur": "geometri",
+      "model": "SVM (RBF)",
+      "auc_citra": 0.743,
+      "auc_anak": 0.8544
+    },
+    {
+      "set_fitur": "geometri",
+      "model": "Naive Bayes",
+      "auc_citra": 0.7867,
+      "auc_anak": 0.8585
+    },
+    {
+      "set_fitur": "geometri",
+      "model": "Random Forest",
+      "auc_citra": 0.7597,
+      "auc_anak": 0.8599
+    },
+    {
+      "set_fitur": "geometri",
+      "model": "Gradient Boosting",
+      "auc_citra": 0.7599,
+      "auc_anak": 0.8654
+    }
+  ],
+  "cohens_d": {
+    "n_active_cells": 1.685,
+    "ink_frac": 1.5,
+    "span_y": 1.478,
+    "grid_entropy": 1.471,
+    "radial_mean": 1.374,
+    "span_x": 1.312,
+    "radial_std": 1.294,
+    "vel_mean": 1.218,
+    "std_y": 1.213,
+    "fixation_ratio": -1.15,
+    "std_x": 1.035,
+    "saccade_ratio": 0.898,
+    "aspect_ratio": -0.885,
+    "vel_std": 0.877,
+    "jerk_mean": -0.397,
+    "centroid_x": 0.365,
+    "acc_mean": -0.263,
+    "bbox_fill": -0.197,
+    "centroid_y": -0.077
+  },
+  "K1_lulus": true,
+  "K2_lulus": false,
+  "keputusan": "perlu_verifikasi_encoding"
+}

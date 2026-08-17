@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# Seluruh modul Python aktif ada di research/ (`features`, `evaluate`, `late_fusion`).
+pythonpath = ["research"]
+testpaths = ["tests"]
