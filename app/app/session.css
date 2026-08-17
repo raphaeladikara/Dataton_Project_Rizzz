@@ -125,6 +125,29 @@
   accent-color: var(--teal-600);
 }
 
+/* Guidance, not an error: nothing has gone wrong, the form is simply not
+   finished. Amber is the "pay attention now" role; coral would read as failure
+   to an operator with a child waiting. */
+.formBlockers {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 20px 0 0;
+  padding: 13px 15px;
+  border: 1px solid var(--amber-100);
+  border-radius: var(--r-sm);
+  background: var(--amber-50);
+  color: var(--amber-700);
+  font-size: 13px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.formBlockers svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
 .checkRow.optional {
   margin-top: 10px;
   border-color: var(--line);

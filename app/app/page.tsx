@@ -34,6 +34,7 @@ import {
 } from "../src/inference/explain";
 import { summarizeSessionObservations } from "../src/inference/sessionObservations";
 import { summarizeJointAttention } from "../src/inference/jointAttention";
+import { consentBlockers } from "../src/domain/consent";
 import { createFrameTrace } from "../src/capture/frameTrace";
 import { buildPhenotypeProfile, type PhenotypeProfile } from "../src/phenotype/profile";
 import { activeGeoprefAsset } from "../src/geopref/stimulusMeta";
@@ -760,6 +761,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     utterance.rate = 0.9;
     synth.speak(utterance);
   }
+
+  const consentIssues = useMemo(() => consentBlockers({
+    purpose: sessionPurpose,
+    childId: profile.childId,
+    ageMonths: profile.age,
+    consented,
+    researchConsent,
+    bridge: sessionPurpose === "gate_b_bridge" ? bridgeMeta : null,
+  }), [sessionPurpose, profile.childId, profile.age, consented, researchConsent, bridgeMeta]);
 
   const geoprefAsset = useMemo(() => activeGeoprefAsset(), []);
   const geoprefResult = useMemo(() => {
@@ -1881,9 +1891,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchConsent(event.target.checked)} />
               <span><strong>{isGateB ? "Wajib untuk Gate B:" : "Opsional:"}</strong> {isGateB ? "izinkan ekspor koordinat gaze bersih bertimestamp. Video dan landmark wajah tetap tidak disimpan." : "tandai log teknis pseudonim sebagai layak dipakai untuk riset. Log hanya berada di memori sampai operator mengunduhnya."}</span>
             </label>
+            {consentIssues.length > 0 && (
+              <p className="formBlockers" id="consent-blockers" role="status">
+                <IconInfo size={15} aria-hidden="true" />
+                <span>Lengkapi dulu: {consentIssues.join(" · ")}</span>
+              </p>
+            )}
             <div className="cardActions">
               <button className="secondary" onClick={() => { if (isAdminCapture) window.location.href = "/admin"; else goHome(); }}>Batal</button>
-              <button className="primary" disabled={!consented || (isGateB && !researchConsent) || !profile.childId.trim() || (isGateB && (!bridgeMeta.pairId.trim() || !bridgeMeta.visitId.trim() || !bridgeMeta.deviceId.trim() || !bridgeMeta.referenceDevice.trim() || bridgeMeta.screenWidthMm < 50 || bridgeMeta.screenHeightMm < 50 || bridgeMeta.viewingDistanceMm < 200)) || (!isEngineeringStudy && (Number(profile.age) < 16 || Number(profile.age) > 30))} onClick={beginAuditedSession}>{isEngineeringStudy ? "Lanjut periksa perangkat" : "Lanjut persiapan anak"} <IconArrowRight size={16} /></button>
+              <button className="primary" disabled={consentIssues.length > 0} aria-describedby={consentIssues.length ? "consent-blockers" : undefined} onClick={beginAuditedSession}>{isEngineeringStudy ? "Lanjut periksa perangkat" : "Lanjut persiapan anak"} <IconArrowRight size={16} /></button>
             </div>
           </div>
         </section>
