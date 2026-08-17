@@ -30,11 +30,17 @@ import type {
 } from "../src/domain/types";
 import { infer, validateModel } from "../src/inference/model";
 import {
-  explainInference,
   validateParticipantReference,
-  type ParticipantReference,
 } from "../src/inference/explain";
 import { summarizeSessionObservations } from "../src/inference/sessionObservations";
+import { summarizeJointAttention } from "../src/inference/jointAttention";
+import { consentBlockers } from "../src/domain/consent";
+import { createFrameTrace } from "../src/capture/frameTrace";
+import { buildPhenotypeProfile, type PhenotypeProfile } from "../src/phenotype/profile";
+import { activeGeoprefAsset } from "../src/geopref/stimulusMeta";
+import { geoprefLayout, GEOPREF_VIDEO_ASPECT } from "../src/geopref/protocol";
+import { scoreGeopref } from "../src/geopref/score";
+import { resolveSessionOutcome } from "../src/outcome/sessionOutcome";
 import {
   appendAuditEvent,
   createSessionAudit,
@@ -54,6 +60,9 @@ import type { GateBStudyMeta } from "../src/gateb/studyMeta";
 import { replayPoints, SCENARIOS } from "../src/replay/scenarios";
 import { geometryFeatures } from "../src/scanpath/features";
 import {
+  GEOPREF_PHASE_ID,
+  NAME_CALL_OFFSETS_MS,
+  NAME_CALL_PHASE_ID,
   phaseAtElapsed,
   scoredPhaseTargets,
   STIMULUS_PHASES,
@@ -132,6 +141,13 @@ type CalibrationProgress = {
   rejectedEye: number;
   rejectedPose: number;
 };
+
+/** Phases that show the social actor; the preferential-looking block is the nonsocial contrast. */
+const SOCIAL_PHASE_IDS = STIMULUS_PHASES.filter((phase) => phase.target !== "none").map((phase) => phase.id);
+const NAME_CALLS = NAME_CALL_OFFSETS_MS.map((offsetMs, index) => ({ index, offsetMs }));
+const EMPTY_PHENOTYPE = buildPhenotypeProfile({
+  frames: [], nameCalls: [], socialPhases: SOCIAL_PHASE_IDS, nonsocialPhases: [GEOPREF_PHASE_ID],
+});
 
 const TARGETS = [
   [0.12, 0.14],
@@ -492,7 +508,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [sessionPurpose, setSessionPurpose] = useState<SessionPurpose>(initialPurpose ?? "demo_replay");
   const [scenario, setScenario] = useState<ReplayScenario>(SCENARIOS[0]);
   const [model, setModel] = useState<ModelExport | null>(null);
-  const [participantReference, setParticipantReference] = useState<ParticipantReference | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
   const [researchConsent, setResearchConsent] = useState(false);
@@ -519,11 +534,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [calibrationMessage, setCalibrationMessage] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [points, setPoints] = useState<Point[]>([]);
+  const [phenotype, setPhenotype] = useState<PhenotypeProfile>(() => EMPTY_PHENOTYPE);
+  const [riskInterpretable, setRiskInterpretable] = useState(false);
+  // Captured when the stimulus starts, not at render time: a later resize must
+  // not move the AOIs away from where the child was actually looking.
+  const [stageAspect, setStageAspect] = useState(GEOPREF_VIDEO_ASPECT);
   const [quality, setQuality] = useState<Quality | null>(null);
   const [validity, setValidity] = useState<SessionValidityResult | null>(null);
   const [risk, setRisk] = useState<number | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
-  const [featureSummary, setFeatureSummary] = useState<Record<string, number> | null>(null);
   const [gazeDiagnostics, setGazeDiagnostics] = useState<GazePipelineDiagnostics | null>(null);
   const [cueSummary, setCueSummary] = useState<CueFeatureSummary | null>(null);
   const [oodReference, setOodReference] = useState<OodReference | null>(null);
@@ -549,6 +568,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const cameraRequestIdRef = useRef(0);
   const landmarkerRef = useRef<Awaited<ReturnType<typeof createFaceLandmarker>> | null>(null);
   const auditRef = useRef<SessionAuditLog | null>(null);
+  const frameTraceRef = useRef(createFrameTrace());
+  // The child's real given name is needed to call them, but it is identifying.
+  // It lives in a ref for the duration of the session, is never copied into
+  // `profile`, never reaches the audit log, and never leaves the device.
+  const callNameRef = useRef("");
   const stimulusPausedRef = useRef(false);
 
   useEffect(() => {
@@ -577,13 +601,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("OOD reference tidak tersedia")))
       .then((candidate: OodReference) => setOodReference(candidate))
       .catch(() => setOodReference(null));
+    // The participant reference is no longer shown anywhere, but validating it
+    // on load still catches a corrupted or mismatched artifact at startup.
     fetch("/models/participant_reference.json")
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("Referensi partisipan tidak tersedia")))
-      .then((candidate: unknown) => {
-        validateParticipantReference(candidate);
-        setParticipantReference(candidate);
-      })
-      .catch(() => setParticipantReference(null));
+      .then((candidate: unknown) => validateParticipantReference(candidate))
+      .catch(() => undefined);
     const updateOnline = () => setOnline(navigator.onLine);
     updateOnline();
     window.addEventListener("online", updateOnline);
@@ -717,15 +740,55 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStage("home");
   }
 
-  const decision = useMemo(() => {
-    if (!quality?.passed || risk === null || !model) return "withheld";
-    return risk >= model.decision.refer_if_probability_gte ? "refer" : "monitor";
-  }, [quality, risk, model]);
-  const featureEvidence = useMemo(
-    () => model && featureSummary ? explainInference(model, featureSummary, participantReference) : [],
-    [featureSummary, model, participantReference],
-  );
-  const sessionObservations = useMemo(() => summarizeSessionObservations(cueSummary), [cueSummary]);
+  // Feature attributions are no longer surfaced: the Carette model does not
+  // drive any decision, so explaining its contributions would imply it does.
+  // explainInference stays in the research code and the paper.
+  /**
+   * Speaks the child's name from the tablet speaker. Perochon et al. 2023 used
+   * an examiner calling from behind the child; the tablet speaker keeps the
+   * timing exact and removes the need for a second person. Falls back to a
+   * haptic prompt so the operator can call the name themselves.
+   */
+  function speakChildName() {
+    const name = callNameRef.current.trim();
+    const synth = typeof window === "undefined" ? undefined : window.speechSynthesis;
+    if (!name || !synth) {
+      navigator.vibrate?.([100, 80, 100]);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(name);
+    utterance.lang = "id-ID";
+    utterance.rate = 0.9;
+    synth.speak(utterance);
+  }
+
+  const consentIssues = useMemo(() => consentBlockers({
+    purpose: sessionPurpose,
+    childId: profile.childId,
+    ageMonths: profile.age,
+    consented,
+    researchConsent,
+    bridge: sessionPurpose === "gate_b_bridge" ? bridgeMeta : null,
+  }), [sessionPurpose, profile.childId, profile.age, consented, researchConsent, bridgeMeta]);
+
+  const geoprefAsset = useMemo(() => activeGeoprefAsset(), []);
+  const geoprefResult = useMemo(() => {
+    const geoprefPoints = points.filter((point) => point.phase === GEOPREF_PHASE_ID);
+    if (!geoprefPoints.length) return null;
+    return scoreGeopref(geoprefPoints, {
+      ...geoprefLayout(profile.childId || "NG-0000"),
+      validatedProtocol: geoprefAsset.validatedProtocol,
+      viewportAspect: stageAspect,
+    });
+  }, [points, profile.childId, geoprefAsset, stageAspect]);
+  const jointAttention = useMemo(() => summarizeJointAttention(cueSummary), [cueSummary]);
+  const sessionOutcome = useMemo(() => resolveSessionOutcome({
+    mode,
+    qualityPassed: Boolean(quality?.passed),
+    validityCanScore: Boolean(validity?.canScore),
+    geopref: geoprefResult,
+    jointAttention,
+  }), [mode, quality, validity, geoprefResult, jointAttention]);
   const isGateA = sessionPurpose === "gate_a_adult";
   const isGateB = sessionPurpose === "gate_b_bridge";
   const isEngineeringStudy = isGateA || isGateB;
@@ -774,6 +837,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStimulusPhase(null);
     commitAudit(null);
     setPoints([]);
+    setPhenotype(EMPTY_PHENOTYPE);
+    callNameRef.current = "";
+    frameTraceRef.current.reset();
     setProgress(0);
     setStage("consent");
   }
@@ -1200,7 +1266,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStimulusPhase(runPhases[0]);
     setStimulusCueActive(runPhases[0].cueOnsetMs === 0);
     setStimulusOstensiveActive(runPhases[0].ostensiveOnsetMs === 0);
-    recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0 });
+    const capturedStageAspect = window.innerWidth / Math.max(window.innerHeight, 1);
+    setStageAspect(capturedStageAspect);
+    recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0, stageAspect: Number(capturedStageAspect.toFixed(4)) });
     let captured: Point[] = [];
     const rawCaptured: Point[] = [];
     const rawSignals: Array<{ u: number; v: number }> = [];
@@ -1244,6 +1312,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       let phaseIndex = -1;
       const cueStartedPhaseIds = new Set<string>();
       const ostensiveStartedPhaseIds = new Set<string>();
+      const nameCallsDelivered = new Set<number>();
       while (performance.now() - startedAt - pausedTotalMs < durationMs) {
         if (stimulusPausedRef.current) {
           pausedAt ??= performance.now();
@@ -1274,8 +1343,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         if (phaseState.cueActive && !cueStartedPhaseIds.has(phaseState.phase.id)) {
           cueStartedPhaseIds.add(phaseState.phase.id);
           setStimulusCueActive(true);
-          if (phaseState.phase.id.startsWith("name_call")) navigator.vibrate?.([100, 80, 100]);
           recordAudit("stimulus.cue_started", { id: phaseState.phase.id, elapsedMs: Math.round(elapsed), plannedOnsetMs: phaseState.phase.cueOnsetMs });
+        }
+        if (phaseState.phase.id === NAME_CALL_PHASE_ID) {
+          NAME_CALL_OFFSETS_MS.forEach((offsetMs, index) => {
+            if (nameCallsDelivered.has(index) || phaseState.phaseElapsedMs < offsetMs) return;
+            nameCallsDelivered.add(index);
+            speakChildName();
+            // The spoken name is never written here: only the fact that a call
+            // was delivered and when, so the audit log stays pseudonymous.
+            recordAudit("stimulus.name_called", { callIndex: index, phaseElapsedMs: Math.round(phaseState.phaseElapsedMs), spoken: callNameRef.current.length > 0 });
+          });
         }
         const result = landmarker.detectForVideo(video, frameStartedAt);
         attemptedFrames += 1;
@@ -1283,6 +1361,19 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           faceFrames += 1;
           setTracking(trackingSnapshot(result.faceLandmarks[0], { width: video.videoWidth, height: video.videoHeight }));
           const measurement = eyeMeasurement(result.faceLandmarks[0]);
+          // Pose and eye opening are behavioural signal, not just gate inputs.
+          // Keep every frame, including ones the gaze pipeline rejects.
+          frameTraceRef.current.record({
+            t: elapsed,
+            phase: phaseState.phase.id,
+            faceDetected: true,
+            accepted: measurement.accepted,
+            reason: measurement.reason,
+            eyeOpen: measurement.eyeOpen,
+            yaw: measurement.yaw,
+            pitch: measurement.pitch,
+            rollDeg: measurement.rollDeg,
+          });
           if (measurement.accepted && measurement.signal) {
             rawSignals.push(measurement.signal);
             const gaze = applyCalibration(calibration, measurement.signal);
@@ -1292,7 +1383,20 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           } else {
             eyeRejectedFrames += 1;
           }
-        } else setTracking(null);
+        } else {
+          frameTraceRef.current.record({
+            t: elapsed,
+            phase: phaseState.phase.id,
+            faceDetected: false,
+            accepted: false,
+            reason: "landmarks",
+            eyeOpen: 0,
+            yaw: 0,
+            pitch: 0,
+            rollDeg: 0,
+          });
+          setTracking(null);
+        }
         setProgress(Math.min(99, Math.round((elapsed / durationMs) * 100)));
         await pause(Math.max(0, 50 - (performance.now() - frameStartedAt)));
       }
@@ -1309,6 +1413,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStimulusPhase(null);
     setStimulusCueActive(false);
     setPoints(captured);
+    setPhenotype(buildPhenotypeProfile({
+      frames: frameTraceRef.current.samples(),
+      nameCalls: NAME_CALLS,
+      socialPhases: SOCIAL_PHASE_IDS,
+      nonsocialPhases: [GEOPREF_PHASE_ID],
+    }));
     const frameRate = faceFrames / Math.max(attemptedFrames, 1);
     const dropout =
       mode === "replay"
@@ -1378,13 +1488,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       ? baseQuality
       : { ...baseQuality, passed: false, reasons: [...baseQuality.reasons, ...(nextValidity.canScore ? [] : [nextValidity.userMessage])] };
     const inferenceStarted = performance.now();
-    // The bundled LR is a legacy replay model (school-age, 250 Hz raster input,
-    // demo threshold). It must never issue a live toddler referral.
-    const nextRisk = mode === "replay" && nextValidity.canScore && nextQuality.passed && model
+    // The bundled LR is trained on Carette scanpath rasters, whose geometric
+    // features encode where that study's stimulus content sat on screen. The
+    // decision boundary therefore does not transfer to this stimulus, on top of
+    // the age and sampling-rate gaps. It runs so the research panel can show
+    // the OOD guard rejecting it, and never drives a referral.
+    const nextRisk = nextValidity.canScore && nextQuality.passed && model
       ? infer(model, features)
       : null;
+    const riskIsInterpretable = mode === "replay" && Boolean(nextOod?.passed);
+    setRiskInterpretable(riskIsInterpretable);
     setLatencyMs(performance.now() - inferenceStarted);
-    setFeatureSummary(features);
     setCueSummary(nextCueSummary);
     setOodAssessment(nextOod);
     setQuality(nextQuality);
@@ -1420,6 +1534,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         ood: nextOod,
         cueFeatures: nextCueSummary,
         aoiVersion: AOI_VERSION,
+        // Exported so a recorded session can be replayed with the same
+        // phenotype indices it produced live. Pose and eye opening are derived
+        // scalars, not landmarks: no face geometry is reconstructable.
+        ...(mode === "live" ? { processedPoints: captured, frames: frameTraceRef.current.samples() } : {}),
         ...(isGateB ? { cleanSamples: captured } : {}),
       };
       const next = appendAuditEvent(
@@ -1453,6 +1571,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStimulusOstensiveActive(false);
     stimulusPausedRef.current = false;
     setPoints([]);
+    setPhenotype(EMPTY_PHENOTYPE);
+    callNameRef.current = "";
+    frameTraceRef.current.reset();
     setCalibration(null);
     setCalibrationMessage(null);
     setCalibrationAttempts(0);
@@ -1746,6 +1867,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {isEngineeringStudy ? <label><span><IconResearch size={14} />Jenis sesi</span><input value={isGateB ? "Gate B · WebGazer agreement" : "Dewasa · validasi engineering"} disabled /></label> : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
               <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
               <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
+              {!isEngineeringStudy && <label className="transientField"><span><IconTimer size={14} />Nama panggilan anak</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. Kosongkan bila Anda ingin memanggil sendiri.</small></label>}
             </div>
             {isGateB && <div className="bridgeSetup" aria-label="Metadata pasangan Gate B">
               <div className="bridgeSetupHead"><div><strong>Kontrak pasangan</strong><small>Nilai ini harus identik pada aliran Neurogaze dan WebGazer.</small></div><span>Gate B · riset</span></div>
@@ -1769,9 +1891,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchConsent(event.target.checked)} />
               <span><strong>{isGateB ? "Wajib untuk Gate B:" : "Opsional:"}</strong> {isGateB ? "izinkan ekspor koordinat gaze bersih bertimestamp. Video dan landmark wajah tetap tidak disimpan." : "tandai log teknis pseudonim sebagai layak dipakai untuk riset. Log hanya berada di memori sampai operator mengunduhnya."}</span>
             </label>
+            {consentIssues.length > 0 && (
+              <p className="formBlockers" id="consent-blockers" role="status">
+                <IconInfo size={15} aria-hidden="true" />
+                <span>Lengkapi dulu: {consentIssues.join(" · ")}</span>
+              </p>
+            )}
             <div className="cardActions">
               <button className="secondary" onClick={() => { if (isAdminCapture) window.location.href = "/admin"; else goHome(); }}>Batal</button>
-              <button className="primary" disabled={!consented || (isGateB && !researchConsent) || !profile.childId.trim() || (isGateB && (!bridgeMeta.pairId.trim() || !bridgeMeta.visitId.trim() || !bridgeMeta.deviceId.trim() || !bridgeMeta.referenceDevice.trim() || bridgeMeta.screenWidthMm < 50 || bridgeMeta.screenHeightMm < 50 || bridgeMeta.viewingDistanceMm < 200)) || (!isEngineeringStudy && (Number(profile.age) < 16 || Number(profile.age) > 30))} onClick={beginAuditedSession}>{isEngineeringStudy ? "Lanjut periksa perangkat" : "Lanjut persiapan anak"} <IconArrowRight size={16} /></button>
+              <button className="primary" disabled={consentIssues.length > 0} aria-describedby={consentIssues.length ? "consent-blockers" : undefined} onClick={beginAuditedSession}>{isEngineeringStudy ? "Lanjut periksa perangkat" : "Lanjut persiapan anak"} <IconArrowRight size={16} /></button>
             </div>
           </div>
         </section>
@@ -1971,39 +2099,43 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <div className="reportHeader">
             <div>
               <span className="eyebrow">Laporan sesi · {profile.childId}</span>
-              <h1>{mode === "live" ? (isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : quality.passed ? "Sesi terukur, interpretasi belum tersedia" : "Rekaman perlu diulang") : decision === "refer" ? "Disarankan pemeriksaan lanjutan" : decision === "monitor" ? "Belum ditemukan tanda kuat untuk rujukan" : "Tes belum dapat dinilai"}</h1>
+              <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : sessionOutcome.headline}</h1>
               <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
             </div>
-            <span className={`decisionBadge ${mode === "live" ? "research" : decision}`}>
-              {mode === "live" ? <IconResearch size={15} /> : decision === "refer" ? <IconScanpathSpread size={15} /> : decision === "monitor" ? <IconScanpathFocus size={15} /> : <IconSignalHeld size={15} />}
-              {mode === "live" ? (isEngineeringStudy ? (quality.passed ? "LULUS TEKNIS · TANPA SKOR" : "BELUM LULUS · TANPA SKOR") : quality.passed ? "TERUKUR · TANPA ARAHAN RUJUKAN" : "REKAMAN DITAHAN") : decision === "refer" ? "PERIKSA LANJUT" : decision === "monitor" ? "PANTAU" : "DITAHAN"}
+            <span className={`decisionBadge ${isEngineeringStudy ? "research" : sessionOutcome.emitsReferral ? "refer" : sessionOutcome.kind === "WITHHELD" ? "withheld" : "monitor"}`}>
+              {isEngineeringStudy ? <IconResearch size={15} /> : sessionOutcome.emitsReferral ? <IconScanpathSpread size={15} /> : sessionOutcome.kind === "WITHHELD" ? <IconSignalHeld size={15} /> : <IconScanpathFocus size={15} />}
+              {isEngineeringStudy ? (quality.passed ? "LULUS TEKNIS · TANPA SKOR" : "BELUM LULUS · TANPA SKOR") : sessionOutcome.emitsReferral ? "PERIKSA LANJUT" : sessionOutcome.kind === "WITHHELD" ? "REKAMAN DITAHAN" : "TERUKUR"}
             </span>
           </div>
           <div className="warning">
             <span aria-hidden="true"><IconAlert size={18} /></span>
-            <p><strong>Bukan diagnosis ASD.</strong> {mode === "live" && !isEngineeringStudy ? "Sistem menampilkan pengukuran sesi, tetapi tidak mengeluarkan arahan rujukan otomatis. Model yang tersedia belum cocok dengan usia, perangkat, dan stimulus live ini; gunakan SDIDTK/M-CHAT serta penilaian tenaga kesehatan untuk keputusan layanan." : mode === "live" ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : "Gunakan bersama SDIDTK/M-CHAT dan penilaian tenaga kesehatan."}</p>
+            <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : "Gunakan bersama SDIDTK/M-CHAT dan penilaian tenaga kesehatan. Ambang rujukan mengikuti GeoPref (Wen dkk., 2022); indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
           </div>
-          {mode === "live" && !isEngineeringStudy && quality.passed ? (
+          {!isEngineeringStudy && quality.passed ? (
             <div className="observationReport">
+              {sessionOutcome.recordedSession && <p className="recordedBanner" role="status"><IconInfo size={15} /> Simulasi dengan hasil tetap untuk menguji alur. Indeks perilaku hanya terisi pada sesi kamera.</p>}
               <article className="observationLead">
                 <span className="resultIcon" aria-hidden="true"><IconShieldCheck size={28} /></span>
-                <div><small>Status interpretasi</small><h2>Sesi berhasil diukur. Risiko ASD belum boleh disimpulkan.</h2><p>Rekaman cukup jelas, tetapi Neurogaze belum memiliki batas pembanding balita yang tervalidasi untuk sesi kamera ini.</p><span className="observationStatus"><IconCheck size={14} /> Data cukup <i /> <IconSignalHeld size={14} /> Interpretasi dikunci</span></div>
+                <div><small>Hasil pengukuran sesi ini</small><h2>{sessionOutcome.headline}</h2><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
               </article>
-              <section className="observationMetrics" aria-label="Pengukuran perilaku sesi">
-                <article><span><IconEye size={19} /> Waktu di area wajah</span><strong>{sessionObservations ? `${sessionObservations.faceDwellPercent.toFixed(1).replace(".", ",")}%` : "—"}</strong><p>Bagian waktu tatapan terukur yang berada di wajah.</p></article>
-                <article><span><IconJointAttention size={19} /> Waktu di objek tujuan</span><strong>{sessionObservations ? `${sessionObservations.targetDwellPercent.toFixed(1).replace(".", ",")}%` : "—"}</strong><p>Bagian waktu setelah tokoh memberi isyarat ke objek.</p></article>
-                <article><span><IconRoute size={19} /> Wajah → objek</span><strong>{sessionObservations ? `${sessionObservations.faceTargetTransitions}` : "—"}</strong><p>Jumlah peralihan langsung yang tertangkap selama sesi.</p></article>
+              <section className="observationMetrics" aria-label="Indeks perilaku sesi">
+                <article><span><IconScanpathSpread size={19} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>Ambang rujukan 69% (Wen dkk., 2022; n=1.863, spesifisitas 98%).</p></article>
+                <article><span><IconJointAttention size={19} /> Isyarat diikuti</span><strong>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</strong><p>{jointAttention?.pValue == null ? "Belum cukup percobaan." : `Uji tanda p = ${jointAttention.pValue.toFixed(3).replace(".", ",")}.`}</p></article>
+                <article><span><IconEye size={19} /> Menghadap layar</span><strong>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</strong><p>Padanan indeks ber-AUC 0,838 pada preseden tablet.</p></article>
+                <article><span><IconRoute size={19} /> Gerak kepala</span><strong>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</strong><p>Padanan indeks ber-AUC 0,864, tertinggi pada preseden.</p></article>
+                <article><span><IconTimer size={19} /> Respons nama</span><strong>{phenotype.responseToName.proportion == null ? "—" : `${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered}`}</strong><p>{phenotype.responseToName.medianLatencyMs == null ? "Belum terukur." : `Median ${Math.round(phenotype.responseToName.medianLatencyMs)} ms.`}</p></article>
+                <article><span><IconGauge size={19} /> Laju kedip</span><strong>{phenotype.blinkSocial.blinksPerMinute == null ? "—" : `${phenotype.blinkSocial.blinksPerMinute.toFixed(1).replace(".", ",")}/mnt`}</strong><p>Saat adegan sosial.</p></article>
               </section>
               <section className="observationAnswer">
                 <span className="observationQuestion"><IconInfo size={20} /></span>
-                <div><small>Pertanyaan yang paling penting</small><h2>Apakah waktu melihat wajah anak saya normal?</h2><p><strong>Belum dapat dinilai dari angka ini.</strong> Nilai {sessionObservations ? `${sessionObservations.faceDwellPercent.toFixed(1).replace(".", ",")}%` : "terukur"} hanya menjelaskan sesi hari ini. Kantuk, posisi, minat pada gambar, penglihatan, dan suasana dapat mengubahnya. Diperlukan pembanding anak seusia dan penilaian perkembangan sebelum menyebutnya lazim atau tidak lazim.</p></div>
+                <div><small>Cara membaca hasil ini</small><h2>{sessionOutcome.emitsReferral ? "Kenapa hasil ini perlu ditindaklanjuti?" : "Kenapa hasil ini belum berarti aman?"}</h2><p>{sessionOutcome.emitsReferral ? "Preferensi kuat pada pola geometrik jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita usia 12 sampai 49 bulan. Bawa hasil ini ke kader atau Puskesmas bersama SDIDTK." : "Ambang rujukan otomatis dirancang untuk memastikan hasil positif, bukan menyingkirkan ASD. Sensitivitasnya hanya 17 persen, jadi sebagian besar anak ASD tidak terdeteksi di sini. Indeks lain di atas adalah pengukuran deskriptif yang belum punya ambang tervalidasi; skrining perkembangan rutin tetap diperlukan."}</p></div>
               </section>
               <section className="decisionRules" aria-labelledby="decision-rules-heading">
                 <div className="decisionRulesHead"><small>Cara membaca status</small><h2 id="decision-rules-heading">Kapan sistem memberi arahan?</h2></div>
                 <div className="decisionRuleGrid">
-                  <article><span className="ruleIcon withheld"><IconSignalHeld size={18} /></span><div><small>DATA KURANG</small><strong>Sesi ditahan</strong><p>Wajah sering hilang, kalibrasi gagal, atau bagian tes tidak lengkap. Tidak ada hasil risiko.</p></div></article>
-                  <article className="current"><span className="ruleIcon measured"><IconResearch size={18} /></span><div><small>STATUS SESI INI</small><strong>Belum boleh ditafsirkan</strong><p>Data cukup, tetapi model risiko untuk balita dan kamera ini belum tervalidasi.</p></div></article>
-                  <article><span className="ruleIcon alert"><IconAlert size={18} /></span><div><small>JIKA SUDAH TERVALIDASI</small><strong>Waspada risiko ASD</strong><p>Hanya boleh muncul bila data lulus dan model klinis yang sesuai melewati ambangnya. Jalur ini belum aktif untuk observasi kamera.</p></div></article>
+                  <article className={sessionOutcome.kind === "WITHHELD" ? "current" : ""}><span className="ruleIcon withheld"><IconSignalHeld size={18} /></span><div><small>DATA KURANG</small><strong>Sesi ditahan</strong><p>Wajah sering hilang, kalibrasi gagal, atau bagian tes tidak lengkap. Tidak ada hasil yang dikeluarkan.</p></div></article>
+                  <article className={sessionOutcome.kind === "MEASURED_NO_RULE_IN" || sessionOutcome.kind === "MEASURED_PROTOCOL_ABBREVIATED" ? "current" : ""}><span className="ruleIcon measured"><IconResearch size={18} /></span><div><small>DI BAWAH AMBANG</small><strong>Terukur, tanpa arahan rujukan</strong><p>Pola geometrik di bawah 69 persen. Bukan tanda aman: tes ini melewatkan sebagian besar anak ASD.</p></div></article>
+                  <article className={sessionOutcome.emitsReferral ? "current" : ""}><span className="ruleIcon alert"><IconAlert size={18} /></span><div><small>DI ATAS AMBANG</small><strong>Disarankan pemeriksaan lanjutan</strong><p>Pola geometrik 69 persen ke atas. Spesifisitas 98 persen pada 1.863 balita usia 12 sampai 49 bulan.</p></div></article>
                 </div>
               </section>
               {cueSummary && <details className="reportTechnical observationDetails"><summary>Lihat angka tiap adegan</summary><div className="cueRows">{STIMULUS_PHASES.filter((phase) => phase.target === "left" || phase.target === "right").map((phase) => { const response = cueSummary.targetResponse[phase.id]; const face = cueSummary.dwellShare[phase.id]?.face; return <div key={phase.id}><span>{phase.label}</span><strong>{response ? `${Math.round(response.probability * 100)}% pada target` : "tidak terbaca"}</strong><small>{face == null ? "wajah n/a" : `${Math.round(face * 100)}% pada wajah`}{response?.latencyMs == null ? "" : ` · respons awal ${Math.round(response.latencyMs)} ms`}</small></div>; })}</div><p>Persentase ini adalah porsi waktu tatapan, bukan probabilitas ASD dan bukan nilai benar/salah.</p></details>}
@@ -2048,7 +2180,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <details className="reportTechnical">
                   <summary>Detail teknis dan privasi</summary>
                   <dl>
+                    <div><dt>Model Carette</dt><dd>{riskInterpretable ? (risk ?? 0).toFixed(2).replace(".", ",") : "ditolak OOD — tidak dipakai"}</dd></div>
+                    <div><dt>Fitur di luar rentang</dt><dd>{oodAssessment?.flaggedFeatures.length ? oodAssessment.flaggedFeatures.slice(0, 3).join(", ") : "tidak ada"}</dd></div>
                     <div><dt>Coverage/OOD</dt><dd>{oodAssessment ? `${Math.round(oodAssessment.coverage * 100)}% / ${oodAssessment.passed ? "lulus" : "flag"}` : "tidak dinilai"}</dd></div>
+                    <div><dt>Stimulus</dt><dd>{STIMULUS_VERSION}</dd></div>
+                    <div><dt>Waktu proses</dt><dd>{latencyMs === null ? "n/a" : `${latencyMs.toFixed(1)} ms`}</dd></div>
                     <div><dt>AOI/fase</dt><dd>{AOI_VERSION} / {Object.keys(cueSummary?.occupancy ?? {}).length}</dd></div>
                     <div><dt>Baterai awal</dt><dd>{deviceDiagnostics?.batteryLevel == null ? "API tidak tersedia" : `${Math.round(deviceDiagnostics.batteryLevel * 100)}%`}</dd></div>
                     <div><dt>Thermal</dt><dd>API browser tidak tersedia</dd></div>
@@ -2057,29 +2193,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   </dl>
                 </details>
               </div>
-            </div>
-          ) : decision !== "withheld" ? (
-            <div className={`resultExperience ${decision}`}>
-              <article className="resultHeroCard">
-                <span className="resultIcon" aria-hidden="true">{decision === "refer" ? <IconScanpathSpread size={28} /> : <IconScanpathFocus size={28} />}</span>
-                <div><small>{mode === "live" ? "Estimasi skrining eksperimental" : "Kesimpulan sesi demo"}</small><h2>{decision === "refer" ? "Disarankan pemeriksaan lanjutan" : "Belum ditemukan tanda kuat untuk rujukan dari sesi ini"}</h2><p>{decision === "refer" ? "Pada sesi ini, Neurogaze menemukan beberapa pola perhatian yang perlu diperiksa lebih lanjut oleh tenaga kesehatan." : "Pola perhatian yang terekam masih sesuai untuk pemantauan rutin."}</p><strong className="resultDisclaimer">{decision === "refer" ? "Hasil ini bukan diagnosis autisme." : "Hasil ini bukan jaminan bahwa tidak ada hambatan perkembangan."}</strong></div>
-              </article>
-              <section className="resultReasons" aria-labelledby="result-reasons-heading">
-                <h2 id="result-reasons-heading">Mengapa hasil ini muncul?</h2>
-                <div>
-                  <article><IconEye size={19} /><strong>{(cueSummary?.dwellShare.social_face?.face ?? 0) >= 0.25 ? "Anak cukup sering memperhatikan wajah." : "Perhatian pada wajah lebih singkat pada sesi ini."}</strong><small>Observasi deskriptif dari adegan wajah.</small></article>
-                  <article><IconJointAttention size={19} /><strong>{Math.max(cueSummary?.targetResponse.gaze_left?.probability ?? 0, cueSummary?.targetResponse.gaze_right?.probability ?? 0) >= 0.2 ? "Anak mengikuti setidaknya satu perpindahan perhatian." : "Arah perhatian menuju objek beberapa kali tidak diikuti."}</strong><small>Observasi deskriptif, bukan diagnosis.</small></article>
-                  <article><IconShieldCheck size={19} /><strong>Rekaman sesi cukup baik untuk dianalisis.</strong><small>Seluruh pemeriksaan teknis selesai sebelum inferensi.</small></article>
-                </div>
-              </section>
-              <section className="resultQuality"><span><IconGauge size={18} /></span><div><small>Kualitas sesi</small><strong>{quality.passed ? "Baik" : "Perlu diulang"}</strong></div></section>
-              <section className="resultNext"><span><IconRoute size={20} /></span><div><small>Langkah berikutnya</small><h2>{decision === "refer" ? "Tunjukkan hasil ini kepada kader atau petugas Puskesmas." : "Lanjutkan pemantauan perkembangan rutin."}</h2><p>{decision === "refer" ? "Tenaga kesehatan dapat melakukan pemeriksaan perkembangan lanjutan." : "Bila orang tua tetap memiliki kekhawatiran, konsultasikan dengan tenaga kesehatan."}</p></div></section>
-              <details className="reportTechnical">
-                <summary>Detail pengukuran</summary>
-                <div className="technicalReportGrid"><div><span>Skor demo</span><strong><Ticker value={risk ?? 0} format={(n) => n.toFixed(2).replace(".", ",")} /></strong></div><div><span>Model</span><strong>{model?.model_version}</strong></div><div><span>Stimulus</span><strong>{STIMULUS_VERSION}</strong></div><div><span>Waktu proses</span><strong>{latencyMs?.toFixed(1)} ms</strong></div></div>
-                <div className="featureEvidenceList">{featureEvidence.map((item) => <div key={item.feature}><span>{item.label}</span><strong>{item.percentile == null ? "n/a" : `P${Math.round(item.percentile * 100)}`}</strong></div>)}</div>
-                <p>Skor dan ambang hanya untuk demonstrasi dan berasal dari populasi usia sekolah, bukan ambang klinis balita.</p>
-              </details>
             </div>
           ) : (
             <div className={`withheldPanel ${mode === "live" && !isEngineeringStudy && quality.passed ? "validCapture" : ""}`}>
@@ -2104,7 +2217,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           {!busy && <div className="stimulusHeader"><Logo /><span>{isEngineeringStudy ? "Uji peserta dewasa" : "Anak cukup menonton"} · siap</span>{mode === "live" && <span className={`stimulusTracking ${tracking?.accepted ? "good" : "bad"}`}><i />{trackingCopy(tracking).title}</span>}<button onClick={restart}><IconArrowLeft size={15} /> Kembali</button></div>}
           {busy && <div className="stimulusOperatorControls"><button onClick={() => { const next = !stimulusPausedRef.current; stimulusPausedRef.current = next; setStimulusPaused(next); recordAudit(next ? "stimulus.paused" : "stimulus.resumed"); }} aria-pressed={stimulusPaused}>{stimulusPaused ? <><IconPlay size={14} /> Lanjutkan</> : "Jeda"}</button><button onClick={restart} aria-label="Hentikan stimulus"><IconArrowLeft size={14} /> Hentikan</button></div>}
           <div className={`stimulusCanvas phase-${stimulusPhase?.id ?? "ready"}`} aria-label="Adegan perhatian bersama dengan wajah dan dua mainan">
-            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} />
+            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} geoprefSource={geoprefAsset.path} geometricSide={geoprefLayout(profile.childId || "NG-0000").geometricSide} />
             {!busy && progress === 0 && <div className={`stimulusIntro ${isEngineeringStudy ? "gateA" : "child"}`}>
               <span className="stimulusAudience">{isEngineeringStudy ? `Peserta dewasa · ${isGateB ? "Gate B" : "Gate A"}` : "Instruksi untuk pengasuh"}</span>
               <strong>{isEngineeringStudy ? "Ikuti petunjuk sosial di layar." : "Tugas anak hanya menonton."}</strong>

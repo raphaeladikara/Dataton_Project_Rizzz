@@ -1,10 +1,16 @@
 "use client";
 
+import { geoprefNeedsMirror } from "../geopref/protocol";
+
 type StimulusSceneProps = {
   visualCue: string;
   cueActive: boolean;
   ostensiveActive?: boolean;
   paused?: boolean;
+  /** Path to the preferential-looking clip; absent until an asset is present. */
+  geoprefSource?: string;
+  /** Which half carries the geometric panel, counterbalanced per session. */
+  geometricSide?: "left" | "right";
 };
 
 /** One identical target object, mirrored to both sides of the model.
@@ -55,7 +61,7 @@ function PointingHand({ side }: { side: "left" | "right" }) {
   );
 }
 
-export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, paused = false }: StimulusSceneProps) {
+export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, paused = false, geoprefSource, geometricSide = "left" }: StimulusSceneProps) {
   const state = [
     "stimulusScene",
     `visual-${visualCue}`,
@@ -63,6 +69,25 @@ export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, p
     cueActive ? "cue-active" : "",
     paused ? "paused" : "",
   ].filter(Boolean).join(" ");
+
+  // The preferential-looking block replaces the vector actor entirely: the
+  // measure is where the child looks on a side-by-side geometric/social video,
+  // so nothing else may compete for attention.
+  if (visualCue === "geopref" && geoprefSource) {
+    return (
+      <div className={`${state} geoprefStage`} data-mirrored={String(geoprefNeedsMirror(geometricSide))} aria-hidden="true">
+        <video
+          className="geoprefVideo"
+          src={geoprefSource}
+          autoPlay
+          muted
+          playsInline
+          loop
+          preload="auto"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={state} aria-hidden="true">
