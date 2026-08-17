@@ -62,8 +62,11 @@ test("stimulus uses paired directional micro-trials and a non-scored ending", ()
     cursor = next;
   }
   assert.match(stimulusProtocol, /id: "positive_ending"[^\n]*scored: false/);
-  assert.doesNotMatch(stimulusProtocol, /name_call/);
-  assert.doesNotMatch(sessionCss, /visual-geopref-video|stimulusResearchVideo/);
+  // The preferential-looking and name-call blocks are scored by their own
+  // modules, so they must never carry scored: true and never enter the
+  // cue-following denominator.
+  assert.match(stimulusProtocol, /id: GEOPREF_PHASE_ID[^\n]*target: "none"[^\n]*scored: false/);
+  assert.match(stimulusProtocol, /id: NAME_CALL_PHASE_ID[^\n]*target: "none"[^\n]*scored: false/);
   assert.doesNotMatch(sessionCss, /visual-(?:gaze|point)-(?:left|right)\.cue-active[^}]*animation:/);
 });
 
