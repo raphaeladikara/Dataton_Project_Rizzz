@@ -9,7 +9,7 @@ export type StimulusPhase = {
   cueOnsetMs: number;
   cue: string;
   target: StimulusTarget;
-  visualCue: "attention" | "gaze-left" | "gaze-right" | "point-left" | "point-right" | "ending";
+  visualCue: "attention" | "gaze-left" | "gaze-right" | "point-left" | "point-right" | "ending" | "geopref";
   scored: boolean;
 };
 
@@ -44,7 +44,7 @@ export const STIMULUS_PHASES: readonly StimulusPhase[] = [
   // Preferential looking. Scored by src/geopref/score.ts against the published
   // 69% geometric-fixation cutoff rather than by the cue-following logic, so
   // target is "none" and scored is false here.
-  { id: GEOPREF_PHASE_ID, label: "Pilihan tontonan", durationMs: 17000, ostensiveOnsetMs: 0, cueOnsetMs: 0, cue: "preferential_looking", target: "none", visualCue: "attention", scored: false },
+  { id: GEOPREF_PHASE_ID, label: "Pilihan tontonan", durationMs: 17000, ostensiveOnsetMs: 0, cueOnsetMs: 0, cue: "preferential_looking", target: "none", visualCue: "geopref", scored: false },
   // Response to name. Audio plays from the tablet speaker at
   // NAME_CALL_OFFSETS_MS; the head turn is measured from the pose trace, so no
   // synchronized off-screen caller is required.

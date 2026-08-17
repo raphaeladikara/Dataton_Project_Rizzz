@@ -1,5 +1,5 @@
 import type { Point } from "../domain/types";
-import { classifyGeoprefAoi, type GeoprefSide } from "./protocol";
+import { classifyGeoprefAoi, projectGeoprefAoi, type GeoprefSide } from "./protocol";
 
 /** Wen et al. 2022, Molecular Autism: >=69% geometric fixation, n=1863, 12-49 months. */
 export const GEOPREF_THRESHOLD = 0.69;
@@ -29,12 +29,19 @@ export type GeoprefResult = {
 
 export function scoreGeopref(
   points: Point[],
-  layout: { geometricSide: GeoprefSide; socialSide: GeoprefSide; validatedProtocol: boolean },
+  layout: {
+    geometricSide: GeoprefSide;
+    socialSide: GeoprefSide;
+    validatedProtocol: boolean;
+    /** Stage width / height. The clip is letterboxed, so the AOIs move with it. */
+    viewportAspect?: number;
+  },
 ): GeoprefResult {
+  const aoiBoxes = projectGeoprefAoi(layout.viewportAspect ?? 640 / 360);
   const dwellMs: Record<"left" | "right", number> = { left: 0, right: 0 };
   let validSamples = 0;
   points.forEach((point, index) => {
-    const aoi = classifyGeoprefAoi(point);
+    const aoi = classifyGeoprefAoi(point, aoiBoxes);
     if (aoi === "outside") return;
     validSamples += 1;
     const next = points[index + 1];
