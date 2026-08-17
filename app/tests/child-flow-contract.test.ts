@@ -145,6 +145,17 @@ test("the Carette model never drives a referral and is shown only when in distri
   assert.doesNotMatch(page, /features\[[^\]]+\]\s*\|\|\s*0/);
 });
 
+test("the preferential-looking phase plays the clip, not the vector actor", () => {
+  const scene = readFileSync(new URL("../src/ui/stimulus-scene.tsx", import.meta.url), "utf8");
+  assert.match(stimulusProtocol, /id: GEOPREF_PHASE_ID[^\n]*visualCue: "geopref"/);
+  assert.match(scene, /visualCue === "geopref" && geoprefSource/);
+  assert.match(scene, /<video/);
+  // Nothing else may share the stage: the measure is which panel is looked at.
+  assert.match(scene, /geoprefStage/);
+  assert.match(sessionCss, /\.geoprefStage \{[^}]*background: #000/);
+  assert.match(page, /geoprefSource=\{geoprefAsset\.path\}/);
+});
+
 test("the only automatic referral trigger is the published GeoPref threshold", () => {
   assert.match(page, /sessionOutcome\.emitsReferral \? "PERIKSA LANJUT"/);
   const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
