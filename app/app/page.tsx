@@ -1518,6 +1518,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         ood: nextOod,
         cueFeatures: nextCueSummary,
         aoiVersion: AOI_VERSION,
+        // Exported so a recorded session can be replayed with the same
+        // phenotype indices it produced live. Pose and eye opening are derived
+        // scalars, not landmarks: no face geometry is reconstructable.
+        ...(mode === "live" ? { processedPoints: captured, frames: frameTraceRef.current.samples() } : {}),
         ...(isGateB ? { cleanSamples: captured } : {}),
       };
       const next = appendAuditEvent(
@@ -2087,7 +2091,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           </div>
           {!isEngineeringStudy && quality.passed ? (
             <div className="observationReport">
-              {sessionOutcome.recordedSession && <p className="recordedBanner" role="status"><IconInfo size={15} /> Rekaman sesi nyata yang diputar ulang — bukan sesi langsung.</p>}
+              {sessionOutcome.recordedSession && <p className="recordedBanner" role="status"><IconInfo size={15} /> Simulasi dengan hasil tetap untuk menguji alur. Indeks perilaku hanya terisi pada sesi kamera.</p>}
               <article className="observationLead">
                 <span className="resultIcon" aria-hidden="true"><IconShieldCheck size={28} /></span>
                 <div><small>Hasil pengukuran sesi ini</small><h2>{sessionOutcome.headline}</h2><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
@@ -2107,9 +2111,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <section className="decisionRules" aria-labelledby="decision-rules-heading">
                 <div className="decisionRulesHead"><small>Cara membaca status</small><h2 id="decision-rules-heading">Kapan sistem memberi arahan?</h2></div>
                 <div className="decisionRuleGrid">
-                  <article><span className="ruleIcon withheld"><IconSignalHeld size={18} /></span><div><small>DATA KURANG</small><strong>Sesi ditahan</strong><p>Wajah sering hilang, kalibrasi gagal, atau bagian tes tidak lengkap. Tidak ada hasil risiko.</p></div></article>
-                  <article className="current"><span className="ruleIcon measured"><IconResearch size={18} /></span><div><small>STATUS SESI INI</small><strong>Belum boleh ditafsirkan</strong><p>Data cukup, tetapi model risiko untuk balita dan kamera ini belum tervalidasi.</p></div></article>
-                  <article><span className="ruleIcon alert"><IconAlert size={18} /></span><div><small>JIKA SUDAH TERVALIDASI</small><strong>Waspada risiko ASD</strong><p>Hanya boleh muncul bila data lulus dan model klinis yang sesuai melewati ambangnya. Jalur ini belum aktif untuk observasi kamera.</p></div></article>
+                  <article className={sessionOutcome.kind === "WITHHELD" ? "current" : ""}><span className="ruleIcon withheld"><IconSignalHeld size={18} /></span><div><small>DATA KURANG</small><strong>Sesi ditahan</strong><p>Wajah sering hilang, kalibrasi gagal, atau bagian tes tidak lengkap. Tidak ada hasil yang dikeluarkan.</p></div></article>
+                  <article className={sessionOutcome.kind === "MEASURED_NO_RULE_IN" || sessionOutcome.kind === "MEASURED_PROTOCOL_ABBREVIATED" ? "current" : ""}><span className="ruleIcon measured"><IconResearch size={18} /></span><div><small>DI BAWAH AMBANG</small><strong>Terukur, tanpa arahan rujukan</strong><p>Pola geometrik di bawah 69 persen. Bukan tanda aman: tes ini melewatkan sebagian besar anak ASD.</p></div></article>
+                  <article className={sessionOutcome.emitsReferral ? "current" : ""}><span className="ruleIcon alert"><IconAlert size={18} /></span><div><small>DI ATAS AMBANG</small><strong>Disarankan pemeriksaan lanjutan</strong><p>Pola geometrik 69 persen ke atas. Spesifisitas 98 persen pada 1.863 balita usia 12 sampai 49 bulan.</p></div></article>
                 </div>
               </section>
               {cueSummary && <details className="reportTechnical observationDetails"><summary>Lihat angka tiap adegan</summary><div className="cueRows">{STIMULUS_PHASES.filter((phase) => phase.target === "left" || phase.target === "right").map((phase) => { const response = cueSummary.targetResponse[phase.id]; const face = cueSummary.dwellShare[phase.id]?.face; return <div key={phase.id}><span>{phase.label}</span><strong>{response ? `${Math.round(response.probability * 100)}% pada target` : "tidak terbaca"}</strong><small>{face == null ? "wajah n/a" : `${Math.round(face * 100)}% pada wajah`}{response?.latencyMs == null ? "" : ` · respons awal ${Math.round(response.latencyMs)} ms`}</small></div>; })}</div><p>Persentase ini adalah porsi waktu tatapan, bukan probabilitas ASD dan bukan nilai benar/salah.</p></details>}
