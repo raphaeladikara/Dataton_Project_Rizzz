@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "neurogaze-geometry-replay-v1",
+  "inputContract": "carette_scanpath_replay_only",
+  "raster": {
+    "width": 640,
+    "height": 480,
+    "lineRadiusPx": 1,
+    "maxConnectedGapMs": 180
+  },
+  "features": [
+    {
+      "name": "ink_frac",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "centroid_x",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "centroid_y",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "std_x",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "std_y",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "span_x",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "span_y",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "radial_mean",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "radial_std",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "grid_entropy",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "n_active_cells",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "bbox_fill",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    },
+    {
+      "name": "aspect_ratio",
+      "dtype": "float64",
+      "unit": "normalized",
+      "required": true
+    }
+  ],
+  "excluded": [
+    "velocity",
+    "acceleration",
+    "jerk"
+  ],
+  "exclusionReason": "Not reliable for noisy camera gaze without paired validation.",
+  "liveCameraScoring": false,
+  "sha256": "ddf757ccaa80addbde4647a379f646d4e30cf00d43e6cb1d43cf673b4aacfe8d"
+}

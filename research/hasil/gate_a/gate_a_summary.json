@@ -1,0 +1,20 @@
+{
+  "schema": "neurogaze-gate-a-summary-v2",
+  "source": "derived_from_original_browser_exports",
+  "sessions": 100,
+  "participants": 25,
+  "devices": 3,
+  "passed": 94,
+  "completionRate": 0.94,
+  "medianCalibrationErrorDeg": 2.207,
+  "meanValidFrameRate": 0.964,
+  "meanGazeDropout": 0.036,
+  "extractionP90Ms": 7.67,
+  "failureWarnings": {
+    "wajah_terlalu_miring": 2,
+    "orientasi_layar_berubah": 1,
+    "pantulan_kacamata": 3
+  },
+  "riskScoresEmitted": 0,
+  "interpretation": "Gate A measures device/session quality in adults, not ASD diagnostic accuracy."
+}

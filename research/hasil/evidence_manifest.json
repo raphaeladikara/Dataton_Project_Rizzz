@@ -1,0 +1,656 @@
+{
+  "schema": "neurogaze-evidence-manifest-v1",
+  "policy": "canonical raw JSON is preserved byte-for-byte and verified with SHA-256",
+  "files": [
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P01-TAB-A-3-fe8956f4.json",
+      "bytes": 11576,
+      "sha256": "da612a20b1cf92f4576c4346606bd4762d10015454fc066bb7198cbf9c7ca73a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P01-TAB-B-1-6fe0709e.json",
+      "bytes": 8644,
+      "sha256": "3370bf4542acc882c833b656133bd1dc4df29d49927507f8982936c56e3dcaa9"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P01-TAB-B-4-af1c0d0e.json",
+      "bytes": 11574,
+      "sha256": "f2f0f8dc48fbd7ca1e8bca3e5af2efc4c6ea8e4f36da369f5ed9a3dd0ab9a99f"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P01-TAB-C-2-eb66381a.json",
+      "bytes": 8635,
+      "sha256": "f07b4fd459cbeb35ea718eec8d75951d1eee34d30ff8effd7c7938ceeb619c5b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P02-TAB-A-2-cdda9b45.json",
+      "bytes": 11520,
+      "sha256": "a698c0e19e5d08d165d1f4dab9aa7d2937581303393ba833c9bbb84343fa662c"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P02-TAB-B-3-1c4e9bfe.json",
+      "bytes": 8646,
+      "sha256": "57bd4ee4ea35bcb48081e64e5f1cdaf1df688863f6499c4a1b13ca68f22f7f0a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P02-TAB-C-1-04e751b8.json",
+      "bytes": 8640,
+      "sha256": "4f59b972326290e376ad561877c0907f6788d84ff587e941d8b779a7f5221700"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P02-TAB-C-4-10028780.json",
+      "bytes": 8644,
+      "sha256": "30a81472320e9e6655bfe85b5f681f1abca0a9a8cd8c06cca7d97bd548b90ebb"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P03-TAB-A-1-c59e98a4.json",
+      "bytes": 8636,
+      "sha256": "a603dba44bcef06ae881d2dffc9586bd88514441937e5395f4cc60b0fdeff7e3"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P03-TAB-A-4-e49b71fe.json",
+      "bytes": 8640,
+      "sha256": "f44b5f7f57e3e4d08d7ab1b536771691658137e32063ea8207dbd655c3b81642"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P03-TAB-B-2-a9eef4d1.json",
+      "bytes": 11529,
+      "sha256": "dfd13c2cef8fc91fffd3ffa6ab8ddc58c129c0b41c93d4c004333690b1498c4c"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P03-TAB-C-3-e7c81dc5.json",
+      "bytes": 8637,
+      "sha256": "55b27707eef1d7d4a998a3e9bed21e4d8668aac7b6deb43c945cf7c197f4bb46"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P04-TAB-A-3-a9393e1a.json",
+      "bytes": 8632,
+      "sha256": "303653f4363ce70e28616b6c5d3ae650ecaf4945a737c1355e1a014d8c14a1fc"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P04-TAB-B-1-0a03846c.json",
+      "bytes": 8642,
+      "sha256": "dcc8d6e83da0de75782ac4429a4445d86dd3cd43f69fa546fafcbe12f114facf"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P04-TAB-B-4-a8665de8.json",
+      "bytes": 11527,
+      "sha256": "d7b4c0d71133858afa636353d09e7ba11471ea3543af0f313dc806c71568c29a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P04-TAB-C-2-717c7080.json",
+      "bytes": 8634,
+      "sha256": "c50740caa1a871f4e26d7af44b0d60e48c6d974d79d3a70133afe101ef71e64b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P05-TAB-A-2-8b98de9c.json",
+      "bytes": 8642,
+      "sha256": "8d5fb25bf4e114f45dbc72f8699ef6559cce9f90aef2743dd5adea6f76e5ae9a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P05-TAB-B-3-2e9ca991.json",
+      "bytes": 8645,
+      "sha256": "7e8c497d1a0e8b5897b93f46838c8c78d4186bf5a31410887f17db99fb28dc07"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P05-TAB-C-1-dea63095.json",
+      "bytes": 8639,
+      "sha256": "ad77553f6af6caaf0e4a6b70e54cadb5ea585fc746f9b535925c958bbbe5bcb9"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P05-TAB-C-4-7a88a599.json",
+      "bytes": 11523,
+      "sha256": "ba2ee7cdded44b8b16b2d171b421329a79345a55ae55dbd26b2db4dad61b1b82"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P06-TAB-A-1-aaefe13a.json",
+      "bytes": 8635,
+      "sha256": "5d2a88e9f3b8de75ac78e87d73746a31b2bcdedb603a2a3716428b7df7abcd58"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P06-TAB-A-4-010e8b0c.json",
+      "bytes": 8639,
+      "sha256": "94fcebd062d6ebde777b4f4d1be59639d0c6fa1862e8f67c46f6fddf0edbb9df"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P06-TAB-B-2-cad3923a.json",
+      "bytes": 8638,
+      "sha256": "c7237a9caf7d6b16df6d7fcd324e07cd139187a4ee54d7b2164193bac8be9f80"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P06-TAB-C-3-87791240.json",
+      "bytes": 8631,
+      "sha256": "05dddb630850e44963a580a0db0e376ba36ccc86189cd9d85766bab311079811"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P07-TAB-A-3-55d17f1d.json",
+      "bytes": 8627,
+      "sha256": "ddabf3474f68de091d1a47c982a0771a8d7924829570bcb00c911850f534cd7c"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P07-TAB-B-1-b1895942.json",
+      "bytes": 8647,
+      "sha256": "e65c0168bbc2092beceb4e71b05e899931aebb4192f6d4877cfec81c1f6ebd81"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P07-TAB-B-4-b1e0555f.json",
+      "bytes": 11524,
+      "sha256": "a86d71f9973bc8f0da43ccd91877f59857f5ec418b0c18fd24672c4ce05e114e"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P07-TAB-C-2-cb4191cf.json",
+      "bytes": 8633,
+      "sha256": "0d576ef4447058d3b4a7997edc97ab661e2d37cc8362437a6c6c5fde7a979e54"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P08-TAB-A-2-e32badd9.json",
+      "bytes": 11520,
+      "sha256": "aa3b189737fa403f2995be075078db9371d113a335f6bb85930c4e6b9376c0db"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P08-TAB-B-3-7413a5d8.json",
+      "bytes": 8645,
+      "sha256": "1fa1ff7d2e728d1fba36cbee44da95b75445255be5f8db4f1545f70c69b432a3"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P08-TAB-C-1-6d8d1c7b.json",
+      "bytes": 11523,
+      "sha256": "21830fadbc91759591dd8536abe802d01581c09c55b729bd47b52eb41fda0616"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P08-TAB-C-4-92949706.json",
+      "bytes": 8638,
+      "sha256": "b920910c89c70e603730bc01e95b5b25dbeb4b6d8717e00d3d410334fc44fa4e"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P09-TAB-A-1-f91a332b.json",
+      "bytes": 8627,
+      "sha256": "bd28dd50fa924aa27f7ebdff2495a4fe1b49f76d6ac5dcc7c30fcd1050afa68d"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P09-TAB-A-4-a3c3f476.json",
+      "bytes": 8634,
+      "sha256": "14e8db858beb7776d458a292d71eccf8cd67fe05024c297dbcb190aeb88dbd93"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P09-TAB-B-2-5f7db3e9.json",
+      "bytes": 8643,
+      "sha256": "88e9502866a546c71f84b6fa2a856d792b61c6ba69868e701646533d3a22e08a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P09-TAB-C-3-aa3351f4.json",
+      "bytes": 11521,
+      "sha256": "27425135840ed6fd8c0c9785c60fca1a803fcac07a4029de20f1ab40c9238c6b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P10-TAB-A-3-645a0a68.json",
+      "bytes": 8634,
+      "sha256": "e0bcbaae6b760853ab67fd1e0d0d8eb18e7b75331c16b162ae587fd26d85ec5e"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P10-TAB-B-1-42308598.json",
+      "bytes": 8645,
+      "sha256": "7525583b2bb291617117f252fa0ef8115a92c6cf1a68fa3208256926ab6bd679"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P10-TAB-B-4-38900f62.json",
+      "bytes": 8648,
+      "sha256": "68eb73a094d01fb04626ae13485ca2231b7109affde6e09b9f38f8f260289f5c"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P10-TAB-C-2-68eea36b.json",
+      "bytes": 8636,
+      "sha256": "1c158d5c04c2841bccbf82ac38e8dbe85162a664f733b4cd082627a1f8375e75"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P11-TAB-A-2-2c8690fd.json",
+      "bytes": 11519,
+      "sha256": "39ef545b4839d5dc9488ab3a180164736582abcd2d58c133d4b3fc224f6ba2ca"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P11-TAB-B-3-62a4893d.json",
+      "bytes": 11540,
+      "sha256": "b7ee7ae945e15c9d137e2e1036f3c785138de1d492a128ea5a19e2322677e122"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P11-TAB-C-1-aecb4e86.json",
+      "bytes": 8638,
+      "sha256": "b9310d83d122d46fe283316ed9cda661906b8d30354595f1296462769d7bd29b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P11-TAB-C-4-a2abbc9e.json",
+      "bytes": 11530,
+      "sha256": "9f922687b88054a1be5c14bb246d3c7ae3e8f36b06921e9e1321addf380fdc0e"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P12-TAB-A-1-16e4cb58.json",
+      "bytes": 8632,
+      "sha256": "6f652d0098b21e1c63351191eb3df3a17c20edcfeff6c01a6d2500487eba66bc"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P12-TAB-A-4-764e9608.json",
+      "bytes": 11530,
+      "sha256": "ea52bd3fe7137aa043e182a42c30713c6f4882b3317c67183f56e7264fbb3bfe"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P12-TAB-B-2-f7b9f0cc.json",
+      "bytes": 8651,
+      "sha256": "f402625bc2601b59a516e9ef8c6e6f8f94775eb2672187ef3eb5ee7d6e725d5b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P12-TAB-C-3-d7b006c7.json",
+      "bytes": 8631,
+      "sha256": "d7669feaef21e8d05ab3f671cf31a7016d192959dab359ec289b20dddfca4b84"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P13-TAB-A-3-9c53fcb8.json",
+      "bytes": 8633,
+      "sha256": "abfb339cd7a80488ea7b73502e002a01b064e77cc58159d246ff9d9540989b8a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P13-TAB-B-1-a668e716.json",
+      "bytes": 8642,
+      "sha256": "a26c32594fa158b7c89ca81fb746d2ffc20cd400132cb527f947f8e95b1e0889"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P13-TAB-B-4-1878fa3b.json",
+      "bytes": 8649,
+      "sha256": "d6b97937b7842d9f4e1152b178e9b53035bf8b06daf1e5ebe37c4f59cdeb0bce"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P13-TAB-C-2-e5b4f487.json",
+      "bytes": 8637,
+      "sha256": "c96ff2924dc7fb4f586fc09b2d4c1936a9a6ea0c7838d3abae36b72bc5a2f291"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P14-TAB-A-2-c61fb5ee.json",
+      "bytes": 8639,
+      "sha256": "8c4abc14afb55fcdce15db71b94d0dfbae0ed94e47718d1d1d172d8a16950b04"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P14-TAB-B-3-47996eaa.json",
+      "bytes": 11529,
+      "sha256": "cdec9c2c82f97f3a7b22071d6e80f2b0aa1fa65a16824d743f9d332eff43af8d"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P14-TAB-C-1-ae9e847b.json",
+      "bytes": 8636,
+      "sha256": "f16a1bce0637df6303fcb4feff27696576466d2eed04ac29522c5ffce264befb"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P14-TAB-C-4-09b33ef0.json",
+      "bytes": 8639,
+      "sha256": "81dd4bc63992917d151c931465977a28c8240336a5013efb25aa24dd6f8e2309"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P15-TAB-A-1-61a771a6.json",
+      "bytes": 8636,
+      "sha256": "ceef351779ee1aad7f283c278bd1c8dec40596fcfdc01fc45d9730189531a7cd"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P15-TAB-A-4-50aa2af9.json",
+      "bytes": 8642,
+      "sha256": "5dc8e0becaa53a0639022cd1e01a29f0f9e9225a6e55edf1cadd60faf628fe63"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P15-TAB-B-2-ed66cd3f.json",
+      "bytes": 11532,
+      "sha256": "089f3c6ce2bfec5389e86e7891a8120ff539cd205646f1b402fcf3ade20c89dc"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P15-TAB-C-3-726c44e6.json",
+      "bytes": 8635,
+      "sha256": "88470a630d687a405b853a2becb478a5d2f08a984c4da321ab77e6dc5cf24b07"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P16-TAB-A-3-dcf3d756.json",
+      "bytes": 8637,
+      "sha256": "fce96045c1361d30f1b54d29c368db9d6f985d43257fff35d14b7a16ad383d39"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P16-TAB-B-1-b5e4df2e.json",
+      "bytes": 8644,
+      "sha256": "8a610e6dcd3635d144a368135e0f8fd69acba84caaa9e9311a5065caf454bdcf"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P16-TAB-B-4-e2f710a4.json",
+      "bytes": 8647,
+      "sha256": "153ac99d6d5687e542cf47bc521b07f884d8040a58bac6de924b88f304fcbc8b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P16-TAB-C-2-6e7f39ff.json",
+      "bytes": 8637,
+      "sha256": "e6d80a19e40b156de0c10e769f9d6c7b68e34f4decc10631d93e90eca85c3a23"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P17-TAB-A-2-4f0dc2bf.json",
+      "bytes": 8636,
+      "sha256": "603342c342126a758989026b07d7722d47537fd06e19c6aea135ba3c6991fca8"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P17-TAB-B-3-53d1b0ce.json",
+      "bytes": 8645,
+      "sha256": "e68a12e370659c53d407638e4fa4f88b2b5b6164a9134faa8ed54d8a29890a5c"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P17-TAB-C-1-5118b176.json",
+      "bytes": 8634,
+      "sha256": "5086c782ff6b949e9a81bde17731601be8a53911d868636c2d742444d29d7f64"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P17-TAB-C-4-a9a360b8.json",
+      "bytes": 8630,
+      "sha256": "0c20327fe1eece475948d76efde65839baa7d5eb1562d30daef7d564592137b8"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P18-TAB-A-1-28f2bcdb.json",
+      "bytes": 11602,
+      "sha256": "8e2bfe558e0332501eb095fab41e605b5706481fd282db4e9cb94bef66c2df5f"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P18-TAB-A-4-07905d39.json",
+      "bytes": 8641,
+      "sha256": "ebff1f4cbec7635c1aff7f579a56d53a46ea6eb274ba788439f41e7a589f8d56"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P18-TAB-B-2-c2078e14.json",
+      "bytes": 8641,
+      "sha256": "4c6905232fa0ff02c65e749e882d096ee8fc027cc41bbf7db2fbc9d62fdf03fe"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P18-TAB-C-3-03793a30.json",
+      "bytes": 11521,
+      "sha256": "604dffb92583fd8f35dfa81406301fe21099612542562bb3b96f6cc1a5091db8"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P19-TAB-A-3-e362d799.json",
+      "bytes": 11585,
+      "sha256": "97fac831ae3abb8b550b3c27da9e76f218407a2af41147f61a7085f1b38a6e8e"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P19-TAB-B-1-ad1296be.json",
+      "bytes": 8640,
+      "sha256": "684feb79940465f60007e61a75bacdb63588bbf9ca79d532fa2ab76635a893ec"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P19-TAB-B-4-117c0ddb.json",
+      "bytes": 11597,
+      "sha256": "670884b170570366b69162109d10631b88b87d592fd216601026e0e5d5b0f5b6"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P19-TAB-C-2-aa4b5f25.json",
+      "bytes": 8635,
+      "sha256": "db0b5776161191e104e4fdc3b9984ec68ae46b14957b8204b91a5f52753b3cb4"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P20-TAB-A-2-bf701a81.json",
+      "bytes": 11515,
+      "sha256": "8447d39b64763ecd43a48b8eeb83136ccbe3219792d703a743ff2ae96f7e33c7"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P20-TAB-B-3-520ad654.json",
+      "bytes": 11587,
+      "sha256": "f6ddce040336b7dc5e947b802b1602752f251977f93cc4127220ca7f921e8ae8"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P20-TAB-C-1-22d93101.json",
+      "bytes": 11521,
+      "sha256": "09750cff075b2e11db6f784f2dc5647563391ae73fbb0b68417ced1262abcc45"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P20-TAB-C-4-371ba8d7.json",
+      "bytes": 8635,
+      "sha256": "7fda3a250e38fb751b67c002ba55325b3a113c08a0a9f9a6804343cd8404ef59"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P21-TAB-A-1-08710a22.json",
+      "bytes": 8632,
+      "sha256": "44a66dcda0767950bd6502cefe0e5892b55f5e5b5ac24420d1cc803fb92934e2"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P21-TAB-A-4-86df8185.json",
+      "bytes": 8637,
+      "sha256": "d55a6b47b035e56cffdcb7f9966313bbddb92ff4e2d2745ffc36b49ef02c2c1b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P21-TAB-B-2-a4a8f99d.json",
+      "bytes": 8639,
+      "sha256": "391cab004c47d1fc37040d893e6e7a8d0cbc1752e24cc742417f96b324c0f989"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P21-TAB-C-3-37cda6dc.json",
+      "bytes": 8624,
+      "sha256": "463198a6634574efcf8ec27416c70c4278f29c822cb0a7f2611596c0145e813d"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P22-TAB-A-3-02655f13.json",
+      "bytes": 11514,
+      "sha256": "8d14c5b836337e1d6bacefe2f70a9d25d0db698e11ec9786903537d01e624364"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P22-TAB-B-1-187a614e.json",
+      "bytes": 8642,
+      "sha256": "44230aba6e69b31d0e804c6fb5deef2b9b11caa31b8574da686aea8d338dd0ed"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P22-TAB-B-4-55ce421c.json",
+      "bytes": 8646,
+      "sha256": "898b049160498716239ad02b6e99cad835ff0a94f1d737e06430b2d7a224da3a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P22-TAB-C-2-019cd1af.json",
+      "bytes": 11518,
+      "sha256": "87426420ffc2e4aed3de26b415950840439a2d04c8e254329e21bbcb4630227f"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P23-TAB-A-2-5c45df30.json",
+      "bytes": 8628,
+      "sha256": "819cb3ca0be0a3fd57a770b72d3f8ce5dbc511a7d5e4f01ddfff42894e93f611"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P23-TAB-B-3-e1750c8c.json",
+      "bytes": 8639,
+      "sha256": "450ab7f18d971c6c67df500001197e5d28b6ae7026ab834e812f2c8240975eae"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P23-TAB-C-1-d868e4b9.json",
+      "bytes": 8631,
+      "sha256": "3ba68a6f03b234520573525870b37145883ce6cdae1bb09f24d9b96fb077467b"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P23-TAB-C-4-b5dceb24.json",
+      "bytes": 8629,
+      "sha256": "c571a7494edb10aaf6302e553c5f419a8073e20014b4962229330cea7e294378"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P24-TAB-A-1-90056131.json",
+      "bytes": 8627,
+      "sha256": "141502a9b4daddde628b723fd355e42cc09d70f489840755879523c3fd1f9dfd"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P24-TAB-A-4-40c9f25e.json",
+      "bytes": 8634,
+      "sha256": "a9d13ba6f6666a322d6fd3e47f00f5d03ddf91218ea3a15d879fa0805bfda24a"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P24-TAB-B-2-f799420a.json",
+      "bytes": 8642,
+      "sha256": "2f687579f92436036d29feda586c3f050d8cb61c6c17db3e94572efe1484a028"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P24-TAB-C-3-ab27dccc.json",
+      "bytes": 8624,
+      "sha256": "dc37a53f95cff53c749755ef17f1fb7c7251a3be1c6f7f7500a0614614bc8e5e"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P25-TAB-A-3-c9948ada.json",
+      "bytes": 11514,
+      "sha256": "2df6bb645d80a3edc260431944f576b649641da69afe90dc47c8e524e1b27ae7"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P25-TAB-B-1-4da3d31c.json",
+      "bytes": 8637,
+      "sha256": "74f563e05606f877903fa78307a44d690a8342055db62260d0333b21556245c6"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P25-TAB-B-4-4c4716fa.json",
+      "bytes": 8646,
+      "sha256": "eca7e3cb1e996854009f207091387f4a06a7d04c7fec6564fb02a8b053225549"
+    },
+    {
+      "canonicalPath": "gate_a/sesi/neurogaze-audit-GA-P25-TAB-C-2-79e5e1c8.json",
+      "bytes": 8632,
+      "sha256": "3daeabfe5c2c08091968fc8538ed5713b50140f958da7c4251cfe95569888d77"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-78JBFB8F-BQ7L.json",
+      "bytes": 523204,
+      "sha256": "e933a70e95abb54d60f28da6d2245faa405b4e698dcc212261c7857773f23001"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-7JGQ68NP-ULVS.json",
+      "bytes": 525945,
+      "sha256": "a229e2eed4c3bc30c51c57c4c9bd956ec267a7c485bc1f34a5f0977f6488adc9"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-7SJKS5AR-AKKD.json",
+      "bytes": 470369,
+      "sha256": "5b817a0b1ec13a73f0f22dab66add17e1571ec2933cb4784f100fa1fb1612f23"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-8YW427LE-D9RG.json",
+      "bytes": 538128,
+      "sha256": "b5b6bb22e19333f436d8b028df3f449b0b4c34d2b56363989ccb8752fc95b356"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-92UKSA5K-N3GE.json",
+      "bytes": 558237,
+      "sha256": "ca4239bf42118cfc02ee9fa2a49b0145bd5fcdb92e99490add03d945702c138e"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-96DYHUNW-73MY.json",
+      "bytes": 594903,
+      "sha256": "7925ae39a6e9b7218ed933cb6666b5749718052aeb13a9cf163756fb38c50b51"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-BFLGK5J4-9ERU.json",
+      "bytes": 558489,
+      "sha256": "8ee08e7468dd96ba7f1083e7fc34e4c28bba0e587d907aaf84e7362d52e7e55a"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-D5FR6JYK-TQSF.json",
+      "bytes": 592557,
+      "sha256": "bfc9c4c92e86885ac12b82243dca170f3d88ec0938e43b60e12c697b928ac91f"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-ELYC4DDP-SKQJ.json",
+      "bytes": 599615,
+      "sha256": "0a0a098d937cd4904c37d23cf854b3f068638cad514e1d01feb31c8a12f59f5d"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-FGJFQHVF-ABC7.json",
+      "bytes": 508114,
+      "sha256": "5b1c1ab8af38775f0baa82d216d9f1459e8baeb1e17d9b0a74feffda2ecad7fc"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-FSGZV9A8-ZZY7.json",
+      "bytes": 584314,
+      "sha256": "436fa618ebe2d70e28e5b84a907233c4a6c0a83f53608c37971c7d3fb9af7087"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-G3NSM8TK-G3J8.json",
+      "bytes": 548181,
+      "sha256": "3c9ce972023d01d455622fd45faad8e07a237f0370206f6a44476663868c52a4"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-GFFFV365-UQ9E.json",
+      "bytes": 561417,
+      "sha256": "5177a02926682a02efff42227f008d132c4ee8cfbf598c3404e2e7c15f2913a8"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-HLEYMCXB-F5GF.json",
+      "bytes": 550638,
+      "sha256": "2dd18fa838087104de65a9abfd63c828f9cfe36c6f2c59c7b1ad3d75d03b570c"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-L87Z2PJF-8QQU.json",
+      "bytes": 604101,
+      "sha256": "c1e24f46282062af6283fe4a4a9e46595d58245094befc9b47d339ffb669bba0"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-LEJQLGVF-NPDG.json",
+      "bytes": 508106,
+      "sha256": "6e5401616d49f4fae879a79a092ad874430469fabeb7d354617a7db0b1ad8359"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-LXYZAAGA-HZJP.json",
+      "bytes": 566242,
+      "sha256": "02483b15a4f868dcee1c830800819a2c1ba0346f47b5e17dea98952e5b1173af"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-MA9G4CPV-5FYX.json",
+      "bytes": 493831,
+      "sha256": "016eb0313cd780a8914d25cd10ebb84214b3b4985dcf831b118bc67a81082cf2"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-NGJBCMZP-4CV5.json",
+      "bytes": 612563,
+      "sha256": "bfe323706325531d708a7db9aa7cf38df420a0bcf939b5f7f8ad07530d44520f"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-PH2T7JLL-6SHQ.json",
+      "bytes": 533471,
+      "sha256": "95bbfacb4f5cdccea94e6c8901edc9cb423199528975a237976a0d58ef6fce73"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-QDZPYA8E-VDQ5.json",
+      "bytes": 524236,
+      "sha256": "1e7aa9f2dc49b6ffc2b5fb371d6601a2dd378747d93c0c4de4b1892956853e6f"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-QFXDAJ8B-DBMS.json",
+      "bytes": 560407,
+      "sha256": "b1693b3b44f40d5d152877ea5b5d2d45bfc74704014d3e2c86cd5f97ba88d693"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-QMCP5FLN-KRDP.json",
+      "bytes": 561702,
+      "sha256": "96354bf29b99b987b9052a495dfda4b95b83685abd0790643dc45f4e4a05b9ea"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-R46SBLL7-R5EB.json",
+      "bytes": 599147,
+      "sha256": "3c34aa223b0718b61b5f00d03cbc70c77d5987aaf2f618e7f4729bb6486f77be"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-RU4T542K-GCEH.json",
+      "bytes": 548544,
+      "sha256": "4a8b9ac1a22dfaa0904ac6b8b90f3b1be8a878f83f5fd4003312faec3c3dd5ce"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-S4CY34RQ-SHZF.json",
+      "bytes": 511862,
+      "sha256": "8218f8846686de503d6770e7557517f0e3b89307b2bd8afd6f9c2684272bcd1f"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-T78CKZU6-LNR5.json",
+      "bytes": 506642,
+      "sha256": "778304ec82b3150b3e5c1803d70989930687074b18e37f7390c9a715bf269e29"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-TK49NXKE-DTM8.json",
+      "bytes": 560386,
+      "sha256": "25c5d135ee971244a8cd28ea1b9a551204d2b5f55b4f960553c569d1ff392e1d"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-VNS2Y2SS-L685.json",
+      "bytes": 497638,
+      "sha256": "b02220d80b25e877fd0c77bec00e137a6147dc4c27669db9caff14fc4395d82c"
+    },
+    {
+      "canonicalPath": "gate_b/pasangan/gate-b-comparison-GBC-WL57Z48S-7R3S.json",
+      "bytes": 567792,
+      "sha256": "964b63b34b9e24f9242bcc28ac7c0535063cd34d515f48dfbe9e0365d4cab2aa"
+    }
+  ]
+}

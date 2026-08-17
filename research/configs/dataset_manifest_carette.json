@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "carette-eye-tracking-proof-of-principle",
+  "status": "replay_only_not_clinically_deployable",
+  "records": 547,
+  "participants": 54,
+  "labels": {
+    "ASD": 219,
+    "TD": 328
+  },
+  "featureSchemaHash": "ddf757ccaa80addbde4647a379f646d4e30cf00d43e6cb1d43cf673b4aacfe8d",
+  "inventorySha256": "641d8ef5ec3e3e2bafae10f0e78527591c7c543fbabf0620552a521777aa97ef",
+  "targetPopulationMatch": false,
+  "limitations": [
+    "Not toddlers aged 16-30 months",
+    "Not tablet camera",
+    "Rendered PNG has no raw timestamps"
+  ]
+}

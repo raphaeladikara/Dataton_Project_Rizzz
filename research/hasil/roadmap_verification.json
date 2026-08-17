@@ -1,0 +1,32 @@
+﻿{
+    "schemaVersion":  1,
+    "generatedAt":  "2026-08-17T06:00:56.0192708Z",
+    "software":  {
+                     "status":  "passed",
+                     "pythonTests":  "passed",
+                     "nextAndTypescriptTests":  "passed",
+                     "sitesRenderTests":  1,
+                     "nextBuild":  "passed",
+                     "lint":  "passed",
+                     "sitesBuild":  "passed",
+                     "requiredArtifacts":  [
+                                               "research\\configs\\session_schema.json",
+                                               "research\\configs\\dataset_manifest_carette.json",
+                                               "research\\configs\\feature_schema.json",
+                                               "research\\configs\\split_registry_carette.json",
+                                               "research\\hasil\\evidence_manifest.json",
+                                               "research\\hasil\\gate_a\\gate_a_summary.json",
+                                               "research\\hasil\\gate_b\\gate_b_summary.json",
+                                               "app\\public\\models\\ood_reference.json",
+                                               "docs\\protokol_gate_validasi.md",
+                                               "docs\\panduan_uji_roadmap_webapp.md"
+                                           ]
+                 },
+    "empiricalGates":  {
+                           "gateA":  "passed_100_adult_sessions_3_android_devices",
+                           "gateB":  "passed_30_simultaneous_pairs_vs_reference_eye_tracker",
+                           "gateC":  "closed_limited_conditional_secondary_evidence_only_prospective_cohort_zero",
+                           "gateD":  "closed_limited_conditional_procedural_basis_only_field_study_zero"
+                       },
+    "clinicalStatus":  "instrument_validated_not_for_diagnosis_or_live_child_scoring"
+}

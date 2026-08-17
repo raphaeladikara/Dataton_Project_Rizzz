@@ -1,0 +1,379 @@
+{
+  "schemaVersion": 3,
+  "sessionId": "aecb4e86-be51-4d51-a19b-f7a4aa0ea1c9",
+  "createdAt": "2026-08-06T09:00:50.786Z",
+  "appVersion": "3.0.0-child-flow",
+  "stimulusVersion": "ID-joint-cues-vector-v3",
+  "mode": "live",
+  "purpose": "gate_a_adult",
+  "profile": {
+    "childId": "GA-P11-TAB-C-1",
+    "participantId": "P11",
+    "sessionIndex": 1,
+    "ageMonths": null,
+    "site": "Gate A · cahaya_normal · tanpa kacamata",
+    "operator": "Operator-02"
+  },
+  "privacy": {
+    "rawMediaStored": false,
+    "rawLandmarksStored": false,
+    "derivedGazeExported": false,
+    "researchConsent": true,
+    "storage": "download_by_operator",
+    "retention": "operator_export",
+    "operatorCanDelete": true
+  },
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Linux; Android 14; 23073RPBFG) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 960,
+      "height": 540,
+      "devicePixelRatio": 2
+    },
+    "onlineAtStart": false,
+    "reducedMotion": false
+  },
+  "modelVersion": "neurogaze-gaze-lr-1.0.0",
+  "device": {
+    "deviceId": "TAB-C",
+    "deviceLabel": "Xiaomi Redmi Pad SE 11",
+    "fps": 28.4,
+    "batteryLevel": 0.977,
+    "screenWidthMm": 237,
+    "screenHeightMm": 148,
+    "lighting": "cahaya_normal",
+    "participantWearsGlasses": false
+  },
+  "calibration": {
+    "attempts": 1,
+    "trainingTargets": 9,
+    "trainingSamples": 78,
+    "validationSamples": 11,
+    "gridMedianErrorDeg": 1.841,
+    "validationErrorDeg": 1.881,
+    "centerDriftDeg": 0.776,
+    "warnings": []
+  },
+  "quality": {
+    "faceRate": 0.9585,
+    "gazeDropout": 0.0305,
+    "calibrationErrorDeg": 1.841,
+    "sampleCount": 292,
+    "passed": true,
+    "reasons": []
+  },
+  "assessment": {
+    "riskScoreEmitted": false,
+    "reason": "gate_a_engineering_audit_no_asd_score",
+    "extractionP90Ms": 3.82
+  },
+  "events": [
+    {
+      "atMs": 0,
+      "type": "session.created",
+      "level": "info"
+    },
+    {
+      "atMs": 5248,
+      "type": "consent.recorded",
+      "level": "info",
+      "data": {
+        "researchConsent": true,
+        "participantType": "adult"
+      }
+    },
+    {
+      "atMs": 6736,
+      "type": "device.passed",
+      "level": "info",
+      "data": {
+        "fps": 28.4,
+        "orientation": "landscape",
+        "brightness": 0.597
+      }
+    },
+    {
+      "atMs": 7773,
+      "type": "calibration.started",
+      "level": "info",
+      "data": {
+        "attempt": 1,
+        "trainingTargets": 9,
+        "validationTargets": 1,
+        "centerCorrection": true
+      }
+    },
+    {
+      "atMs": 9531,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 0,
+        "phase": "train",
+        "accepted": 10,
+        "attempted": 12
+      }
+    },
+    {
+      "atMs": 10844,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 1,
+        "phase": "train",
+        "accepted": 8,
+        "attempted": 10
+      }
+    },
+    {
+      "atMs": 12179,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 2,
+        "phase": "train",
+        "accepted": 8,
+        "attempted": 11
+      }
+    },
+    {
+      "atMs": 13488,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 3,
+        "phase": "train",
+        "accepted": 10,
+        "attempted": 13
+      }
+    },
+    {
+      "atMs": 14686,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 4,
+        "phase": "train",
+        "accepted": 10,
+        "attempted": 11
+      }
+    },
+    {
+      "atMs": 15767,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 5,
+        "phase": "train",
+        "accepted": 8,
+        "attempted": 8
+      }
+    },
+    {
+      "atMs": 17819,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 6,
+        "phase": "train",
+        "accepted": 7,
+        "attempted": 9
+      }
+    },
+    {
+      "atMs": 18928,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 7,
+        "phase": "train",
+        "accepted": 10,
+        "attempted": 12
+      }
+    },
+    {
+      "atMs": 20802,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 8,
+        "phase": "train",
+        "accepted": 7,
+        "attempted": 8
+      }
+    },
+    {
+      "atMs": 21830,
+      "type": "calibration.target_completed",
+      "level": "info",
+      "data": {
+        "targetIndex": 9,
+        "phase": "validation",
+        "accepted": 11,
+        "attempted": 13
+      }
+    },
+    {
+      "atMs": 22332,
+      "type": "calibration.passed",
+      "level": "info",
+      "data": {
+        "attempt": 1,
+        "errorDeg": 1.841
+      }
+    },
+    {
+      "atMs": 22972,
+      "type": "stimulus.started",
+      "level": "info",
+      "data": {
+        "phases": 10,
+        "scoredPhases": 8,
+        "stimulusVersion": "ID-joint-cues-vector-v3"
+      }
+    },
+    {
+      "atMs": 27972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "baseline",
+        "durationMs": 5000,
+        "samples": 23,
+        "validSamples": 22
+      }
+    },
+    {
+      "atMs": 34972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "gaze_left",
+        "durationMs": 7000,
+        "samples": 40,
+        "validSamples": 38
+      }
+    },
+    {
+      "atMs": 41972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "gaze_right",
+        "durationMs": 7000,
+        "samples": 44,
+        "validSamples": 41
+      }
+    },
+    {
+      "atMs": 48972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "pointing_left",
+        "durationMs": 7000,
+        "samples": 31,
+        "validSamples": 30
+      }
+    },
+    {
+      "atMs": 55972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "pointing_right",
+        "durationMs": 7000,
+        "samples": 26,
+        "validSamples": 24
+      }
+    },
+    {
+      "atMs": 62972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "gaze_left_repeat",
+        "durationMs": 7000,
+        "samples": 31,
+        "validSamples": 28
+      }
+    },
+    {
+      "atMs": 69972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "gaze_right_repeat",
+        "durationMs": 7000,
+        "samples": 31,
+        "validSamples": 28
+      }
+    },
+    {
+      "atMs": 76972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "pointing_left_repeat",
+        "durationMs": 7000,
+        "samples": 32,
+        "validSamples": 28
+      }
+    },
+    {
+      "atMs": 83972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "pointing_right_repeat",
+        "durationMs": 7000,
+        "samples": 29,
+        "validSamples": 26
+      }
+    },
+    {
+      "atMs": 88972,
+      "type": "stimulus.phase_completed",
+      "level": "info",
+      "data": {
+        "phase": "positive_ending",
+        "durationMs": 5000,
+        "samples": 25,
+        "validSamples": 21
+      }
+    },
+    {
+      "atMs": 88972,
+      "type": "stimulus.completed",
+      "level": "info",
+      "data": {
+        "sampleCount": 292,
+        "durationMs": 66000
+      }
+    },
+    {
+      "atMs": 89262,
+      "type": "quality.passed",
+      "level": "info",
+      "data": {
+        "faceRate": 0.9585,
+        "gazeDropout": 0.0305,
+        "extractionP90Ms": 3.82
+      }
+    },
+    {
+      "atMs": 89909,
+      "type": "report.rendered",
+      "level": "info",
+      "data": {
+        "riskScoreEmitted": false,
+        "reason": "gate_a_engineering_no_score"
+      }
+    },
+    {
+      "atMs": 94699,
+      "type": "audit.downloaded",
+      "level": "info"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+tmp/
+
+# Bahan pihak lain — repo ini wajib dipublikkan setelah deadline semifinal,
+# dan folder ini memuat concept paper tim lain (atas nama orang yang bisa
+# diidentifikasi), deck panitia, serta template NeurIPS. Berkasnya tetap ada di
+# disk untuk dipakai sendiri, hanya tidak ikut dipublikasikan.
+referensi/
+
+# Artefak kompilasi LaTeX (dihasilkan ulang oleh pdflatex)
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+.vercel
+.env*

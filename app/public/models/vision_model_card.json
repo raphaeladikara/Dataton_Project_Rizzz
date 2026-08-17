@@ -1,0 +1,28 @@
+{
+  "schema_version": "neurogaze-vision-card-v1",
+  "artifact": "/mediapipe/face_landmarker.task",
+  "sha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
+  "runtime": "@mediapipe/tasks-vision@1.0.0",
+  "role": "on-device face and iris landmark localization",
+  "expected_landmarks": 478,
+  "iris_center_indices": [468, 473],
+  "runtime_thresholds": {
+    "minimum_face_detection_confidence": 0.6,
+    "minimum_face_presence_confidence": 0.6,
+    "minimum_tracking_confidence": 0.6
+  },
+  "acceptance_checks": [
+    "both iris centers inside eye-local bounds",
+    "binocular horizontal and vertical agreement",
+    "minimum eye opening",
+    "bounded head yaw, pitch, and roll",
+    "finite landmark-derived signal"
+  ],
+  "display_projection": "source pixels -> object-fit cover crop -> horizontal mirror -> overlay pixels",
+  "explicitly_not_for": [
+    "ASD classification",
+    "clinical diagnosis",
+    "uncalibrated screen-gaze coordinates"
+  ],
+  "governance_note": "The final face-dataset notebook remains quarantined (6/6 mandatory governance fields missing); its CNN is not part of this runtime."
+}

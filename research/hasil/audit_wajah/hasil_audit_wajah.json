@@ -1,0 +1,23 @@
+{
+  "status": "quarantined",
+  "governance_missing": [
+    "provenance_sumber_gambar",
+    "lisensi_eksplisit",
+    "consent_subjek",
+    "metadata_demografi",
+    "definisi_label_klinis",
+    "participant_id"
+  ],
+  "auc_shortcut_logreg": 0.47778471932990885,
+  "auc_shortcut_gbm": 0.6756768013327781,
+  "auc_cnn_test": 0.9323763955342903,
+  "ci95": [
+    0.9069837546461079,
+    0.9536831148108788
+  ],
+  "threshold_dari_validation": 0.5436070561408997,
+  "mode_inferensi": "tta",
+  "sensitivitas_asd": 0.8142857142857143,
+  "spesifisitas": 0.8708133971291866,
+  "n_test": 419
+}

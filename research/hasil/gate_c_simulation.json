@@ -1,0 +1,33 @@
+{
+  "status": "simulation_only_not_clinical_validation",
+  "generated_at": "2026-08-09",
+  "model_source": "notebook/eyetracking_scanpath.ipynb pooled participant-level OOF",
+  "threshold": 0.476,
+  "assumptions": {
+    "cohort_size": 1000,
+    "target_prevalence": 0.01,
+    "technical_coverage": 0.9,
+    "sensitivity": 0.8462,
+    "specificity": 0.75
+  },
+  "expected_counts": {
+    "assessable": 900,
+    "withheld": 100,
+    "true_positive": 7.6158,
+    "false_negative": 1.3842,
+    "true_negative": 668.25,
+    "false_positive": 222.75
+  },
+  "operational_projection": {
+    "referral_rate": 0.255962,
+    "positive_predictive_value": 0.0330595,
+    "negative_predictive_value": 0.997933,
+    "referrals_per_true_positive": 30.2484
+  },
+  "limitations": [
+    "No prospective toddlers were enrolled; every count is an expectation, not an observation.",
+    "Sensitivity and specificity come from 54 school-age Carette participants measured at 250 Hz.",
+    "Technical coverage and target prevalence are explicit planning assumptions.",
+    "This simulation cannot pass Gate C or select a clinical operating threshold."
+  ]
+}

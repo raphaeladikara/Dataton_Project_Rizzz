@@ -1,0 +1,424 @@
+/* ==========================================================================
+   App chrome — floating nav pill, brand mark, session rail
+   ========================================================================== */
+
+/* Floating pill: the bar rides over the hero atmosphere instead of cutting
+   it with a full-width band, so the gradient reads as one continuous field. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: 12px clamp(12px, 3vw, 24px);
+}
+
+.topbarInner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 7px 7px 7px 20px;
+  border: 1px solid rgba(11, 30, 27, 0.08);
+  border-radius: var(--r-pill);
+  background: rgba(255, 253, 248, 0.72);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: var(--e2), var(--e-inset);
+}
+
+.brandButton {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.brandButton:active {
+  transform: scale(0.97);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display-stack);
+  font-variation-settings: "SOFT" 30, "WONK" 1;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--ink-900);
+}
+
+.logoMark {
+  --mark-pupil: var(--teal-600);
+  --mark-trail: var(--coral-500);
+  display: grid;
+  place-items: center;
+  color: var(--teal-600);
+}
+
+.logoMark svg {
+  overflow: visible;
+}
+
+/* The gaze trail drifts once on load — a single, small sign of life. */
+.logoMark svg path:last-of-type {
+  animation: ng-fade 700ms var(--ease-out) 260ms both;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(11, 30, 27, 0.07);
+  border-radius: var(--r-pill);
+  background: rgba(255, 253, 248, 0.62);
+  box-shadow: var(--e1);
+}
+
+/* Stays at the 44px touch target the tablet QA enforces. */
+.topnav button {
+  min-width: 0;
+  padding: 0 15px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-400);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
+    transform var(--dur-press) var(--ease-out);
+}
+
+.topnav button:active {
+  transform: scale(0.97);
+}
+
+.topnav button.active {
+  color: var(--teal-700);
+  background: var(--paper);
+  box-shadow: var(--e1);
+}
+
+.statusCluster {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--ink-400);
+}
+
+.offlineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: rgba(255, 253, 248, 0.8);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-600);
+}
+
+.offlineBadge b {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal-400);
+}
+
+.offlineBadge.offline {
+  border-color: var(--amber-200);
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+
+.offlineBadge.offline b {
+  background: var(--amber-500);
+}
+
+/* Only the exceptional state pulses; the normal state stays quiet. */
+.offlineBadge.offline b::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--amber-500);
+  animation: ng-halo 2s var(--ease-out) infinite;
+}
+
+.version {
+  font-family: var(--font-mono-stack);
+  font-size: 11px;
+  color: var(--ink-300);
+}
+
+/* ── Session rail ─────────────────────────────────────────────────────────
+   The old sticky capsule sat above the workspace and overlapped content on
+   scroll. A left rail keeps progress permanently visible without covering
+   anything, and gives each step room for an icon and a one-line hint. */
+
+.sessionShell {
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(30px, 4vw, 52px) clamp(20px, 4vw, 48px) 80px;
+  align-items: start;
+}
+
+.sessionMain {
+  min-width: 0;
+}
+
+.sessionMain > .workspace {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sessionRail {
+  position: sticky;
+  top: 92px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: rgba(255, 253, 248, 0.82);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--e2), var(--e-inset);
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 15px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.railCounter {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--font-mono-stack);
+  font-variant-numeric: tabular-nums;
+  color: var(--teal-700);
+}
+
+.railCounter strong {
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  animation: ng-step-in 320ms var(--ease-out) both;
+}
+
+.railCounter small {
+  font-size: 11px;
+  color: var(--ink-300);
+}
+
+.railNow {
+  min-width: 0;
+}
+
+.railNow small {
+  display: block;
+  font-family: var(--font-mono-stack);
+  font-size: 8.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+
+.railNow strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  letter-spacing: -0.018em;
+  animation: ng-step-in 320ms var(--ease-out) both;
+}
+
+.railList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.railList li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 0;
+}
+
+/* Spine linking the markers, drawn behind them. */
+.railList li::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  width: 1.5px;
+  height: 100%;
+  background: var(--line);
+}
+
+.railList li:last-child::before {
+  display: none;
+}
+
+.railMark {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink-300);
+  transition:
+    transform var(--dur-enter) var(--ease-spring),
+    color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.railCopy {
+  min-width: 0;
+}
+
+.railCopy strong {
+  display: block;
+  font-size: 13px;
+  letter-spacing: -0.015em;
+  color: var(--ink-500);
+}
+
+.railCopy small {
+  display: block;
+  margin-top: 1px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--ink-300);
+}
+
+.railList li[data-state="done"] .railMark {
+  color: var(--teal-600);
+  border-color: var(--teal-200);
+  background: var(--teal-50);
+}
+
+.railList li[data-state="done"]::before {
+  background: var(--teal-200);
+}
+
+.railList li[data-state="active"] .railMark {
+  color: #fff;
+  border-color: var(--teal-600);
+  background: linear-gradient(150deg, var(--teal-500), var(--teal-700));
+  transform: scale(1.1);
+  box-shadow: 0 5px 12px rgba(9, 106, 92, 0.3);
+}
+
+.railList li[data-state="active"] .railCopy strong {
+  color: var(--ink-900);
+  font-weight: 700;
+}
+
+.railList li[data-state="upcoming"] .railCopy strong,
+.railList li[data-state="upcoming"] .railCopy small {
+  opacity: 0.62;
+}
+
+.railNext {
+  margin: 12px 0 0;
+  padding-top: 13px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 11px;
+  color: var(--ink-400);
+}
+
+@media (max-width: 900px) {
+  .sessionShell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  /* Collapses to a compact horizontal tracker; hints and spine drop away. */
+  .sessionRail {
+    position: static;
+    padding: 12px 14px;
+    overflow: hidden;
+  }
+
+  .railHead {
+    padding-bottom: 12px;
+    margin-bottom: 2px;
+  }
+
+  .railList {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .railList li {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 0 2px;
+    text-align: center;
+  }
+
+  .railList li::before {
+    top: 15px;
+    left: 50%;
+    width: 100%;
+    height: 1.5px;
+  }
+
+  .railMark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .railCopy strong {
+    font-size: 10px;
+  }
+
+  .railCopy small,
+  .railNext {
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .railCopy strong { display: none; }
+  .railList li::before { top: 50%; }
+}
+
+@media (max-width: 560px) {
+  .railCopy strong {
+    display: none;
+  }
+
+  .railList li::before {
+    top: 50%;
+  }
+}

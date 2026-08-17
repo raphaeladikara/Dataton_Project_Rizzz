@@ -1,0 +1,18 @@
+{
+  "name": "Neurogaze",
+  "short_name": "Neurogaze",
+  "description": "Demo triase skrining dini berbasis pola tatapan — bukan diagnosis.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f2e9",
+  "theme_color": "#0d665d",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

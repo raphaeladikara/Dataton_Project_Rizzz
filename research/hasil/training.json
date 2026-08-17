@@ -1,0 +1,470 @@
+{
+  "model_version": "neurogaze-gaze-lr-1.0.0",
+  "selection_status": "final_after_degradation",
+  "provisional_feature_set": "geometri",
+  "candidates": {
+    "penuh": {
+      "metrics": {
+        "n_records": 547,
+        "n_participants": 54,
+        "outer_folds": [
+          {
+            "fold": 1,
+            "train_participants": 43,
+            "test_participants": 11
+          },
+          {
+            "fold": 2,
+            "train_participants": 43,
+            "test_participants": 11
+          },
+          {
+            "fold": 3,
+            "train_participants": 44,
+            "test_participants": 10
+          },
+          {
+            "fold": 4,
+            "train_participants": 43,
+            "test_participants": 11
+          },
+          {
+            "fold": 5,
+            "train_participants": 43,
+            "test_participants": 11
+          }
+        ],
+        "auc_participant": 0.8324175824175825,
+        "auc_participant_ci95": [
+          0.706940586419753,
+          0.9368150170306552
+        ],
+        "auc_record": 0.7627241340906559,
+        "participant_calibration": {
+          "intercept": 0.11681090110897574,
+          "slope": 1.809833938647558,
+          "brier": 0.1696165295761705
+        },
+        "record_brier": 0.18611000752016532,
+        "operating_point": {
+          "method": "largest_empirical_threshold_with_sensitivity_at_least_target",
+          "target_sensitivity": 0.9,
+          "threshold": 0.29333773537013685,
+          "bootstrap_median": 0.29333773537013685,
+          "ci95": [
+            0.147827177237647,
+            0.4536715115094128
+          ],
+          "clinical_status": "demo_only_not_clinically_validated",
+          "observed_sensitivity": 0.9230769230769231,
+          "observed_specificity": 0.25
+        }
+      },
+      "model": {
+        "schema_version": 1,
+        "model_version": "neurogaze-gaze-lr-1.0.0",
+        "created_at": "2026-07-31T08:31:16.760819+00:00",
+        "intended_use": "triage_research_demo_not_diagnosis",
+        "feature_set": "penuh",
+        "feature_order": [
+          "ink_frac",
+          "centroid_x",
+          "centroid_y",
+          "std_x",
+          "std_y",
+          "span_x",
+          "span_y",
+          "radial_mean",
+          "radial_std",
+          "vel_mean",
+          "vel_std",
+          "acc_mean",
+          "jerk_mean",
+          "fixation_ratio",
+          "saccade_ratio",
+          "grid_entropy",
+          "n_active_cells",
+          "bbox_fill",
+          "aspect_ratio"
+        ],
+        "input_contract": {
+          "type": "scanpath_features",
+          "feature_count": 19,
+          "aggregation": "single_session"
+        },
+        "scaler": {
+          "mean": [
+            0.021390902317565477,
+            0.5040094210826184,
+            0.5597752357959307,
+            0.12640116813223615,
+            0.09903958205147438,
+            0.5213122714808044,
+            0.4590722120658135,
+            0.14608760852245542,
+            0.07647558688600851,
+            0.05738600523277012,
+            0.0414511200712728,
+            0.06670816481381726,
+            0.055752925094637494,
+            0.23760825384307951,
+            0.4509349023207982,
+            0.5413629374882266,
+            0.2500571297989031,
+            0.09805272962345733,
+            1.4253179729803902
+          ],
+          "scale": [
+            0.015463820025704792,
+            0.09505168547100142,
+            0.05335491634056108,
+            0.03478251008030558,
+            0.04500976649049625,
+            0.1628049195872548,
+            0.186546452952075,
+            0.037465670808407715,
+            0.02068852248582571,
+            0.011563099535307429,
+            0.007385923409041137,
+            0.00851197754536765,
+            0.009201733373815218,
+            0.11184905385560447,
+            0.09799144814992111,
+            0.10836126404005507,
+            0.1189514234840918,
+            0.05329442194390029,
+            1.019407525903528
+          ]
+        },
+        "classifier": {
+          "type": "logistic_regression",
+          "coef": [
+            1.8230440956935474,
+            0.1018565864606238,
+            -0.05940311603965806,
+            0.08771035487528897,
+            0.1286196629892639,
+            0.4638652392613599,
+            0.697357603485069,
+            -0.3615314228001537,
+            -0.34850299065696,
+            -1.0577478629681372,
+            0.5729902109977647,
+            -0.3805057522896725,
+            0.5497376699634388,
+            -0.1788422210242688,
+            -0.08418711415692103,
+            0.2225748872122048,
+            0.043976513520994305,
+            0.09974435463875364,
+            0.027063608010769156
+          ],
+          "intercept": -0.33698163531662845
+        },
+        "calibrator": {
+          "type": "platt_on_logit",
+          "coef": 0.7027032335616213,
+          "intercept": 0.04272760010991015,
+          "epsilon": 1e-07
+        },
+        "decision": {
+          "refer_if_probability_gte": 0.29333773537013685,
+          "threshold_status": "demo_only_not_clinically_validated",
+          "quality_gate_required": true
+        },
+        "training": {
+          "dataset": "Carette et al. scanpath PNG",
+          "participant_grouped": true,
+          "metrics": {
+            "n_records": 547,
+            "n_participants": 54,
+            "outer_folds": [
+              {
+                "fold": 1,
+                "train_participants": 43,
+                "test_participants": 11
+              },
+              {
+                "fold": 2,
+                "train_participants": 43,
+                "test_participants": 11
+              },
+              {
+                "fold": 3,
+                "train_participants": 44,
+                "test_participants": 10
+              },
+              {
+                "fold": 4,
+                "train_participants": 43,
+                "test_participants": 11
+              },
+              {
+                "fold": 5,
+                "train_participants": 43,
+                "test_participants": 11
+              }
+            ],
+            "auc_participant": 0.8324175824175825,
+            "auc_participant_ci95": [
+              0.706940586419753,
+              0.9368150170306552
+            ],
+            "auc_record": 0.7627241340906559,
+            "participant_calibration": {
+              "intercept": 0.11681090110897574,
+              "slope": 1.809833938647558,
+              "brier": 0.1696165295761705
+            },
+            "record_brier": 0.18611000752016532,
+            "operating_point": {
+              "method": "largest_empirical_threshold_with_sensitivity_at_least_target",
+              "target_sensitivity": 0.9,
+              "threshold": 0.29333773537013685,
+              "bootstrap_median": 0.29333773537013685,
+              "ci95": [
+                0.147827177237647,
+                0.4536715115094128
+              ],
+              "clinical_status": "demo_only_not_clinically_validated",
+              "observed_sensitivity": 0.9230769230769231,
+              "observed_specificity": 0.25
+            }
+          },
+          "limitations": [
+            "Participants average 7.88 years; not validated in toddlers.",
+            "Source device is a 250 Hz eye-tracker; not a tablet camera.",
+            "Threshold is for deterministic demo behavior, not clinical use."
+          ]
+        },
+        "sha256_without_checksum": "1b12fbc1922a5f36e08ca1098a18ba6ac43f266a34ffc8479059af9539f8ab0a"
+      }
+    },
+    "geometri": {
+      "metrics": {
+        "n_records": 547,
+        "n_participants": 54,
+        "outer_folds": [
+          {
+            "fold": 1,
+            "train_participants": 43,
+            "test_participants": 11
+          },
+          {
+            "fold": 2,
+            "train_participants": 43,
+            "test_participants": 11
+          },
+          {
+            "fold": 3,
+            "train_participants": 44,
+            "test_participants": 10
+          },
+          {
+            "fold": 4,
+            "train_participants": 43,
+            "test_participants": 11
+          },
+          {
+            "fold": 5,
+            "train_participants": 43,
+            "test_participants": 11
+          }
+        ],
+        "auc_participant": 0.8228021978021978,
+        "auc_participant_ci95": [
+          0.6974334697341578,
+          0.9289881350267379
+        ],
+        "auc_record": 0.763977057578795,
+        "participant_calibration": {
+          "intercept": 0.05233407237020108,
+          "slope": 1.5379870427583064,
+          "brier": 0.17577532682011007
+        },
+        "record_brier": 0.18678393875200264,
+        "operating_point": {
+          "method": "largest_empirical_threshold_with_sensitivity_at_least_target",
+          "target_sensitivity": 0.9,
+          "threshold": 0.2242501759172033,
+          "bootstrap_median": 0.2242501759172033,
+          "ci95": [
+            0.16873634031878026,
+            0.4530504841425585
+          ],
+          "clinical_status": "demo_only_not_clinically_validated",
+          "observed_sensitivity": 0.9230769230769231,
+          "observed_specificity": 0.17857142857142858
+        }
+      },
+      "model": {
+        "schema_version": 1,
+        "model_version": "neurogaze-gaze-lr-1.0.0",
+        "created_at": "2026-07-31T08:31:18.684848+00:00",
+        "intended_use": "triage_research_demo_not_diagnosis",
+        "feature_set": "geometri",
+        "feature_order": [
+          "ink_frac",
+          "centroid_x",
+          "centroid_y",
+          "std_x",
+          "std_y",
+          "span_x",
+          "span_y",
+          "radial_mean",
+          "radial_std",
+          "grid_entropy",
+          "n_active_cells",
+          "bbox_fill",
+          "aspect_ratio"
+        ],
+        "input_contract": {
+          "type": "scanpath_features",
+          "feature_count": 13,
+          "aggregation": "single_session"
+        },
+        "scaler": {
+          "mean": [
+            0.021390902317565477,
+            0.5040094210826184,
+            0.5597752357959307,
+            0.12640116813223615,
+            0.09903958205147438,
+            0.5213122714808044,
+            0.4590722120658135,
+            0.14608760852245542,
+            0.07647558688600851,
+            0.5413629374882266,
+            0.2500571297989031,
+            0.09805272962345733,
+            1.4253179729803902
+          ],
+          "scale": [
+            0.015463820025704792,
+            0.09505168547100142,
+            0.05335491634056108,
+            0.03478251008030558,
+            0.04500976649049625,
+            0.1628049195872548,
+            0.186546452952075,
+            0.037465670808407715,
+            0.02068852248582571,
+            0.10836126404005507,
+            0.1189514234840918,
+            0.05329442194390029,
+            1.019407525903528
+          ]
+        },
+        "classifier": {
+          "type": "logistic_regression",
+          "coef": [
+            1.2922046830465042,
+            0.11008784769037717,
+            0.00885543878562104,
+            0.05525485674550878,
+            0.2901761049595721,
+            0.3091088543826251,
+            0.3701564523447742,
+            -0.3104790911597821,
+            -0.36971627308835264,
+            0.03819750888782134,
+            0.22563184305037295,
+            -0.09447662675698333,
+            0.03960304036630042
+          ],
+          "intercept": -0.3847071807163537
+        },
+        "calibrator": {
+          "type": "platt_on_logit",
+          "coef": 0.7217519154027592,
+          "intercept": 0.0770064593456232,
+          "epsilon": 1e-07
+        },
+        "decision": {
+          "refer_if_probability_gte": 0.2242501759172033,
+          "threshold_status": "demo_only_not_clinically_validated",
+          "quality_gate_required": true
+        },
+        "training": {
+          "dataset": "Carette et al. scanpath PNG",
+          "participant_grouped": true,
+          "metrics": {
+            "n_records": 547,
+            "n_participants": 54,
+            "outer_folds": [
+              {
+                "fold": 1,
+                "train_participants": 43,
+                "test_participants": 11
+              },
+              {
+                "fold": 2,
+                "train_participants": 43,
+                "test_participants": 11
+              },
+              {
+                "fold": 3,
+                "train_participants": 44,
+                "test_participants": 10
+              },
+              {
+                "fold": 4,
+                "train_participants": 43,
+                "test_participants": 11
+              },
+              {
+                "fold": 5,
+                "train_participants": 43,
+                "test_participants": 11
+              }
+            ],
+            "auc_participant": 0.8228021978021978,
+            "auc_participant_ci95": [
+              0.6974334697341578,
+              0.9289881350267379
+            ],
+            "auc_record": 0.763977057578795,
+            "participant_calibration": {
+              "intercept": 0.05233407237020108,
+              "slope": 1.5379870427583064,
+              "brier": 0.17577532682011007
+            },
+            "record_brier": 0.18678393875200264,
+            "operating_point": {
+              "method": "largest_empirical_threshold_with_sensitivity_at_least_target",
+              "target_sensitivity": 0.9,
+              "threshold": 0.2242501759172033,
+              "bootstrap_median": 0.2242501759172033,
+              "ci95": [
+                0.16873634031878026,
+                0.4530504841425585
+              ],
+              "clinical_status": "demo_only_not_clinically_validated",
+              "observed_sensitivity": 0.9230769230769231,
+              "observed_specificity": 0.17857142857142858
+            }
+          },
+          "limitations": [
+            "Participants average 7.88 years; not validated in toddlers.",
+            "Source device is a 250 Hz eye-tracker; not a tablet camera.",
+            "Threshold is for deterministic demo behavior, not clinical use."
+          ]
+        },
+        "sha256_without_checksum": "ea361b8789395bf7e6545a57b88cffbeb1b3ef802cbd5786edbcdaaf0b26ecf0"
+      }
+    }
+  },
+  "selected_feature_set": "geometri",
+  "selection_evidence": {
+    "selected_feature_set": "geometri",
+    "n_features": 13,
+    "status": "locked_for_mvp",
+    "reasons": [
+      "The production input is a 30 fps (x,y,t) stream; geometry is directly reproducible.",
+      "The source PNGs discard temporal ordering, so 250-to-30 Hz kinematic derivatives cannot be validated directly.",
+      "Sampling results are explicitly a raster sparsification proxy, not a physical resampling study.",
+      "At the combined tablet proxy, geometry AUC was 0.6827."
+    ],
+    "reconsider_when": "Raw paired 250 Hz eye-tracker and 30 fps tablet gaze streams are available."
+  }
+}

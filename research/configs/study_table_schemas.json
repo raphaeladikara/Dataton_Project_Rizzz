@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "gateA": {
+    "required": ["participant_id", "session_id", "device_id", "condition", "calibration_error_deg", "face_rate", "gaze_dropout", "fps_median", "latency_p90_ms", "completed", "failure_reason"]
+  },
+  "gateB": {
+    "required": ["participant_id", "visit_id", "pair_id", "session_id", "device", "device_order", "acquisition_mode", "stimulus_version", "feature_schema_hash", "aoi_version", "time_origin", "feature_name", "feature_value", "quality_passed"]
+  },
+  "gateC": {
+    "required": ["child_id", "visit_id", "session_id", "site_id", "partition", "device_id", "age_months", "quality_passed", "abstain_reason", "mchat_score", "reference_outcome"]
+  },
+  "gateD": {
+    "required": ["child_id", "visit_id", "session_id", "fold", "modality", "oof_probability", "quality", "label"]
+  }
+}
