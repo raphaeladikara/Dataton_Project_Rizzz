@@ -62,15 +62,21 @@ test("stimulus uses paired directional micro-trials and a non-scored ending", ()
     cursor = next;
   }
   assert.match(stimulusProtocol, /id: "positive_ending"[^\n]*scored: false/);
-  assert.doesNotMatch(stimulusProtocol, /name_call/);
-  assert.doesNotMatch(sessionCss, /visual-geopref-video|stimulusResearchVideo/);
+  // The preferential-looking and name-call blocks are scored by their own
+  // modules, so they must never carry scored: true and never enter the
+  // cue-following denominator.
+  assert.match(stimulusProtocol, /id: GEOPREF_PHASE_ID[^\n]*target: "none"[^\n]*scored: false/);
+  assert.match(stimulusProtocol, /id: NAME_CALL_PHASE_ID[^\n]*target: "none"[^\n]*scored: false/);
   assert.doesNotMatch(sessionCss, /visual-(?:gaze|point)-(?:left|right)\.cue-active[^}]*animation:/);
 });
 
 test("reports use safe language and hide technical detail by default", () => {
-  assert.match(page, /Disarankan pemeriksaan lanjutan/);
-  assert.match(page, /Belum ditemukan tanda kuat untuk rujukan/);
-  assert.match(page, /Tes belum dapat dinilai/);
+  const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
+  // Headlines are generated per child now, so the wording contract lives in
+  // the outcome module rather than as literals in the page.
+  assert.match(outcome, /Sesi belum dapat dinilai/);
+  assert.match(outcome, /rujuk untuk pemeriksaan perkembangan/);
+  assert.doesNotMatch(outcome, /Tidak autis|Positif autisme|anak normal/i);
   assert.doesNotMatch(page, /Tidak autis|Positif autisme|anak normal/i);
   assert.match(page, /<details className="reportTechnical">/);
   assert.doesNotMatch(page, /<details className="reportTechnical" open/);
@@ -127,11 +133,43 @@ test("touch, responsive, reduced-motion, and offline contracts remain present", 
   assert.match(sw, /face_landmarker\.task/);
 });
 
-test("legacy inference is replay-only and live sessions are withheld from referral", () => {
-  assert.match(page, /const nextRisk = mode === "replay" && nextValidity\.canScore && nextQuality\.passed && model/);
+test("the Carette model never drives a referral and is shown only when in distribution", () => {
+  // It may run on live features, but only the OOD guard decides whether the
+  // number is even displayed, and only in replay.
+  assert.match(page, /const riskIsInterpretable = mode === "replay" && Boolean\(nextOod\?\.passed\)/);
+  assert.match(page, /ditolak OOD — tidak dipakai/);
   assert.match(page, /LIVE_MODEL_CONTRACT_MISMATCH/);
-  assert.match(page, /TANPA ARAHAN RUJUKAN/);
+  // The referral decision must come from the session outcome module, never
+  // from the model score.
+  assert.doesNotMatch(page, /risk >= model\.decision/);
   assert.doesNotMatch(page, /features\[[^\]]+\]\s*\|\|\s*0/);
+});
+
+test("the preferential-looking phase plays the clip, not the vector actor", () => {
+  const scene = readFileSync(new URL("../src/ui/stimulus-scene.tsx", import.meta.url), "utf8");
+  assert.match(stimulusProtocol, /id: GEOPREF_PHASE_ID[^\n]*visualCue: "geopref"/);
+  assert.match(scene, /visualCue === "geopref" && geoprefSource/);
+  assert.match(scene, /<video/);
+  // Nothing else may share the stage: the measure is which panel is looked at.
+  assert.match(scene, /geoprefStage/);
+  assert.match(sessionCss, /\.geoprefStage \{[^}]*background: #000/);
+  assert.match(page, /geoprefSource=\{geoprefAsset\.path\}/);
+});
+
+test("the only automatic referral trigger is the published GeoPref threshold", () => {
+  assert.match(page, /sessionOutcome\.emitsReferral \? "PERIKSA LANJUT"/);
+  const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
+  assert.match(outcome, /emitsReferral: true/);
+  // Exactly one branch may emit a referral, and it is the GeoPref rule-in one.
+  assert.equal((outcome.match(/emitsReferral: true/g) ?? []).length, 1);
+  assert.match(outcome, /kind: "RULE_IN_GEOMETRIC"[\s\S]{0,400}emitsReferral: true/);
+});
+
+test("a below-threshold result can never be phrased as reassurance", () => {
+  const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
+  assert.match(outcome, /reassures: false as const/);
+  assert.doesNotMatch(outcome, /reassures: true/);
+  assert.match(outcome, /bukan tanda aman/);
 });
 
 test("restarting a completed session resets stimulus progress", () => {
