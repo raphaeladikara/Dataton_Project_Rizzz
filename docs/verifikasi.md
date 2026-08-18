@@ -67,3 +67,27 @@ Hasil yang diharapkan: `youden`, lalu
 - Kesepakatan AOI tidak pernah menjadi headline; akurasi absolut hanya dikutip dari
   blok target diketahui Gate A.
 - Tidak ada lengan simulasi Gate C yang memakai angka CNN.
+
+## Analisis turunan
+
+```powershell
+.\.venv\Scripts\python.exe research\compare_models.py
+.\.venv\Scripts\python.exe research\temporal_degradation.py
+```
+
+Keduanya menulis ulang artefak di `research/hasil` dari data mentah:
+`perbandingan_model.json` (uji berpasangan CNN lawan regresi logistik) dan
+`degradasi_temporal.json` (desimasi waktu sungguhan pada 27 sesi Gate B). Jalankan
+setelah bukti bertambah, dan commit hasilnya bersama perubahan yang memicunya.
+
+## Sebelum repositori dipublikkan
+
+- `git ls-files data/ | wc -l` harus `0`.
+- Riwayat Git sudah dibersihkan dari `data/` — lihat `pembersihan_dataset_wajah.md`.
+- Keluaran gambar di `notebook/audit_dataset_wajah.ipynb` hanya grafik, tidak ada wajah:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import json,io; nb=json.load(io.open('notebook/audit_dataset_wajah.ipynb',encoding='utf8')); print(sum('image/png' in o.get('data',{}) for c in nb['cells'] for o in c.get('outputs',[])))"
+```
+
+Hasil yang diharapkan: `6`.

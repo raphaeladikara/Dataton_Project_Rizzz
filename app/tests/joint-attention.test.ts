@@ -48,6 +48,21 @@ test("chance-level cue following is inconclusive, not a deficit", () => {
   assert.ok(profile!.pValue! > 0.05);
 });
 
+test("following most cues without reaching significance stays inconclusive", () => {
+  // Six of eight is p = 0,145. The sign test cannot clear 0,05 below seven
+  // successes, so this is the session running out of trials, not a finding.
+  const profile = summarizeJointAttention(summaryWithLifts([0.3, 0.2, 0.25, -0.1, 0.15, 0.1, -0.2, 0.05]));
+  assert.equal(profile!.trialsFollowed, 6);
+  assert.equal(profile!.verdict, "NOT_DISTINGUISHABLE");
+});
+
+test("looking below the trial's own pre-cue baseline is a measurement, not a gap", () => {
+  const profile = summarizeJointAttention(summaryWithLifts([-0.2, -0.15, -0.3, 0.05, -0.25, -0.1, -0.2, 0.02]));
+  assert.equal(profile!.trialsFollowed, 2);
+  assert.ok(profile!.medianLiftPoints! < 0);
+  assert.equal(profile!.verdict, "DOES_NOT_FOLLOW");
+});
+
 test("too few scorable trials withholds the profile", () => {
   const profile = summarizeJointAttention(summaryWithLifts([0.3, null, null, null, null, null, null, null]));
   assert.equal(profile!.verdict, "WITHHELD_TOO_FEW_TRIALS");

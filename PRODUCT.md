@@ -32,10 +32,16 @@ The first is the published GeoPref threshold of 69% geometric fixation (Wen et a
 2022, n=1863, 12–48 months, 98% specificity) — the only cutoff in the system we did
 not choose ourselves, which is exactly why it stays separable.
 
-The second is a composite recommendation: a readable rule over four signals that need
-no toddler norm. It recommends a follow-up examination, carries its reasoning per
-signal, and states that it is not validated on toddlers. It is not a score and never
-becomes one.
+The second is a composite recommendation: a readable rule over three signals that need
+no toddler norm — the published GeoPref cutoff, plus cue following and response to
+name, both of which compare the child against itself. It recommends a follow-up
+examination, carries its reasoning per signal, and states that it is not validated on
+toddlers. It is not a score and never becomes one.
+
+Deviant means measured, never merely undemonstrated. A cue-following result that
+points the right way without reaching significance is unassessed, because eight
+trials cannot clear p < 0.05 below seven successes and reading that as a deficit
+would be absence of evidence dressed up as evidence.
 
 Everything else on the report is descriptive measurement with no validated cutoff. No
 result on either lane may read as reassurance — the published test misses most

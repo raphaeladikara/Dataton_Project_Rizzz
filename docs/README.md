@@ -9,7 +9,12 @@
 - [`checkpoint_2026-08-18.md`](checkpoint_2026-08-18.md): status penuh setelah Fase 4–6, dan delapan aturan yang tidak boleh dilanggar.
 - [`pitch_7_menit.md`](pitch_7_menit.md): naskah presentasi semifinal beserta peta waktu, jawaban pertanyaan, dan sumber tiap angka.
 - [`pitch_10_menit.md`](pitch_10_menit.md): naskah sesi demo 10 menit, termasuk urutan dua sesi langsung dan bahasa yang wajib dipakai saat memperagakan pola.
-- [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif, batas klaimnya, dan cara merekam serta mendaftarkan sesinya.
+- [`jalur_rujukan.md`](jalur_rujukan.md): kenapa belum ada rujukan yang bisa keluar, dua kunci yang menahannya, dan rencana empat langkah membukanya. **Baca ini sebelum kontrol positif.**
+- [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif — alat, peserta, naskah instruksi, penamaan berkas, kriteria mutu, dan cara mendaftarkan rekamannya.
+- [`model_dikarantina.md`](model_dikarantina.md): kenapa CNN 0,882 dan CNN wajah 0,932 tidak dipakai, uji berpasangan yang menggantikan argumen "CI bertumpang tindih", dan apakah keduanya bisa dibuat berguna.
+- [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md): klaim dampak yang bisa dipertahankan, biaya per pemeriksaan, jalur integrasi, dan jalur pengumpulan data Gate C.
+- [`provenance/harness_gate_a_b.md`](provenance/harness_gate_a_b.md): apa yang bisa dan tidak bisa diperiksa tentang asal bukti Gate A/B, plus aturan perekaman berikutnya.
+- [`pembersihan_dataset_wajah.md`](pembersihan_dataset_wajah.md): mengeluarkan dataset wajah dari riwayat Git sebelum repositori dipublikkan.
 - [`keputusan_ilmiah.md`](keputusan_ilmiah.md): alasan di balik keputusan yang menentukan batas klaim.
 - [`provenance/permintaan_stimulus_ucsd.md`](provenance/permintaan_stimulus_ucsd.md): draf permintaan akses stimulus GeoPref penuh.
 - [`verifikasi.md`](verifikasi.md): pemeriksaan sebelum commit atau rilis.

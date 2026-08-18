@@ -113,12 +113,36 @@
       }
     }
   ],
+  "composite_rule": {
+    "id": "composite_rule_break_even",
+    "label": "Aturan komposit, spesifisitas minimum yang dibutuhkan",
+    "status": "requirement_not_measurement",
+    "question": "Berapa spesifisitas minimum aturan komposit supaya laju rujukannya muat di kapasitas rujukan?",
+    "assumptions": {
+      "referral_capacity": 0.2,
+      "prevalence": 0.01,
+      "sensitivity_assumed": 1.0,
+      "source": "Aritmetika atas kapasitas rujukan yang dinyatakan; bukan performa terukur."
+    },
+    "required_specificity": 0.8081,
+    "sensitivity_to_capacity": {
+      "0.05": 0.9596,
+      "0.10": 0.9091,
+      "0.20": 0.8081,
+      "0.30": 0.7071
+    },
+    "circularity_warning": "Kapasitas 0,20 dipilih menyamai laju rujukan lengan target Gate C (0,199), jadi kemiripan syarat ini dengan spesifisitas Perochon 0,808 adalah akibat konstruksi, bukan temuan. Jangan sajikan sebagai kebetulan yang mengesankan.",
+    "what_this_actually_shows": "Pada prevalensi 1%, suku sensitivitas tidak pernah melebihi 0,01 sehingga laju rujukan hampir seluruhnya ditentukan spesifisitas. Konsekuensinya: menaikkan sensitivitas aturan komposit nyaris tidak membebani antrean, sedangkan kehilangan beberapa poin spesifisitas membebaninya secara langsung. Itu yang menentukan ke mana Gate C harus diarahkan.",
+    "note": "Blok ini sengaja tidak mengasumsikan sensitivitas dan spesifisitas aturan komposit. Keduanya belum diukur pada balita, dan mengarangnya akan mengulang persis kesalahan yang dihindari lengan-lengan lain. Yang dihitung adalah syarat yang harus dipenuhi.",
+    "unlocks": "docs/jalur_rujukan.md, langkah 3"
+  },
   "limitations": [
     "Tidak ada balita prospektif yang direkrut; setiap angka adalah ekspektasi, bukan observasi.",
     "Lengan regresi logistik berasal dari 54 partisipan Carette usia sekolah pada 250 Hz dan tidak berlaku untuk balita.",
     "Lengan GeoPref memakai performa terbit pada stimulus UCSD penuh; klip CC BY 16,75 detik belum tentu mereproduksinya.",
     "Lengan target Gate C adalah performa instrumen lain, bukan milik NeuroGaze.",
     "Prevalensi dan coverage teknis adalah asumsi perencanaan yang dinyatakan, bukan hasil pengukuran lokal.",
+    "Blok composite_rule adalah syarat, bukan lengan: sensitivitas dan spesifisitas aturan komposit pada balita belum pernah diukur.",
     "Simulasi ini tidak bisa meluluskan Gate C atau memilih ambang klinis."
   ]
 }

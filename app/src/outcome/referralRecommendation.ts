@@ -140,13 +140,22 @@ function cueSignal(profile: ReferralInput["jointAttention"]): ReferralSignal {
       reason: "Tatapan ke target sesudah isyarat melebihi pembanding pra-isyarat pada anak yang sama, lebih sering daripada kebetulan.",
     };
   }
+  // Eight trials cannot reach p < 0,05 below seven successes. Counting that as a
+  // deviation would read absence of evidence as evidence of absence, so a
+  // non-significant result whose lift still points upward is unassessed here.
+  if (profile.verdict === "NOT_DISTINGUISHABLE") {
+    return {
+      ...base,
+      status: "tidak_dapat_dinilai",
+      measured: followed,
+      reason: "Arah responsnya benar, tetapi delapan percobaan tidak cukup untuk membuktikannya di atas kebetulan. Ini batas sesi, bukan temuan tentang anak.",
+    };
+  }
   return {
     ...base,
     status: "menyimpang",
     measured: followed,
-    // Eight trials cannot reach p < 0,05 below seven successes, so this is a
-    // statement about what the session could show, not about the child.
-    reason: "Belum terbukti mengikuti isyarat di atas kebetulan pada sesi ini. Ini berarti responsnya tidak dapat ditunjukkan di sini, bukan bahwa anak tidak memilikinya.",
+    reason: "Tatapan sesudah isyarat tidak pernah melebihi pembanding pra-isyarat pada anak yang sama, dan target diikuti pada paling banyak separuh percobaan.",
   };
 }
 

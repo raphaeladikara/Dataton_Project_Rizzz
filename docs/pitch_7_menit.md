@@ -72,13 +72,15 @@ Tunjuk label sumber di kepala laporan.
 Lalu tunjuk tiga hal, berurutan:
 
 1. **Persentase fiksasi geometrik** — satu angka, dengan ambangnya.
-2. **Enam indeks perilaku** — masing-masing membawa sumber referensinya sendiri.
-3. **Kalimat hasil** — rujuk, terukur tanpa rujuk, protokol dipersingkat, atau ditahan.
+2. **Lima indeks perilaku** — masing-masing membawa sumber referensinya sendiri.
+3. **Lajur komposit** — tiga sinyal, masing-masing dengan nilai terukur dan statusnya.
+4. **Kalimat hasil** — rujuk, terukur tanpa rujuk, protokol dipersingkat, atau ditahan.
 
 > Perhatikan yang tidak ada di laporan ini: tidak ada skor gabungan, tidak ada gauge,
-> tidak ada persentase risiko autisme. Enam indeks itu tidak boleh dijumlahkan sebelum
-> ada balita berlabel untuk memfit bobotnya, jadi tipe datanya sendiri melarang: field
-> `combinedScore` bernilai null dan tidak ada jalur kode yang bisa mengisinya.
+> tidak ada persentase risiko autisme. Keenam ukuran itu tidak boleh dijumlahkan
+> sebelum ada balita berlabel untuk memfit bobotnya, jadi tipe datanya sendiri
+> melarang: field `combinedScore` bernilai null dan tidak ada jalur kode yang bisa
+> mengisinya.
 
 **Kalau demo berakhir "sesi belum dapat dinilai":** jangan panik dan jangan ulangi.
 Itu bahan bicara.

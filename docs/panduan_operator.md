@@ -15,12 +15,15 @@ Jika aplikasi meminta pengulangan, perbaiki satu penyebab yang ditampilkan terle
 
 ## Membaca hasil
 
-Laporan memuat satu kalimat hasil, satu persentase fiksasi geometrik, dan enam indeks
-perilaku. Empat kemungkinan hasilnya: rujuk, terukur tanpa rujuk, protokol dipersingkat,
-atau ditahan.
+Laporan memuat satu kalimat hasil, persentase fiksasi geometrik, lima indeks perilaku,
+dan lajur rekomendasi komposit berisi tiga sinyal. Empat kemungkinan hasilnya: rujuk,
+terukur tanpa rujuk, protokol dipersingkat, atau ditahan.
 
 - **Tidak ada skor risiko ASD.** Tidak ada angka gabungan, tidak ada persentase
-  kemungkinan autisme. Enam indeks itu dibaca berdampingan, tidak dijumlahkan.
+  kemungkinan autisme. Keenam ukuran itu dibaca berdampingan, tidak dijumlahkan.
+- **"Tidak dapat dinilai" pada lajur komposit bukan hasil normal.** Sinyal yang
+  arahnya benar tetapi belum terbukti di atas kebetulan dilaporkan begitu apa adanya,
+  dan tidak ikut menghitung ke arah mana pun.
 - **Hasil di bawah ambang bukan berarti aman.** Pemeriksaan ini melewatkan sebagian besar
   anak autistik; itu sifat alatnya. Jangan pernah menyampaikannya sebagai kabar baik.
 - **Hasil ditahan bukan kegagalan operator.** Itu sistem yang bekerja: mutunya tidak cukup,

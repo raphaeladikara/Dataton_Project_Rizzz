@@ -103,11 +103,12 @@ export default function ValidationPage() {
         are the whole argument, including the two we walked away from. */}
     <section className={styles.card}>
       <h2>Pemodelan: yang diukur, dan yang ditolak</h2>
-      <p className={styles.cardLede}>Empat angka, dua di antaranya sengaja tidak dipakai. Selengkapnya di <code>research/hasil</code> dan makalah.</p>
+      <p className={styles.cardLede}>Lima angka, dua di antaranya sengaja tidak dipakai. Selengkapnya di <code>research/hasil</code> dan makalah.</p>
       <ul>
         <li><strong>Regresi logistik 13 fitur geometri — AUC tingkat anak 0,823</strong> (95% CI 0,697–0,929; 547 scanpath, 54 anak, pemisahan per partisipan). Dikirim ke perangkat dan dijalankan tiap sesi, tetapi dikurung penjaga out-of-distribution dan tidak punya jalur kode untuk memutuskan apa pun.</li>
-        <li><strong>CNN EfficientNetB0 pada citra yang sama — AUC 0,882.</strong> Tidak dipakai: kanal warnanya membawa kecepatan, akselerasi, dan jerk dari eye-tracker 250 Hz, yang tidak dapat direkonstruksi dari kamera 30 fps.</li>
-        <li><strong>Degradasi ke kondisi perangkat sasaran — geometri 0,683 vs 19 fitur penuh 0,605.</strong> Justru pada 30 Hz, derau 1,5°, dropout 20%, dan jitter pose 2°, fitur geometri unggul. Itu alasan set fitur ini yang dibekukan.</li>
+        <li><strong>CNN EfficientNetB0 pada citra yang sama — AUC 0,882, selisihnya tidak dapat dibedakan dari nol.</strong> Bootstrap berpasangan atas 54 partisipan yang sama: ΔAUC +0,059, CI 95% −0,007 sampai +0,137, p = 0,087. Prediksi kedua model berkorelasi 0,93, jadi CNN menemukan sinyal yang sama, bukan sinyal tambahan. Alasan utama menolaknya tetap kontrak masukan: kanal warnanya membawa kecepatan, akselerasi, dan jerk dari eye-tracker 250 Hz.</li>
+        <li><strong>Degradasi raster — proxy sparsifikasi piksel, bukan resampling waktu.</strong> Geometri 0,683 vs 19 fitur penuh 0,605 pada kondisi sasaran. Citra Carette tidak punya stempel waktu, jadi laju cuplik hanya dapat ditiru dengan menghapus piksel; berkasnya menyatakan batas itu sendiri.</li>
+        <li><strong>Degradasi temporal sungguhan — 27 sesi Gate B, desimasi waktu asli.</strong> Menurunkan laju dari 26 Hz ke 13 Hz menggeser fitur kinematik sebesar 69% nilainya dan fitur geometri sebesar 1,6% — beda 42 kali. Ini yang membenarkan pembekuan set geometri, menggantikan proxy di atas. Geometri lebih tahan, bukan kebal: ρ-nya turun ke 0,44 pada 6,5 Hz.</li>
         <li><strong>CNN pada dataset wajah statis — AUC 0,932, angka tertinggi di proyek ini, dikarantina.</strong> Enam dari enam metadata tata kelola tidak tersedia dan tidak ada ID partisipan, sehingga kebocoran identitas tidak dapat disingkirkan. Uji shortcut menunjukkan statistik piksel saja sudah mencapai 0,751 (permutasi p = 0,005). Bobotnya tidak ada di repositori.</li>
       </ul>
       <div className={styles.claimLock}><IconAlert size={16} /><span><strong>Tidak satu pun angka ini memutuskan rujukan</strong><small>Validasi algoritmik pada anak usia sekolah · bukan balita</small></span></div>

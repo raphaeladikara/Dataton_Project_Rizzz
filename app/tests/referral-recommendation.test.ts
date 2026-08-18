@@ -7,7 +7,10 @@ import {
 } from "../src/outcome/referralRecommendation";
 
 const followsCues: ReferralInput["jointAttention"] = { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 8, pValue: 0.0039 };
-const noCueFollowing: ReferralInput["jointAttention"] = { verdict: "NOT_DISTINGUISHABLE", trialsScored: 8, trialsFollowed: 3, pValue: 0.855 };
+/** Post-cue looking sat below each trial's own pre-cue baseline: measured, not merely undemonstrated. */
+const noCueFollowing: ReferralInput["jointAttention"] = { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 2, pValue: 0.965 };
+/** Followed most cues without reaching significance — the case eight trials cannot resolve. */
+const cuesInconclusive: ReferralInput["jointAttention"] = { verdict: "NOT_DISTINGUISHABLE", trialsScored: 8, trialsFollowed: 6, pValue: 0.145 };
 
 const nameCalls = (responses: number) => ({
   callsDelivered: 3,
@@ -79,13 +82,25 @@ test("too few scored trials leaves cue following unassessed", () => {
   assert.equal(signal({ ...typical, jointAttention: null }, "cue_following").status, "tidak_dapat_dinilai");
 });
 
-test("cue following says it failed to demonstrate, not that the child cannot", () => {
+test("failing to demonstrate cue following is not the same finding as not following", () => {
+  // Eight trials cannot reach p < 0,05 below seven successes, so a child who
+  // followed six of eight fails significance while having followed most of
+  // them. Counting that as a deviation reads absence of evidence as evidence
+  // of absence, and it used to reach the rule directly.
+  const inconclusive = signal({ ...typical, jointAttention: cuesInconclusive }, "cue_following");
+  assert.equal(inconclusive.status, "tidak_dapat_dinilai");
+
+  // Deviant is reserved for post-cue looking that sat below the trial's own
+  // pre-cue baseline, which is a measurement rather than a missing one.
   const deviant = signal({ ...typical, jointAttention: noCueFollowing }, "cue_following");
   assert.equal(deviant.status, "menyimpang");
-  // Absence of evidence is not evidence of absence, and eight trials cannot
-  // reach significance below seven successes. The wording has to carry that.
-  assert.match(deviant.reason, /belum|tidak terbukti/i);
   assert.doesNotMatch(deviant.reason, /tidak mampu|tidak bisa mengikuti/i);
+});
+
+test("an inconclusive cue signal cannot be the second deviation that triggers a referral", () => {
+  const result = buildReferralRecommendation({ ...typical, jointAttention: cuesInconclusive, responseToName: nameCalls(0) });
+  assert.equal(result.deviantCount, 1);
+  assert.equal(result.recommendsFollowUp, false);
 });
 
 test("response to name is deviant at one call or fewer out of three", () => {

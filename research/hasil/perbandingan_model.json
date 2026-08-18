@@ -1,0 +1,30 @@
+{
+  "question": "Apakah CNN scanpath benar-benar lebih baik daripada regresi logistik 13 fitur?",
+  "method": "Bootstrap berpasangan terstratifikasi atas prediksi out-of-fold tingkat partisipan; kedua model dinilai pada partisipan yang sama.",
+  "n_participants": 54,
+  "n_positive": 26,
+  "n_negative": 28,
+  "auc": {
+    "logistic_regression_geometri": 0.822802,
+    "cnn_efficientnetb0": 0.881868
+  },
+  "paired_test": {
+    "observed_delta_auc": 0.059066,
+    "ci95": [
+      -0.006868,
+      0.137363
+    ],
+    "p_two_sided": 0.0866,
+    "fraction_of_replicates_favouring_cnn": 0.9567,
+    "bootstrap_replications": 10000,
+    "seed": 20260819
+  },
+  "prediction_correlation_pearson": 0.932,
+  "verdict": "cnn_not_distinguishable_from_logistic_regression",
+  "interpretation": "Selisih AUC berpasangan tidak mengecualikan nol, jadi keunggulan CNN tidak dapat dibedakan dari derau pada 54 partisipan. Ini alasan kuantitatif untuk tidak memakai CNN, menggantikan argumen lama yang hanya menyebut selang kepercayaan bertumpang tindih.",
+  "limitations": [
+    "Prediksi OOF berasal dari dua pipeline lipatan yang berbeda, jadi pasangannya berada di tingkat partisipan dan bukan di tingkat lipatan.",
+    "54 partisipan usia sekolah pada eye-tracker 250 Hz; tidak berlaku untuk balita pada kamera 30 fps.",
+    "Uji ini membandingkan dua model pada data yang sama, bukan mengukur kegunaan klinis keduanya."
+  ]
+}

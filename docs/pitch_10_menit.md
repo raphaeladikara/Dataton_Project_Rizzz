@@ -43,14 +43,23 @@ awal saja:
 Setelah laporan muncul, tunjuk tiga hal berurutan:
 
 1. Persentase fiksasi geometrik dengan ambangnya.
-2. Empat sinyal aturan komposit, masing-masing dengan nilai terukur, status, dan
+2. Tiga sinyal aturan komposit, masing-masing dengan nilai terukur, status, dan
    sumber literaturnya.
 3. Kalimat hasil.
 
 > Perhatikan yang tidak ada: tidak ada skor gabungan, tidak ada gauge, tidak ada
-> persentase risiko autisme. Enam indeks tidak boleh dijumlahkan sebelum ada balita
-> berlabel untuk memfit bobotnya, jadi tipe datanya sendiri melarang — `combinedScore`
-> bernilai null dan tidak ada jalur kode yang bisa mengisinya.
+> persentase risiko autisme. Keenam ukuran itu tidak boleh dijumlahkan sebelum ada
+> balita berlabel untuk memfit bobotnya, jadi tipe datanya sendiri melarang —
+> `combinedScore` bernilai null dan tidak ada jalur kode yang bisa mengisinya.
+
+Kalau ada satu sinyal berstatus **tidak dapat dinilai**, tunjuk itu dan jelaskan:
+
+> Sinyal ini arahnya benar tapi belum terbukti di atas kebetulan, jadi ia tidak
+> dihitung ke arah mana pun. Delapan percobaan tidak bisa mencapai p di bawah 0,05
+> di bawah tujuh keberhasilan — jadi anak yang mengikuti enam dari delapan isyarat
+> gagal signifikan sambil sudah mengikuti sebagian besarnya. Menghitung itu sebagai
+> penyimpangan berarti membaca ketiadaan bukti sebagai bukti ketiadaan, dan aturan
+> ini dulu memang begitu sampai kami cabut.
 
 ---
 

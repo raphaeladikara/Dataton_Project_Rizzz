@@ -16,6 +16,36 @@
   },
   "meanValidFrameRate": 0.964,
   "meanGazeDropout": 0.036,
+  "angleConventionCorrection": {
+    "why": "Gate A memakai 45 derajat per unit ternormalisasi; tidak ada perangkat di studi ini yang menyudut selebar itu.",
+    "legacyDegreesPerUnit": 45.0,
+    "legacyMedianErrorDeg": 2.357,
+    "viewingDistanceRecorded": false,
+    "correctedMedianErrorDeg": {
+      "400": {
+        "lower_all_vertical": 1.084,
+        "upper_all_horizontal": 1.747
+      },
+      "500": {
+        "lower_all_vertical": 0.867,
+        "upper_all_horizontal": 1.397
+      },
+      "600": {
+        "lower_all_vertical": 0.723,
+        "upper_all_horizontal": 1.164
+      }
+    },
+    "note": "Angka terbit melebih-lebihkan galat sekitar 1,7-2,7 kali, jadi instrumennya lebih teliti daripada yang dilaporkan, bukan sebaliknya. Perbandingan terhadap WebGazer 4,17 derajat tetap bukan uji tanding: angka itu diukur pada geometri perangkat yang berbeda lagi.",
+    "forward_fix": "app/src/capture/faceLandmarker.ts::visualAngleDeg memakai trigonometri sebenarnya; jarak pandang kini direkam per sesi."
+  },
+  "qualityDenominator": {
+    "definition": "meanValidFrameRate dan meanGazeDropout dihitung atas sesi yang LULUS mutu, bukan seluruh sesi.",
+    "passedSessions": 94,
+    "allSessions": 100,
+    "meanValidFrameRateAllSessions": 0.9429,
+    "meanGazeDropoutAllSessions": 0.0537,
+    "note": "Enam sesi gagal memuat laju wajah terburuk di set ini, jadi penyebut sesi-lulus lebih menguntungkan. Kutip berpasangan."
+  },
   "extractionP90Ms": 7.67,
   "failureWarnings": {
     "wajah_terlalu_miring": 2,

@@ -176,6 +176,16 @@ const APP_VERSION = "3.0.0-child-flow";
 const pause = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+/** Small counts spelled out, so report copy can be derived rather than retyped. */
+const NUMBER_WORDS = ["nol", "satu", "dua", "tiga", "empat", "lima", "enam"] as const;
+function numberWord(count: number): string {
+  return NUMBER_WORDS[count] ?? String(count);
+}
+function numberWordCapitalized(count: number): string {
+  const word = numberWord(count);
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 function trackingSnapshot(landmarks: Array<{ x: number; y: number }>, source: { width: number; height: number }): TrackingSnapshot | null {
   if (landmarks.length < 478) return null;
   const measurement = eyeMeasurement(landmarks as Parameters<typeof eyeMeasurement>[0]);
@@ -1226,9 +1236,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setCalibrationTarget(null);
     setCalibrationProgress(null);
     try {
+      // Screen size and viewing distance are already collected, so calibration
+      // error can be a real visual angle instead of the assumed 45 deg/unit the
+      // Gate A figures were computed under. See LEGACY_DEGREES_PER_UNIT.
+      const geometry = {
+        screenWidthMm: bridgeMeta.screenWidthMm,
+        screenHeightMm: bridgeMeta.screenHeightMm,
+        viewingDistanceMm: bridgeMeta.viewingDistanceMm,
+      };
       const fitted = fitCalibration(samples, targetDiagnostics, useTechnicalCalibration
-        ? undefined
-        : { minimumTrainingTargets: 5, minimumTrainingSamples: 25 });
+        ? { geometry }
+        : { minimumTrainingTargets: 5, minimumTrainingSamples: 25, geometry });
       setCalibration(fitted);
       setSanityPassed(null);
       setCalibrationMessage(
@@ -2266,7 +2284,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <div className="referralHead">
                   <small>Jalur kedua · aturan komposit</small>
                   <h2 id="referral-heading">{referral.headline}</h2>
-                  <p>Empat sinyal yang dapat dinilai tanpa data pembanding balita: satu memakai ambang terbit, tiga membandingkan anak dengan dirinya sendiri. Batas {referral.threshold} sinyal adalah pilihan desain, bukan ambang tervalidasi.</p>
+                  {/* Counted from the rule, not retyped: the copy said "empat sinyal" for a
+                      while after the blink signal was dropped and the rule became three. */}
+                  <p>{numberWordCapitalized(referral.signals.length)} sinyal yang dapat dinilai tanpa data pembanding balita: satu memakai ambang terbit, {numberWord(referral.signals.length - 1)} membandingkan anak dengan dirinya sendiri. Batas {referral.threshold} sinyal adalah pilihan desain, bukan ambang tervalidasi.</p>
                 </div>
                 <ul className="referralSignals">
                   {referral.signals.map((item) => <li key={item.id} data-status={item.status}>
