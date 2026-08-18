@@ -82,7 +82,25 @@
     "epsilon": 1e-07
   },
   "decision": {
-    "refer_if_probability_gte": 0.2242501759172033,
+    "refer_if_probability_gte": 0.4984954435100957,
+    "default_operating_point": "youden",
+    "operating_points": {
+      "target_sensitivity_090": {
+        "threshold": 0.2242501759172033,
+        "sensitivity": 0.9230769230769231,
+        "specificity": 0.17857142857142858,
+        "rule": "largest_empirical_threshold_with_sensitivity_at_least_target",
+        "target_sensitivity": 0.9,
+        "intended_use": "rule_out_framing_shipped_but_not_recommended"
+      },
+      "youden": {
+        "threshold": 0.4984954435100957,
+        "sensitivity": 0.7307692307692307,
+        "specificity": 0.8214285714285714,
+        "rule": "maximum_youden_index_on_participant_level_oof",
+        "intended_use": "balanced_reporting_point_used_by_the_paper"
+      }
+    },
     "threshold_status": "demo_only_not_clinically_validated",
     "quality_gate_required": true
   },
@@ -151,5 +169,5 @@
       "Threshold is for deterministic demo behavior, not clinical use."
     ]
   },
-  "sha256_without_checksum": "ea361b8789395bf7e6545a57b88cffbeb1b3ef802cbd5786edbcdaaf0b26ecf0"
+  "sha256_without_checksum": "9e18b0f232cfc5c5c9e13cc23d52709906b3db07d680496d8a120e134eedf5b7"
 }

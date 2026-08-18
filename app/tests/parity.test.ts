@@ -51,3 +51,37 @@ test("model validation rejects incompatible exports", () => {
     /tidak lengkap|tidak kompatibel/,
   );
 });
+
+test("the model export names an operating point it actually carries", async () => {
+  const model = JSON.parse(
+    await readFile(new URL("public/models/model.json", root), "utf8"),
+  ) as ModelExport;
+  validateModel(model);
+  const points = model.decision.operating_points;
+  assert.deepEqual(Object.keys(points).sort(), ["target_sensitivity_090", "youden"]);
+  const active = points[model.decision.default_operating_point];
+  assert.equal(model.decision.refer_if_probability_gte, active.threshold);
+  // The sensitivity-constrained point refers most of the cohort; shipping it as
+  // the only exported number is what this guards against.
+  assert.ok(points.target_sensitivity_090.specificity < points.youden.specificity);
+});
+
+test("a model export without its default operating point is rejected", () => {
+  const broken = {
+    schema_version: 1,
+    model_version: "x",
+    feature_set: "geometri",
+    feature_order: Array.from({ length: 13 }, (_, index) => `f${index}`),
+    scaler: { mean: Array(13).fill(0), scale: Array(13).fill(1) },
+    classifier: { coef: Array(13).fill(0.1), intercept: 0 },
+    calibrator: { coef: 1, intercept: 0, epsilon: 1e-6 },
+    decision: {
+      refer_if_probability_gte: 0.5,
+      default_operating_point: "youden",
+      operating_points: { target_sensitivity_090: { threshold: 0.2, sensitivity: 0.9, specificity: 0.2 } },
+      threshold_status: "demo_only_not_clinically_validated",
+      quality_gate_required: true,
+    },
+  };
+  assert.throws(() => validateModel(broken), /operating point/i);
+});
