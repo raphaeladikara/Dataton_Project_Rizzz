@@ -2286,9 +2286,34 @@ dd {
   background: radial-gradient(circle at 35% 28%, #fff7c7 0 18%, #f8bd4c 19% 65%, #e99832 66%);
   box-shadow: 0 18px 38px rgba(112, 71, 9, .22), inset 0 -5px 0 rgba(112, 71, 9, .13);
 }
-.calibrationDot.childTarget.active { animation: childTargetFloat 900ms var(--ease-in-out) infinite alternate; }
+.calibrationDot.childTarget { padding: 0; overflow: visible; background: none; box-shadow: none; }
+/* Arrive, then breathe. The arrival hop is the attention-getter between
+   targets: a toddler tracks the movement, then the face holds the fixation. */
+.calibrationDot.childTarget.active {
+  width: 88px;
+  height: 88px;
+  animation: childTargetArrive 460ms var(--ease-spring) both, childTargetFloat 1100ms var(--ease-in-out) 460ms infinite alternate;
+}
 .calibrationDot.childTarget.done { opacity: 0; }
+.calibrationDot.childTarget:not(.active) .calibrationCharacter { opacity: .45; }
+.calibrationDot.childTarget.active i { z-index: 0; }
+@keyframes childTargetArrive {
+  0% { transform: translate(-50%, -50%) scale(.55) rotate(-8deg); }
+  62% { transform: translate(-50%, -50%) scale(1.14) rotate(4deg); }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
 @keyframes childTargetFloat { from { transform: translate(-50%, -50%) translateY(3px) rotate(-3deg); } to { transform: translate(-50%, -50%) translateY(-5px) rotate(3deg); } }
+
+/* The character itself: warm face on the dark board, ~12:1 against it. */
+.calibrationCharacter { position: relative; z-index: 3; display: block; overflow: visible; }
+.ccFace { fill: #f8bd4c; stroke: #fffdf8; stroke-width: 2.5; }
+.ccEyeWhite { fill: #fffdf8; }
+.ccPupil { fill: #17302c; }
+.ccGlint { fill: #fffdf8; }
+.ccSmile { fill: none; stroke: #6f490d; stroke-width: 3.4; stroke-linecap: round; }
+.ccBlush { fill: #ef9a7a; opacity: .75; }
+.calibrationCharacter[data-active="true"] .ccEyes { animation: ccBlink 3200ms steps(1, end) infinite; transform-origin: 50% 44%; }
+@keyframes ccBlink { 0%, 92% { transform: scaleY(1); } 94%, 97% { transform: scaleY(.08); } 99%, 100% { transform: scaleY(1); } }
 
 .sanityStage {
   min-height: 360px;
@@ -2420,5 +2445,60 @@ dd {
 
 @media (prefers-reduced-motion: reduce) {
   .calibrationDot.childTarget.active { animation: none; }
+  .calibrationCharacter[data-active="true"] .ccEyes { animation: none; }
   .sanityCharacter { transition: opacity 180ms var(--ease-out); }
+}
+
+/* Recorded / simulated provenance line above a report. It sits between the
+   heading and the numbers because a reader must know what produced them before
+   reading them, not after. */
+.recordedBanner {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 18px;
+  padding: 13px 15px;
+  border: 1px solid var(--amber-200, rgba(166, 116, 19, .22));
+  border-radius: 14px;
+  color: var(--ink-700);
+  background: var(--amber-50, #fff7e6);
+  font-size: 12.5px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.recordedBanner strong { font-weight: 800; }
+.recordedBanner svg { flex: 0 0 auto; margin-top: 2px; }
+.recordedBanner[data-kind="recording"] {
+  border-color: var(--teal-200, rgba(13, 102, 93, .22));
+  background: var(--teal-50, #eefaf6);
+}
+
+/* ── Print hand-off ──────────────────────────────────────────────────────── */
+.printSummary { display: none; }
+
+@media print {
+  /* Only the summary prints. Everything else is operator chrome. */
+  body { background: #fff; }
+  .topbar, .sessionRail, .cardActions, .skipLink, .recordedBanner,
+  .observationReport, .researchPanel, .reportTechnical, .decisionRules,
+  .resultNext, .observationAnswer, .qualityGrid, .gateDecision, .warning,
+  .reportHold, .observationMetrics, .observationLead { display: none !important; }
+  .printSummary { display: block; color: #000; font-size: 11pt; }
+  .printSummary header { padding-bottom: 8pt; border-bottom: 1.5pt solid #000; }
+  .printSummary h1 { margin: 0 0 4pt; font-size: 17pt; }
+  .printSummary header p { margin: 0; font-size: 9.5pt; }
+  .printSummary h2 { margin: 14pt 0 6pt; font-size: 12pt; }
+  .printMeta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2pt 18pt; margin: 10pt 0 0; }
+  .printMeta div { display: flex; gap: 6pt; font-size: 10pt; }
+  .printMeta dt { color: #444; }
+  .printMeta dt::after { content: ":"; }
+  .printMeta dd { margin: 0; font-weight: 700; }
+  .printHeadline { margin: 0 0 4pt; font-size: 13pt; font-weight: 700; }
+  .printSummary table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .printSummary th, .printSummary td { padding: 4pt 6pt; border-bottom: 0.5pt solid #999; text-align: left; vertical-align: top; }
+  .printSummary th[scope="row"] { width: 30%; font-weight: 700; }
+  .printSummary td:last-child { color: #333; font-size: 9pt; }
+  .printSummary ul { margin: 0; padding-left: 14pt; font-size: 10pt; line-height: 1.45; }
+  .printFooter { margin-top: 22pt; font-size: 10pt; }
+  @page { margin: 14mm; }
 }

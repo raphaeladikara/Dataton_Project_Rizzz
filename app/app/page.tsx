@@ -57,6 +57,7 @@ import {
 } from "../src/quality/sessionValidity";
 import { assessFeatureOod, type OodAssessment, type OodReference } from "../src/quality/ood";
 import type { GateBStudyMeta } from "../src/gateb/studyMeta";
+import { loadFirstRecording, type RecordedSession } from "../src/replay/recording";
 import { replayPoints, SCENARIOS } from "../src/replay/scenarios";
 import { geometryFeatures } from "../src/scanpath/features";
 import {
@@ -103,6 +104,7 @@ import {
   IconTrash,
   LogoMark,
 } from "../src/ui/icons";
+import { CalibrationCharacter } from "../src/ui/calibration-character";
 import { HeroDevice } from "../src/ui/hero-device";
 import { StimulusScene } from "../src/ui/stimulus-scene";
 import { CameraFramingArt, GuideScene, NaturalWatchingArt } from "../src/ui/scene-art";
@@ -364,6 +366,17 @@ const SESSION_STEPS: { key: Stage; label: string; hint: string; icon: (p: { size
 ];
 
 /**
+ * Step position, derived once.
+ *
+ * The rail said 09 / 09 while the fullscreen calibration screen said "Langkah 3
+ * dari 6". Both now count the same nine steps.
+ */
+function sessionStepPosition(stage: Stage) {
+  const index = Math.max(0, SESSION_STEPS.findIndex((step) => step.key === stage));
+  return { index, number: index + 1, total: SESSION_STEPS.length, label: SESSION_STEPS[index].label };
+}
+
+/**
  * Session progress rail.
  *
  * Lives in the left column rather than as a sticky bar: a sticky header
@@ -371,10 +384,7 @@ const SESSION_STEPS: { key: Stage; label: string; hint: string; icon: (p: { size
  * step room for an icon and a one-line hint.
  */
 function Stepper({ stage }: { stage: Stage }) {
-  const active = Math.max(
-    0,
-    SESSION_STEPS.findIndex((step) => step.key === stage),
-  );
+  const active = sessionStepPosition(stage).index;
   const current = SESSION_STEPS[active];
   const next = SESSION_STEPS[active + 1];
 
@@ -507,6 +517,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [mode, setMode] = useState<Mode>(isAdminCapture ? "live" : "replay");
   const [sessionPurpose, setSessionPurpose] = useState<SessionPurpose>(initialPurpose ?? "demo_replay");
   const [scenario, setScenario] = useState<ReplayScenario>(SCENARIOS[0]);
+  // A recorded session replaces the synthetic scenario when one is shipped;
+  // until then the quick demo falls back and says on screen that it did.
+  const [recording, setRecording] = useState<RecordedSession | null>(null);
+  const recordingRef = useRef<RecordedSession | null>(null);
+  const [demoRun, setDemoRun] = useState<"idle" | "calibrating" | "measuring" | "done">("idle");
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -808,6 +823,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     purpose: SessionPurpose = modeChoice === "replay" ? "demo_replay" : "gate_a_adult",
   ) {
     setBusy(false);
+    recordingRef.current = null;
+    setRecording(null);
+    setDemoRun("idle");
     setMode(modeChoice);
     setSessionPurpose(purpose);
     setScenario(replay);
@@ -1015,6 +1033,50 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setBusy(false);
   }
 
+  /**
+   * One-click path to a finished report.
+   *
+   * It runs the real pipeline rather than staging a fake result: calibration,
+   * the stimulus block, the quality gate, and the same outcome resolver a live
+   * session uses. The only difference is where the gaze comes from.
+   */
+  async function startQuickDemo() {
+    start("replay", SCENARIOS[0]);
+    setProfile({ childId: "NG-DEMO-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
+    const found = await loadFirstRecording();
+    recordingRef.current = found;
+    setRecording(found);
+    setDemoRun("calibrating");
+  }
+
+  useEffect(() => {
+    if (demoRun === "idle" || demoRun === "done") return;
+    let cancelled = false;
+    void (async () => {
+      if (demoRun === "calibrating") {
+        if (!calibration) {
+          if (!busy) await runCalibration();
+          return;
+        }
+        if (cancelled) return;
+        setSanityPassed(true);
+        setDemoRun("measuring");
+        return;
+      }
+      if (!model) return;
+      if (!quality) {
+        if (!busy) await runStimulus({ fast: true });
+        return;
+      }
+      if (cancelled) return;
+      setDemoRun("done");
+      setStage("report");
+    })();
+    return () => { cancelled = true; };
+    // runCalibration and runStimulus close over the state this effect waits on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoRun, calibration, quality, model, busy]);
+
   async function runCalibration() {
     setCalibrationAttempts((value) => value + 1);
     setBusy(true);
@@ -1032,13 +1094,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         setCalibrationTarget(index);
         await pause(160);
       }
+      const replayedError = recordingRef.current?.calibrationErrorDeg ?? scenario.calibrationErrorDeg;
       setCalibration({
         x: [0, 1, 0],
         y: [0, 0, 1],
-        errorDeg: scenario.calibrationErrorDeg,
+        errorDeg: replayedError,
       });
-      setCalibrationMessage("Replay memakai kalibrasi deterministik bawaan.");
-      recordAudit("calibration.replay_completed", { errorDeg: scenario.calibrationErrorDeg });
+      setCalibrationMessage(recordingRef.current
+        ? `Memakai kalibrasi dari rekaman ${recordingRef.current.label}.`
+        : "Replay memakai kalibrasi deterministik bawaan.");
+      recordAudit("calibration.replay_completed", { errorDeg: replayedError, recording: recordingRef.current?.id ?? null });
       setCalibrationTarget(null);
       setBusy(false);
       return;
@@ -1252,7 +1317,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStage("quality");
   }
 
-  async function runStimulus() {
+  async function runStimulus(options: { fast?: boolean } = {}) {
     if (!calibration || (mode === "replay" && !model)) return;
     const retryPhaseIds = validity?.outcome === "RETRY_STAGE" ? validity.invalidStages : [];
     const runPhases = retryPhaseIds.length
@@ -1279,12 +1344,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     let eyeRejectedFrames = 0;
     const totalFrames = 180;
     const durationMs = Array.from(runPhases).reduce((sum: number, phase) => sum + phase.durationMs, 0);
+    const replayed = recordingRef.current;
     if (mode === "replay") {
-      captured = replayPoints(scenario, totalFrames).map((point, index) => {
-        const virtualElapsed = (index / Math.max(totalFrames - 1, 1)) * Math.max(durationMs - 1, 0);
-        const state = phaseAtElapsed(virtualElapsed, runPhases)!;
-        return { ...point, phase: state.phase.id, epoch: state.cueActive ? "post_cue" as const : "pre_cue" as const };
-      });
+      if (replayed) {
+        // A real session: its points already carry phase and epoch, and its
+        // frame trace is what fills the layer-B indices.
+        captured = replayed.points;
+        frameTraceRef.current.reset();
+        replayed.frames.forEach((frame) => frameTraceRef.current.record(frame));
+      } else {
+        captured = replayPoints(scenario, totalFrames).map((point, index) => {
+          const virtualElapsed = (index / Math.max(totalFrames - 1, 1)) * Math.max(durationMs - 1, 0);
+          const state = phaseAtElapsed(virtualElapsed, runPhases)!;
+          return { ...point, phase: state.phase.id, epoch: state.cueActive ? "post_cue" as const : "pre_cue" as const };
+        });
+      }
+      const stepPause = options.fast ? 8 : 140;
       for (let index = 0; index < totalFrames; index += 6) {
         setProgress(Math.round((index / totalFrames) * 100));
         while (stimulusPausedRef.current) await pause(100);
@@ -1292,9 +1367,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         setStimulusPhase(state.phase);
         setStimulusCueActive(state.cueActive);
         setStimulusOstensiveActive(state.ostensiveActive);
-        await pause(140);
+        await pause(stepPause);
       }
-      faceFrames = Math.round(scenario.faceRate * totalFrames);
+      faceFrames = Math.round((replayed?.faceRate ?? scenario.faceRate) * totalFrames);
       attemptedFrames = totalFrames;
     } else {
       const video = captureVideoRef.current;
@@ -1422,7 +1497,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const frameRate = faceFrames / Math.max(attemptedFrames, 1);
     const dropout =
       mode === "replay"
-        ? scenario.gazeDropout
+        ? replayed?.gazeDropout ?? scenario.gazeDropout
         : 1 - rawCaptured.length / Math.max(attemptedFrames, 1);
     const features = geometryFeatures(captured);
     const nextOod = oodReference ? assessFeatureOod(features, oodReference) : null;
@@ -1434,7 +1509,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       calibrationErrorDeg: calibration.errorDeg,
       calibrationLimitDeg,
       brightness: mode === "replay"
-        ? scenario.brightness
+        ? replayed?.brightness ?? scenario.brightness
         : deviceDiagnostics?.brightness ?? frameBrightness(captureVideoRef.current!),
       sampleCount: captured.length,
       coverage: nextOod?.coverage,
@@ -1586,6 +1661,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
   return (
     <main>
+      <a className="skipLink" href="#konten">Lewati ke isi utama</a>
+      {/* Second live region: the rail announces the step, this announces the
+          screen change itself, including on the fullscreen stages where the
+          rail is not rendered. */}
+      <p className="srOnly" role="status" aria-live="polite">
+        {stage === "home" || stage === "guide"
+          ? "Beranda"
+          : `Langkah ${sessionStepPosition(stage).number} dari ${sessionStepPosition(stage).total}: ${sessionStepPosition(stage).label}`}
+      </p>
+      <div id="konten" tabIndex={-1} />
       {stage !== "calibration" && stage !== "stimulus" && <header className="topbar">
         <div className="topbarInner">
         <button className="brandButton" onClick={goHome}>
@@ -1636,8 +1721,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}>
                   Mulai observasi kamera <span aria-hidden="true"><IconArrowRight size={16} /></span>
                 </button>
-                <button className="secondary" onClick={() => start("replay", SCENARIOS[0])}>
-                  <IconPlay size={14} /> Lihat demo replay
+                <button className="secondary" onClick={() => void startQuickDemo()}>
+                  <IconPlay size={14} /> Demo cepat: langsung ke laporan
+                </button>
+                <button className="textButton" onClick={() => start("replay", SCENARIOS[0])}>
+                  Telusuri alur lengkap
                 </button>
               </div>
               <div className="trustList" aria-label="Perlindungan data utama" style={{ "--i": 4 } as CSSProperties}>
@@ -1982,13 +2070,19 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       {stage === "calibration" && (
         <section className="workspace calibrationPage" data-busy={busy ? "true" : "false"}>
           <div className="calibrationHud">
-            <div className="calibrationHudBrand"><LogoMark size={25} /><span><small>Langkah 3 dari 6</small><strong>Kalibrasi layar penuh</strong></span></div>
+            <div className="calibrationHudBrand"><LogoMark size={25} /><span><small>Langkah {sessionStepPosition("calibration").number} dari {sessionStepPosition("calibration").total}</small><strong>Kalibrasi layar penuh</strong></span></div>
             {busy && calibrationProgress ? <div className={`sampleProgress ${calibrationProgress.stable ? "stable" : ""}`} style={{ "--sample-progress": Math.min(1, calibrationProgress.accepted / CALIBRATION_STABLE_FRAMES) } as CSSProperties}><span><i /></span><div><strong>{calibrationProgress.target === activeTargets.length ? "Pengecekan terakhir" : `Posisi ${calibrationProgress.target + 1} dari ${activeTargets.length}`}</strong><small>{calibrationProgress.stable ? "Sudah terbaca" : "Tunggu sebentar"}</small></div></div> : <span className="calibrationHudHint"><IconEye size={14} /> Anak cukup melihat gambar</span>}
             <button className="calibrationExit" disabled={busy} onClick={() => { void leaveMeasurementFullscreen(); setStage("device"); }}><IconArrowLeft size={15} /> Keluar</button>
           </div>
           <div className="calibrationBoard">
             {activeTargets.map(([x, y], index) => (
-              <span key={`${x}-${y}`} className={`calibrationDot ${useTechnicalCalibration ? "technicalTarget" : "childTarget"} ${calibrationTarget === index ? "active" : calibrationTarget !== null && index < calibrationTarget ? "done" : ""}`} style={{ left: `${x * 100}%`, top: `${y * 100}%` }}>{calibrationTarget === index ? <i /> : useTechnicalCalibration ? index + 1 : <IconChild size={20} />}</span>
+              <span key={`${x}-${y}`} className={`calibrationDot ${useTechnicalCalibration ? "technicalTarget" : "childTarget"} ${calibrationTarget === index ? "active" : calibrationTarget !== null && index < calibrationTarget ? "done" : ""}`} style={{ left: `${x * 100}%`, top: `${y * 100}%` }}>
+                {useTechnicalCalibration
+                  ? (calibrationTarget === index ? <i /> : index + 1)
+                  // The character stays on screen while the target is active:
+                  // the halo is drawn behind it, not instead of it.
+                  : <><CalibrationCharacter active={calibrationTarget === index} />{calibrationTarget === index && <i />}</>}
+              </span>
             ))}
             {calibrationTarget === activeTargets.length && <span className={`calibrationDot calibrationValidationDot active ${useTechnicalCalibration ? "technicalTarget" : "childTarget"}`} style={{ left: "50%", top: "50%" }}><i /></span>}
             {calibrationTarget === null && !calibration && !busy && <div className="calibrationSetup">
@@ -2113,7 +2207,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           </div>
           {!isEngineeringStudy && quality.passed ? (
             <div className="observationReport">
-              {sessionOutcome.recordedSession && <p className="recordedBanner" role="status"><IconInfo size={15} /> Simulasi dengan hasil tetap untuk menguji alur. Indeks perilaku hanya terisi pada sesi kamera.</p>}
+              {sessionOutcome.recordedSession && (recording
+                ? <p className="recordedBanner" data-kind="recording" role="status"><IconInfo size={15} /> <strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p>
+                : <p className="recordedBanner" role="status"><IconInfo size={15} /> <strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p>)}
               <article className="observationLead">
                 <span className="resultIcon" aria-hidden="true"><IconShieldCheck size={28} /></span>
                 <div><small>Hasil pengukuran sesi ini</small><h2>{sessionOutcome.headline}</h2><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
@@ -2200,9 +2296,53 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {mode === "live" && !isEngineeringStudy && quality.passed ? <div><small>Model tidak tersedia</small><h2>Rekaman valid, tetapi estimasi tidak dapat dihitung</h2><p>Kamera, kalibrasi, dan seluruh fase stimulus berhasil direkam. Pemeriksaan kualitas lulus, tetapi model lokal atau format fitur tidak tersedia sehingga sistem menahan hasil.</p><div className="captureStatusGrid"><article><span>Pemeriksaan kualitas</span><strong>Lulus</strong><small>{Math.round(quality.faceRate * 100)}% wajah · {Math.round(quality.gazeDropout * 100)}% sampel hilang</small></article><article><span>Stimulus</span><strong>{cueSummary?.adequatePhaseCount ?? 0}/{cueSummary?.expectedPhaseCount ?? 0} fase</strong><small>{points.length} sampel valid</small></article><article><span>Estimasi</span><strong>Ditahan</strong><small>Periksa model lokal</small></article></div><div className="reportNextStep"><span><IconDownload size={18} /></span><div><strong>Langkah berikutnya</strong><p>Unduh catatan audit, lalu periksa aset model dan kecocokan format fitur sebelum mengulang sesi.</p></div></div><details className="reportTechnical"><summary>Ringkasan teknis sesi</summary><p><strong>Status:</strong> VALID · pemeriksaan kualitas lulus.</p><p><strong>Kalibrasi:</strong> {quality.calibrationErrorDeg.toFixed(2)}°.</p><p><strong>Model:</strong> {modelError ?? "inferensi tidak menghasilkan nilai"}.</p></details></div> : <div><small>Hasil ditahan</small><h2>Tes belum dapat dinilai</h2><p>{validity?.userMessage ?? "Kami belum mendapatkan rekaman tatapan yang cukup baik untuk memberikan hasil. Ini bukan hasil risiko anak."}</p><h3>Apa yang bisa dilakukan?</h3><ol><li>Pastikan wajah terlihat penuh dan tablet sejajar wajah.</li><li>Hindari pantulan cahaya pada kacamata.</li><li>Biarkan anak melihat layar tanpa diarahkan.</li><li>Ulangi tes saat anak lebih tenang.</li></ol>{validity?.primaryReasonCode && <details className="reportTechnical"><summary>Lihat detail untuk petugas</summary><p><strong>Masalah utama:</strong> {validity.userMessage}</p>{validity.invalidStages.length > 0 && <p><strong>Tahap:</strong> {validity.invalidStages.join(", ")}</p>}<p><strong>Saran:</strong> {validity.operatorAction}</p><code>reasonCode={validity.primaryReasonCode}</code></details>}</div>}
             </div>
           )}
+          {/* Paper hand-off. A kader gives the Puskesmas a sheet, not audit.json,
+              so the printed page carries the result, its provenance, and the
+              claim limits without any of the on-screen chrome. */}
+          <section className="printSummary" aria-hidden="true">
+            <header>
+              <h1>Neurogaze — Ringkasan sesi</h1>
+              <p>Bukan alat diagnosis. Dibaca bersama SDIDTK atau M-CHAT-R/F oleh tenaga kesehatan.</p>
+            </header>
+            <dl className="printMeta">
+              <div><dt>ID anak</dt><dd>{profile.childId}</dd></div>
+              <div><dt>Usia</dt><dd>{profile.age ? `${profile.age} bulan` : "—"}</dd></div>
+              <div><dt>Lokasi</dt><dd>{profile.site}</dd></div>
+              <div><dt>Operator</dt><dd>{profile.operator}</dd></div>
+              <div><dt>Waktu</dt><dd>{new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}</dd></div>
+              <div><dt>Sumber sesi</dt><dd>{mode === "live" ? "Sesi kamera langsung" : recording ? `Rekaman ${recording.label}` : "Simulasi, bukan sesi nyata"}</dd></div>
+              <div><dt>Versi aplikasi</dt><dd>app {APP_VERSION}</dd></div>
+            </dl>
+            <h2>Hasil</h2>
+            <p className="printHeadline">{sessionOutcome.headline}</p>
+            <p>{sessionOutcome.summaryLine}</p>
+            <p><strong>Arahan rujukan otomatis:</strong> {sessionOutcome.emitsReferral ? "Ya — disarankan pemeriksaan lanjutan." : "Tidak."}</p>
+            <h2>Angka yang diukur</h2>
+            <table>
+              <tbody>
+                <tr><th scope="row">Pola geometrik</th><td>{geoprefResult?.percentGeometric == null ? "—" : `${Math.round(geoprefResult.percentGeometric * 100)}%`}</td><td>Ambang rujukan 69% (Wen dkk. 2022, n=1.863, spesifisitas 98%)</td></tr>
+                <tr><th scope="row">Isyarat arah diikuti</th><td>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</td><td>Deskriptif, tanpa ambang tervalidasi</td></tr>
+                <tr><th scope="row">Menghadap layar</th><td>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</td><td>Padanan indeks AUC 0,838 pada preseden tablet</td></tr>
+                <tr><th scope="row">Gerak kepala</th><td>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</td><td>Padanan indeks AUC 0,864 pada preseden tablet</td></tr>
+                <tr><th scope="row">Respons nama</th><td>{phenotype.responseToName.proportion == null ? "—" : `${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered}`}</td><td>Deskriptif, tanpa ambang tervalidasi</td></tr>
+                <tr><th scope="row">Laju kedip (sosial)</th><td>{phenotype.blinkSocial.blinksPerMinute == null ? "—" : `${phenotype.blinkSocial.blinksPerMinute.toFixed(1).replace(".", ",")}/mnt`}</td><td>Deskriptif, tanpa ambang tervalidasi</td></tr>
+                <tr><th scope="row">Mutu rekaman</th><td>{quality.passed ? "Lulus" : "Ditahan"}</td><td>{Math.round(quality.faceRate * 100)}% wajah terbaca · galat kalibrasi {quality.calibrationErrorDeg.toFixed(1)}°</td></tr>
+              </tbody>
+            </table>
+            <h2>Batas klaim</h2>
+            <ul>
+              <li>Ini bukan diagnosis. Hanya ambang GeoPref 69% yang memicu arahan rujukan; indeks lain bersifat deskriptif.</li>
+              <li>Hasil di bawah ambang bukan tanda aman: sensitivitas ambang ini 17%, jadi sebagian besar anak ASD tidak terdeteksi.</li>
+              <li>Indeks perilaku belum punya ambang tervalidasi untuk balita Indonesia.</li>
+              <li>Keputusan rujukan tetap milik tenaga kesehatan, bukan aplikasi ini.</li>
+            </ul>
+            <p className="printFooter">Tanda tangan operator: ____________________  ·  Diterima oleh: ____________________</p>
+          </section>
           <div className="cardActions">
             <button className="secondary" onClick={() => { if (isAdminCapture) window.location.href = "/admin"; else goHome(); }}><IconCheck size={15} /> {isAdminCapture ? "Kembali ke konsol admin" : "Selesai"}</button>
             {auditLog && <button className="secondary" onClick={downloadCurrentAudit}><IconDownload size={15} /> Unduh log audit JSON</button>}
+            <button className="secondary" onClick={() => window.print()}><IconReport size={15} /> Cetak ringkasan</button>
+
             {auditLog && <button className="textButton danger" onClick={deleteCurrentAudit}><IconTrash size={15} /> Hapus log dari memori</button>}
             <button className="primary" onClick={restart}><IconRefresh size={15} /> Ulangi sesi</button>
           </div>
