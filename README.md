@@ -64,9 +64,12 @@ The reasoning behind these decisions is recorded in
 
 ### Known gaps
 
-- Replay still plays synthetic points unless a recorded session is dropped into
-  `app/public/replay/`, so the behavioural indices are empty on the fallback path
-  and the demo report is withheld. The loader and the export both exist.
+- Replay still plays synthetic points until a recorded session is registered, so the
+  behavioural indices are empty on the fallback path and the demo report is withheld.
+  The loader, the export, and the registration command all exist:
+  `npm run replay:register -- <audit-log.json> --as session-a.json`, which refuses a log
+  that carries no frame trace instead of registering a recording that would reproduce the
+  synthetic path's empty indices.
 - The Gate B known-target block (nine targets, absolute accuracy for both streams)
   is implemented on the analysis side but no session has recorded one yet.
 - No toddler appears in any evidence in this repository.

@@ -15,10 +15,25 @@ Jika aplikasi meminta pengulangan, perbaiki satu penyebab yang ditampilkan terle
 
 ## Membaca hasil
 
-- Replay deterministik hanya untuk demonstrasi hasil rujuk, pantau, dan ditahan.
-- Sesi kamera anak tidak mengeluarkan skor risiko ASD.
+Laporan memuat satu kalimat hasil, satu persentase fiksasi geometrik, dan enam indeks
+perilaku. Empat kemungkinan hasilnya: rujuk, terukur tanpa rujuk, protokol dipersingkat,
+atau ditahan.
+
+- **Tidak ada skor risiko ASD.** Tidak ada angka gabungan, tidak ada persentase
+  kemungkinan autisme. Enam indeks itu dibaca berdampingan, tidak dijumlahkan.
+- **Hasil di bawah ambang bukan berarti aman.** Pemeriksaan ini melewatkan sebagian besar
+  anak autistik; itu sifat alatnya. Jangan pernah menyampaikannya sebagai kabar baik.
+- **Hasil ditahan bukan kegagalan operator.** Itu sistem yang bekerja: mutunya tidak cukup,
+  jadi angkanya tidak dikeluarkan.
+- **Bila laporan menyebut protokol dipersingkat,** klip stimulus yang tersedia lebih pendek
+  daripada protokol yang ambangnya divalidasi, sehingga ambang 69% belum berlaku dan sesi
+  hanya melaporkan persentase terukur.
+- Ringkasan satu halaman dapat dicetak untuk diserahkan ke Puskesmas.
+- Demo cepat memakai pipeline yang sama dan selalu melabeli laporannya sebagai rekaman atau
+  simulasi.
 - Gate A dan B adalah validasi alat ukur, bukan validasi klinis.
-- Keputusan layanan tetap berada pada tenaga kesehatan dan protokol klinis yang berlaku.
+- Keputusan layanan tetap berada pada tenaga kesehatan dan protokol klinis yang berlaku,
+  dan hasil ini dibaca berdampingan dengan SDIDTK, bukan menggantikannya.
 
 ## Data dan privasi
 

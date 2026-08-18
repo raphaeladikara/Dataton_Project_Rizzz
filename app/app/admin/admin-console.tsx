@@ -6,6 +6,11 @@ import { IconAlert, IconArrowRight, IconCheck, IconResearch, IconShieldCheck } f
 import styles from "./admin.module.css";
 import { GATE_EVIDENCE_STATUS } from "../../src/validation/evidenceStatus";
 import { DEFAULT_GATE_C_SIMULATION, simulateGateC } from "../../src/validation/gateCSimulation";
+import {
+  SCORED_TRIAL_COUNT,
+  STIMULUS_TOTAL_SECONDS,
+  STIMULUS_VERSION,
+} from "../../src/stimulus/protocol";
 
 const GATE_A_METRICS = [
   ["Total sesi", "100", "25 peserta · 4 sesi per peserta"],
@@ -20,18 +25,25 @@ const GATE_B_METRICS = [
   ["Total pasangan", "30", "Aliran browser simultan"],
   ["Pasangan siap", "27", "Valid pair rate 90%"],
   ["Galat median", "44,159 px", "0,040997 ternormalisasi"],
-  ["Agreement AOI", "99,7574%", "Rata-rata pasangan siap"],
+  ["Agreement AOI", "99,7118%", "Rekomputasi dari koordinat mentah; nilai simpanan 99,7574%"],
   ["AOI utama", "100%", "27 dari 27 pasangan siap"],
   ["Retry rate", "10%", "3 pasangan ditahan"],
 ] as const;
 
+// Duration, trial count, and version are read from the protocol module rather
+// than retyped: the console used to state 66 seconds and v3 long after the
+// shipped battery had become 96 seconds and v4.
 const STIMULUS_METRICS = [
-  ["Durasi total", "66 detik", "5 + (8 × 7) + 5 detik"],
-  ["Percobaan berskor", "8", "4 jenis isyarat × kiri/kanan"],
+  [
+    "Durasi total",
+    `${STIMULUS_TOTAL_SECONDS} detik`,
+    `5 + (${SCORED_TRIAL_COUNT} × 7) + 17 + 13 + 5 detik`,
+  ],
+  ["Percobaan berskor", `${SCORED_TRIAL_COUNT}`, "4 jenis isyarat × kiri/kanan"],
   ["Epok pra-isyarat", "2,0 detik", "Tanpa informasi kiri/kanan"],
   ["Jendela respons", "5,0 detik", "Latensi mengikuti pandangan < 1,5 detik"],
   ["Objek sasaran", "2 identik", "Diam sepanjang seluruh sesi"],
-  ["Versi stimulus", "v3", "ID-joint-cues-vector-v3"],
+  ["Versi stimulus", "v4", STIMULUS_VERSION],
 ] as const;
 
 const TRIAL_TIMELINE = [
@@ -56,8 +68,9 @@ const GATE_C_METRICS = [
   ["ID partisipan", "54", "OOF dan pemisahan data per anak"],
   ["Model notebook", "EfficientNetB0", "Belum ada bobot ekspor untuk web"],
   ["AUC tingkat anak", "0,8819", "95% CI 0,7738-0,9681"],
-  ["Sensitivitas kandidat", "84,62%", "Ambang validasi 0,476"],
-  ["Spesifisitas kandidat", "75,00%", "Bukan titik kerja klinis"],
+  ["Sensitivitas sekunder", "84,62%", "Analisis Carette; tidak diwarisi ke Gate C"],
+  ["Spesifisitas sekunder", "75,00%", "Bukan titik kerja klinis, bukan target"],
+  ["Target Gate C", "87,8% / 80,8%", "Perochon dkk. 2023, kamera tablet"],
 ] as const;
 
 function EvidenceMetrics({ items }: { items: ReadonlyArray<readonly [string, string, string]> }) {
@@ -100,7 +113,7 @@ export function AdminConsole() {
 
     <section className={styles.evidenceDossier} aria-labelledby="stimulus-design-title">
       <div className={styles.sectionHeading}>
-        <div><span className={styles.kicker}>Instrumen · stimulus ID-joint-cues-vector-v3</span><h2 id="stimulus-design-title">Stimulus ini dirancang khusus untuk skrining, bukan animasi hiburan</h2><p className={styles.sectionLead}>Setiap detik, setiap objek, dan setiap gerakan pada adegan punya alasan metodologis. Bagian ini menjelaskan alasannya supaya penguji dapat menilai apakah instrumennya layak, bukan sekadar melihat hasilnya.</p></div>
+        <div><span className={styles.kicker}>Instrumen · stimulus {STIMULUS_VERSION}</span><h2 id="stimulus-design-title">Stimulus ini dirancang khusus untuk skrining, bukan animasi hiburan</h2><p className={styles.sectionLead}>Setiap detik, setiap objek, dan setiap gerakan pada adegan punya alasan metodologis. Bagian ini menjelaskan alasannya supaya penguji dapat menilai apakah instrumennya layak, bukan sekadar melihat hasilnya.</p></div>
         <span className={styles.principleStatus}>Setiap pilihan punya alasan</span>
       </div>
       <EvidenceMetrics items={STIMULUS_METRICS} />
@@ -130,9 +143,9 @@ export function AdminConsole() {
       </article>
 
       <article className={styles.gateDossier} data-gate="D">
-        <header className={styles.dossierHeader}><div><span className={styles.kicker}>Durasi dan bentuk aset</span><h3>66 detik, dan digambar sebagai vektor</h3></div><span className={styles.principleStatus}>Turun dari 120 detik</span></header>
+        <header className={styles.dossierHeader}><div><span className={styles.kicker}>Durasi dan bentuk aset</span><h3>{STIMULUS_TOTAL_SECONDS} detik, dan digambar sebagai vektor</h3></div><span className={styles.principleStatus}>Percobaan isyarat turun dari 120 detik</span></header>
         <div className={styles.dossierColumns}>
-          <section><h4>Kenapa dipendekkan</h4><p>Versi sebelumnya berdurasi 120 detik dengan tiap percobaan 13 detik. Balita usia 16–30 bulan sulit bertahan selama itu di depan layar, dan sesi yang gagal di tengah jalan menghasilkan rekaman yang tidak dapat dinilai. Durasi tiap percobaan dipangkas menjadi 7 detik—2 detik pra-isyarat dan 5 detik jendela respons—tanpa mengurangi jumlah percobaan berskor, karena respons mengikuti pandangan biasanya muncul jauh di bawah 1,5 detik setelah isyarat.</p><div className={styles.truthNote}><IconShieldCheck size={16} /><span><strong>Yang tidak dikorbankan.</strong> Delapan percobaan berskor dan penyeimbangan kiri–kanan tetap utuh; yang dipotong hanya waktu tunggu.</span></div></section>
+          <section><h4>Kenapa dipendekkan</h4><p>Versi sebelumnya berdurasi 120 detik dengan tiap percobaan 13 detik. Balita usia 16–30 bulan sulit bertahan selama itu di depan layar, dan sesi yang gagal di tengah jalan menghasilkan rekaman yang tidak dapat dinilai. Durasi tiap percobaan dipangkas menjadi 7 detik—2 detik pra-isyarat dan 5 detik jendela respons—tanpa mengurangi jumlah percobaan berskor, karena respons mengikuti pandangan biasanya muncul jauh di bawah 1,5 detik setelah isyarat. Blok preferential-looking 17 detik dan panggilan nama 13 detik ditambahkan sesudah pemangkasan itu, sehingga sesi utuh kini {STIMULUS_TOTAL_SECONDS} detik, masih lebih pendek daripada 120 detik versi lama.</p><div className={styles.truthNote}><IconShieldCheck size={16} /><span><strong>Yang tidak dikorbankan.</strong> Delapan percobaan berskor dan penyeimbangan kiri–kanan tetap utuh; yang dipotong hanya waktu tunggu.</span></div></section>
           <section><h4>Kenapa vektor, bukan rekaman video</h4><p>Adegan digambar sebagai SVG dan dianimasikan lewat CSS, bukan diputar sebagai berkas video. Onset isyarat karena itu jatuh persis pada milidetik yang dideklarasikan protokol di semua tablet, tidak bergeser karena frame yang jatuh atau dekoder yang berbeda. Asetnya juga kecil, berjalan luring penuh, dan tidak membawa masalah lisensi atau privasi seperti rekaman aktor.</p></section>
         </div>
         <div className={styles.predictionNote}><IconAlert size={17} /><div><strong>Batas klaim desain stimulus</strong><p>Rancangan yang berdasar tidak membuat keluarannya menjadi diagnosis. Baterai ini bukan GeoPref dan bukan instrumen yang sudah tervalidasi secara klinis; ia baru berstatus stimulus riset yang dapat diuji. Nilai validitasnya tetap ditentukan Gate C, bukan oleh kualitas rancangan di halaman ini.</p><small>Perubahan apa pun pada adegan atau waktu wajib menaikkan versi stimulus, karena hasil lama tidak lagi sebanding.</small></div></div>

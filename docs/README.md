@@ -5,7 +5,9 @@
 - [`panduan_gate_b_webgazer.md`](panduan_gate_b_webgazer.md): kontrak data dan analisis Gate B.
 - [`panduan_operator.md`](panduan_operator.md): cara menjalankan webapp dengan aman.
 - [`panduan_audit_kalibrasi.md`](panduan_audit_kalibrasi.md): pengambilan dan interpretasi log kalibrasi.
-- [`checkpoint_2026-08-18.md`](checkpoint_2026-08-18.md): status penuh proyek, batasan yang ditemukan, dan urutan kerja untuk menuntaskannya. **Mulai dari sini.**
+- [`checkpoint_2026-08-18-lanjutan.md`](checkpoint_2026-08-18-lanjutan.md): status terkini, konsep webapp, batasan, dan urutan kerja berikutnya. **Mulai dari sini.**
+- [`checkpoint_2026-08-18.md`](checkpoint_2026-08-18.md): status penuh setelah Fase 4–6, dan delapan aturan yang tidak boleh dilanggar.
+- [`pitch_7_menit.md`](pitch_7_menit.md): naskah presentasi semifinal beserta peta waktu, jawaban pertanyaan, dan sumber tiap angka.
 - [`keputusan_ilmiah.md`](keputusan_ilmiah.md): alasan di balik keputusan yang menentukan batas klaim.
 - [`provenance/permintaan_stimulus_ucsd.md`](provenance/permintaan_stimulus_ucsd.md): draf permintaan akses stimulus GeoPref penuh.
 - [`verifikasi.md`](verifikasi.md): pemeriksaan sebelum commit atau rilis.

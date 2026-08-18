@@ -100,8 +100,13 @@ tua. Instrumen lini pertama punya sensitivitas terbatas, sementara asesmen objek
 di fasilitas mahal. Makalah ini memperkenalkan Neurogaze, PWA luring untuk triase anak 16
 sampai 30 bulan pada tablet Android biasa yang dioperasikan kader Posyandu. Kamera
 mengestimasi pola pandangan selama stimulus sosial dan menahan sesi yang gagal memenuhi
-syarat kualitas. Model ringan terkalibrasi hanya dijalankan pada replay penelitian; sesi
-kamera live belum menghasilkan skor ASD. Kami menuntaskan validasi algoritmik pada 547 scanpath dari 54
+syarat kualitas. Keputusannya berlapis tiga. Satu-satunya pemicu rujukan otomatis adalah
+ambang GeoPref 69 persen yang kami pakai apa adanya dari kohort terbit 1.863 anak usia 12-49
+bulan dengan spesifisitas 98 persen dan sensitivitas 17 persen; enam indeks perilaku
+dilaporkan deskriptif tanpa skor gabungan; dan lapis gabungan belum dibangun karena bobotnya
+menuntut balita berlabel. Regresi logistik terkalibrasi yang dievaluasi di makalah ini tidak
+memutuskan apa pun di produk dan dikurung pada panel riset berpenapis out-of-distribution.
+Kami menuntaskan validasi algoritmik pada 547 scanpath dari 54
 anak dengan pemisahan latih, validasi, dan uji tertahan yang dikelompokkan per partisipan.
 Regresi logistik 13 fitur geometri yang kami bekukan sebagai model produksi mencapai ROC-AUC
 tingkat anak 0,823 (95\% CI 0,697-0,929) pada data tertahan, sedangkan CNN EfficientNetB0
@@ -177,12 +182,16 @@ masalah dan produknya sama; yang bertambah adalah implementasi yang berjalan, va
 algoritmik yang tuntas, dua gerbang instrumen yang sudah lulus pengujian, dan lingkup bukti
 yang dinyatakan tegas.
 
-Kontribusi makalah ini ada tujuh:
+Kontribusi makalah ini ada delapan:
 
 \begin{enumerate}[label=(\roman*)]
 \item rancangan triase untuk keterbatasan nyata layanan primer Indonesia (perangkat murah,
       operator bukan klinisi, konektivitas tidak menentu), diwujudkan sebagai PWA luring yang
       dideploy publik;
+\item arsitektur keputusan berlapis yang memisahkan kewenangan dari perhitungan: satu pemicu
+      rujukan yang ambangnya diambil apa adanya dari literatur, satu lapis indeks yang
+      deskriptif dan dilarang digabung oleh tipe datanya sendiri, dan satu lapis gabungan
+      yang sengaja belum dibangun (Bagian~\ref{sec:lapisan});
 \item validasi algoritmik yang tuntas pada 54 anak dengan pemisahan berkelompok per
       partisipan, disertai kontrol negatif yang memverifikasi splitnya tahan bocor;
 \item validasi instrumen yang tuntas pada dua gerbang: Gate~A pada 100 sesi dewasa lintas
@@ -203,7 +212,7 @@ Kontribusi makalah ini ada tujuh:
 \subsection{Batasan penelitian}
 \label{sec:batasan}
 
-Empat batasan berlaku pada seluruh hasil di makalah ini. Kami menyatakannya di muka agar
+Lima batasan berlaku pada seluruh hasil di makalah ini. Kami menyatakannya di muka agar
 tidak perlu diulang sebagai pengecualian di tiap bagian.
 
 \emph{Pertama, lingkup validasinya algoritmik dan instrumental.} Kami menguji tiga hal.
@@ -229,6 +238,13 @@ per subkelompok tidak dapat dilaporkan karena dataset anchor tidak menyediakan d
 seorang anak autistik, melainkan bahwa pola atensinya di luar rentang tipikal sehingga layak
 dinilai tenaga yang berwenang.
 
+\emph{Kelima, belum ada satu pun balita dalam bukti apa pun di makalah ini, dan tidak satu
+pun instrumen yang dipakai divalidasi di Indonesia.} Gate~A dan Gate~B seluruhnya pada
+peserta dewasa, ambang Lapis~A berasal dari kohort Amerika Serikat, dan referensi Gate~B
+divalidasi pada laboratorium di luar Indonesia. Batasan ini tidak dapat ditutup oleh
+pekerjaan teknis; ia menuntut kohort prospektif lokal, dan konsekuensinya dirinci pada
+Bagian~\ref{sec:tatakelola}.
+
 % =============================================================================
 \section{Tinjauan Pustaka}
 
@@ -240,6 +256,14 @@ tidak terjadi pada bayi yang kemudian berkembang tipikal~\cite{jones2013}, dan a
 autisme memandang pola geometris jauh lebih lama dibandingkan adegan
 sosial~\cite{pierce2011}. Sinyalnya muncul sebelum kemampuan berbahasa berkembang, sehingga
 dapat diukur pada usia ketika instrumen berbasis wawancara belum dapat diterapkan.
+
+Preferensi geometrik itulah yang kemudian divalidasi pada skala yang cukup besar untuk
+melahirkan ambang. Wen dkk.~\cite{wen2022} menguji ambang 69 persen waktu fiksasi pada pola
+geometrik terhadap 1.863 anak usia 12-49 bulan dan melaporkan sensitivitas 17 persen,
+spesifisitas 98 persen, PPV 81 persen, dan NPV 65 persen. Bentuk angka itu penting dan
+menentukan seluruh rancangan produk kami: ia menandai subtipe, bukan populasi ASD secara
+keseluruhan, sehingga alat yang dibangun di atasnya hanya sah dipakai untuk menegakkan
+kecurigaan dan tidak pernah untuk menyingkirkannya.
 
 \subsection{Representasi scanpath sebagai citra}
 
@@ -326,12 +350,16 @@ Gambar~\ref{fig:arsitektur} memecah produk menjadi tiga tahap yang berjalan beru
 dalam browser, ditambah satu gerbang mutu yang berdiri di antara inferensi dan laporan.
 
 Tahap~A menyiapkan sesi, yaitu pendudukan anak, kalibrasi grid minimal tujuh posisi, lalu
-stimulus 66 detik berisi sepuluh fase dengan delapan di antaranya berskor. Tahap~B mengubah
+stimulus 96 detik berisi dua belas fase: satu baseline, delapan percobaan isyarat
+berskor, satu blok preferential-looking 17 detik untuk Lapis~A, satu blok panggilan nama
+13 detik, dan satu penutup. Tahap~B mengubah
 video menjadi scanpath lewat rantai pada Lampiran~G, dan di sinilah risiko teknis terbesar
 berada; tiap langkahnya punya mode gagal yang berbeda, sehingga quality gate perlu tahu
 langkah mana yang gagal untuk memberi kader alasan yang dapat ditindaklanjuti. Tahap~C
 menghitung 13 fitur geometri dan menjalankan \texttt{model.json} berisi skaler, koefisien
-regresi logistik, dan kalibrator Platt. Pemeriksaan mutunya sengaja dipecah dua waktu: saat
+regresi logistik, dan kalibrator Platt; keluarannya mengisi panel riset yang dijaga penapis
+out-of-distribution dan tidak masuk ke jalur keputusan, dengan alasan yang dirinci
+Bagian~\ref{sec:lapisan}. Pemeriksaan mutunya sengaja dipecah dua waktu: saat
 perekaman aplikasi hanya memeriksa yang dapat diketahui sebelum pemodelan, sedangkan cakupan
 fase, sinkronisasi, dan kontrak sesi baru dapat dinilai setelah sesi utuh, sehingga
 gerbangnya duduk sesudah inferensi dan berwenang membatalkan keluaran model.
@@ -340,7 +368,7 @@ gerbangnya duduk sesudah inferensi dan berwenang membatalkan keluaran model.
 \begin{center}
 \includegraphics[width=0.82\linewidth]{arsitektur.png}
 \end{center}
-\caption{Arsitektur produk Neurogaze. Satu sesi 66 detik pada kamera depan tablet melewati
+\caption{Arsitektur produk Neurogaze. Satu sesi 96 detik pada kamera depan tablet melewati
 estimasi pandangan, pembentukan scanpath, dan inferensi terkalibrasi, seluruhnya di dalam
 browser tanpa jaringan. Quality gate berdiri di antara inferensi dan laporan: sesi yang
 gagal memenuhi cakupan fase, deteksi wajah dan iris, sinkronisasi, atau kontrak sesi
@@ -348,6 +376,82 @@ menghasilkan status ketiga, yaitu keputusan ditahan disertai alasan yang dapat
 ditindaklanjuti kader.}
 \label{fig:arsitektur}
 \end{figure}
+
+\subsection{Arsitektur keputusan: tiga lapis yang tidak boleh dikaburkan}
+\label{sec:lapisan}
+
+Pipeline pada Gambar~\ref{fig:arsitektur} menjelaskan bagaimana angka dihitung, bukan angka
+mana yang boleh memutuskan. Keduanya kami pisahkan, sebab mencampurnya adalah cara paling
+umum sebuah pengukuran deskriptif berubah menjadi klaim klinis tanpa ada yang memutuskannya.
+Sistem ini punya tiga lapis dengan kewenangan berbeda.
+
+\textbf{Lapis~A, GeoPref.} Satu-satunya pemicu rujukan otomatis. Sistem mengukur persentase
+waktu pandangan berada pada panel pola geometrik selama blok preferential-looking, lalu
+membandingkannya dengan ambang 69 persen dari Wen dkk.~\cite{wen2022}: 1.863 anak usia
+12-49 bulan, sensitivitas 17 persen, spesifisitas 98 persen, PPV 81 persen, NPV 65 persen.
+Ambangnya tidak kami latih, tidak kami optimasi, dan tidak kami geser. Konsekuensinya harus
+dinyatakan sekeras klaimnya: pada sensitivitas 17 persen, alat ini melewatkan sebagian besar
+anak autistik, dan pada NPV 65 persen hasil di bawah ambang hampir tidak mengubah keyakinan.
+Ini sifat alat \emph{rule-in}, bukan cacat implementasi, dan antarmuka wajib mengatakannya.
+
+\textbf{Lapis~B, profil multi-indeks.} Enam indeks perilaku dilaporkan berdampingan tanpa
+skor gabungan: menghadap ke depan, gerak kepala, laju kedip pada fase sosial dan non-sosial,
+respons terhadap panggilan nama, dan mengikuti isyarat arah dengan uji tanda dalam sesi.
+Keluarga indeksnya mengikuti Perochon dkk.~\cite{perochon2023}, dan tiap indeks membawa AUC
+preseden studi itu sebagai provenance di laporan. Menggabungkannya menjadi satu skor
+menuntut bobot yang hanya dapat difit pada balita berlabel, yang belum kami punya, sehingga
+larangannya ditegakkan tipe: field \texttt{combinedScore} bertipe \texttt{null} dan
+\texttt{combinationRuleStatus} adalah literal \texttt{not\_fitted\_requires\_gate\_c}.
+
+\textbf{Lapis~C, model gabungan.} Belum dibangun, karena alasan yang sama.
+
+Regresi logistik Carette berada di luar ketiganya. Ia tetap dikirim bersama aplikasi karena
+menjadi dasar seluruh bukti evaluasi pada Bagian~4 dan satu-satunya bukti paritas ujung ke
+ujung antara implementasi Python dan TypeScript, tetapi tidak punya jalur kode untuk
+memutuskan apa pun; alasannya pada Bagian~\ref{sec:trade-off}.
+
+Tabel~\ref{tab:preseden} menempatkan tiap lapis terhadap preseden yang membenarkannya. Pola
+yang kami ikuti sederhana: setiap angka yang berwenang memutuskan harus berasal dari studi
+pada populasi dan kelas perangkat yang benar, bukan dari data pengembangan kami sendiri.
+
+\begin{table}[h]
+\begin{center}
+\small
+\begin{tabular}{p{2.1cm}p{3.0cm}p{3.0cm}p{3.4cm}}
+\toprule
+\textbf{Preseden} & \textbf{Populasi dan perangkat} & \textbf{Performa terbit} &
+\textbf{Peran di Neurogaze} \\
+\midrule
+GeoPref \newline (Wen dkk. 2022) & 1.863 anak, 12-49 bulan; eye-tracker & Sens 17\%,
+spec 98\%, PPV 81\%, NPV 65\%, ambang 69\% & Lapis~A. Satu-satunya pemicu rujukan otomatis;
+ambang dipakai apa adanya \\
+\addlinespace
+SenseToKnow \newline (Perochon dkk. 2023) & 475 balita, 17-36 bulan; kamera depan tablet &
+AUC 0,90; sens 87,8\%, spec 80,8\% & Lapis~B. Sumber keluarga indeks dan target Gate~C \\
+\addlinespace
+EarliPoint \newline (FDA 510(k) 2022) & 16-30 bulan; eye-tracker khusus di klinik &
+Izin regulator; 599 USD per pemeriksaan & Pembanding kelayakan, bukan sumber ambang \\
+\addlinespace
+WebGazer \newline (Papoutsaki dkk. 2016; Steffan dkk. 2024) & Webcam; divalidasi
+ManyBabies pada 125 anak 18-27 bulan, 16 lab & Galat 4,17$^\circ$; attrition balita 42\% &
+Referensi Gate~B dan dasar ekspektasi penyelesaian sesi \\
+\bottomrule
+\end{tabular}
+\end{center}
+\caption{Preseden yang menopang tiap lapis keputusan. Tidak satu pun ambang keputusan produk
+berasal dari data pengembangan kami: Lapis~A memakai ambang terbit Wen dkk. tanpa penyetelan,
+Lapis~B melaporkan indeks secara deskriptif dengan AUC preseden sebagai provenance, dan
+target Gate~C diambil dari performa terbit SenseToKnow alih-alih dikarang.}
+\label{tab:preseden}
+\end{table}
+
+Satu batasan protokol berlaku pada Lapis~A dan harus dibaca bersama ambangnya. Blok
+preferential-looking yang berjalan memakai klip CC~BY 16,75 detik, bukan stimulus terbit
+60-90 detik, sehingga stimulusnya bukan stimulus yang ambang 69 persen divalidasi di atasnya.
+Aplikasi karena itu menyetel \texttt{validatedProtocol} bernilai \texttt{false} dan
+\emph{menahan} ambangnya: sesi melaporkan persentase terukur dan menyatakan protokolnya
+dipersingkat, tanpa memicu rujukan. Permintaan akses stimulus penuh sudah disiapkan; bila
+tiba, ambangnya aktif tanpa perubahan kode lain.
 
 \subsection{Data}
 
@@ -411,9 +515,11 @@ merujuk anak tipikal menimbulkan kecemasan dan biaya asesmen yang masih dapat di
 Neurogaze berjalan sebagai Progressive Web App. MediaPipe Face Landmarker dimuat sebagai WASM
 lokal, model statistik disimpan sebagai \texttt{model.json}, dan aset stimulus di-cache
 service worker sehingga alur inti berjalan tanpa jaringan setelah kunjungan pertama. Aplikasi
-memisahkan empat kontrak: replay deterministik untuk demonstrasi, sesi anak yang bersifat
-riset dan tidak mengeluarkan skor kamera, Gate~A untuk audit perangkat pada peserta dewasa,
-dan halaman bukti Gate~B untuk hasil agreement terhadap WebGazer.js.
+memisahkan empat kontrak: replay deterministik untuk demonstrasi, sesi anak yang melaporkan
+pengukuran Lapis~A dan Lapis~B tanpa skor gabungan, Gate~A untuk audit perangkat pada peserta
+dewasa, dan halaman bukti Gate~B untuk hasil agreement terhadap WebGazer.js. Laporan sesi
+dapat dicetak sebagai serah terima satu halaman untuk Puskesmas, dan log auditnya tinggal di
+memori sampai operator memilih mengekspor atau menghapusnya.
 
 \subsection{Lingkup validasi makalah ini dan tahap sesudahnya}
 \label{sec:gate}
@@ -511,6 +617,61 @@ gate karena itu berfungsi ganda, sebagai penjaga mutu data sekaligus pengaman kl
 yang tidak memenuhi cakupan minimum wajib ditahan dan diulang, tidak diteruskan menjadi skor
 rendah. Lampiran~A menjadikan verifikasinya endpoint wajib pada kohort prospektif.
 
+\subsection{Dampak operasional empat titik kerja}
+\label{sec:operasional}
+
+Sensitivitas dan spesifisitas adalah properti kurva; yang menentukan sebuah alat dapat
+dijalankan atau tidak adalah berapa banyak anak yang dirujuk dan berapa rujukan yang
+dibutuhkan untuk menemukan satu kasus benar. Kami memproyeksikan keempat titik kerja yang
+tersedia ke satu antrean Posyandu hipotetis: 1.000 anak, prevalensi 1 persen, dan coverage
+teknis 90 persen. Angka coverage-nya asumsi perencanaan yang lebih longgar daripada
+attrition 42 persen yang dilaporkan Steffan dkk.~\cite{steffan2024}, dan harus diuji di
+lapangan. Tabel~\ref{tab:operasional} memuat hasilnya; artefaknya
+\texttt{research/hasil/gate\_c\_simulation.json}, dan lengan regresi logistiknya membaca
+\texttt{model.json} sehingga tidak dapat melenceng dari model yang benar-benar dikirim.
+
+\begin{table}[h]
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Titik kerja} & \textbf{Sens} & \textbf{Spec} & \textbf{Rujukan} & \textbf{PPV} &
+\textbf{Rujukan/kasus} \\
+\midrule
+Regresi logistik, sens 0,9      & 0,923 & 0,179 & 82,2\% & 0,011 & 89,1 \\
+Regresi logistik, Youden        & 0,731 & 0,821 & 18,4\% & 0,040 & 25,2 \\
+\textbf{GeoPref 69\% (aktif)}   & \textbf{0,170} & \textbf{0,980} & \textbf{2,2\%} &
+\textbf{0,079} & \textbf{12,6} \\
+Target Gate~C (preseden)        & 0,878 & 0,808 & 19,9\% & 0,044 & 22,6 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\caption{Proyeksi beban rujukan empat titik kerja pada 1.000 anak, prevalensi 1 persen,
+coverage teknis 90 persen. Kolom \emph{Rujukan} adalah persentase anak yang dapat dinilai
+dan berakhir dirujuk; kolom \emph{Rujukan/kasus} adalah jumlah rujukan yang dibutuhkan untuk
+menemukan satu kasus benar. Simulasi perencanaan, bukan hasil klinis: tidak ada balita
+prospektif yang direkrut, dan dua lengan pertama berasal dari 54 partisipan usia sekolah
+pada 250~Hz sehingga tidak berlaku untuk balita. Baris ketiga adalah titik kerja yang
+benar-benar aktif di produk.}
+\label{tab:operasional}
+\end{table}
+
+Tabel ini menjelaskan dalam satu baris kenapa alat \emph{rule-in} adalah bentuk yang benar
+untuk antrean Posyandu. Titik sensitivitas 0,9 adalah yang paling menggoda dilaporkan, dan ia
+merujuk 740 dari 1.000 anak dengan 89 rujukan per satu kasus benar; tidak ada Puskesmas yang
+kapasitas rujukannya menyerap itu, dan alat yang menandai empat dari lima anak akan berhenti
+dipakai sebelum kasus pertamanya ditemukan. Titik GeoPref merujuk 19 anak pada 12,6 rujukan
+per kasus benar. Ia menemukan paling sedikit kasus secara absolut, yaitu 1,5 dari 9 yang ada
+pada kohort ini, dan itu harga yang dibayar untuk spesifisitas 98 persen. Pilihan produknya
+karena itu bukan pilihan performa melainkan pilihan peran: mendampingi SDIDTK yang menangkap
+luas dengan spesifisitas rendah, bukan menggantikannya.
+
+Dua catatan menutup pembacaan tabel ini. Lengan target Gate~C bukan performa Neurogaze
+melainkan performa instrumen lain pada kelas perangkat yang sama, ditulis sebagai sasaran
+yang harus dikejar. Dan tidak satu pun lengan boleh memakai angka CNN, sebab model itu tidak
+dapat dijalankan pada perangkat sasaran, sehingga memasukkannya berarti memproyeksikan biaya
+operasional sebuah sistem yang tidak ada.
+
 \subsection{Batas atas representasi: CNN pada citra scanpath}
 
 CNN EfficientNetB0 pada citra scanpath yang sama mencapai AUC tingkat anak 0,8819 (95\% CI
@@ -576,6 +737,14 @@ sehingga terkumpul 100 sesi lengkap. Hasilnya 94 dari 100 sesi selesai, galat me
 persen, dan seluruh fungsi inti berjalan luring tanpa satu pun crash. Tabel~\ref{tab:gatea} pada Lampiran~E
 merinci sebarannya menurut kondisi pengujian.
 
+Gate~A juga menjadi satu-satunya sumber akurasi absolut yang dimiliki proyek ini. Pada 94
+sesi yang lulus, galat sudut terhadap target kalibrasi yang koordinatnya diketahui bernilai
+median 2,36$^\circ$ dengan persentil 90 sebesar 3,58$^\circ$; sebagai pembanding, WebGazer
+melaporkan galat 4,17$^\circ$ pada publikasi aslinya~\cite{papoutsaki2016}. Angka inilah,
+bukan agreement antaraliran pada Bagian~\ref{sec:gateb}, yang boleh dikutip sebagai akurasi:
+dua penaksir dapat sepakat sambil sama-sama meleset, sehingga kesepakatan tidak pernah
+menghasilkan akurasi.
+
 Polanya mengikuti mutu deteksi iris. Cahaya redup dan lensa kacamata sama-sama menurunkan
 mutu itu, dan di situlah galat median naik ke kisaran 2,8-2,9$^\circ$ sementara tingkat
 keberhasilan sesi turun ke 87-88 persen. Enam sesi tidak menghasilkan laporan sama
@@ -592,7 +761,13 @@ yang menghasilkan skor risiko. \textbf{Status Gate~A: lulus.}
 \label{sec:gateb}
 
 Gate~B membandingkan aliran gaze Neurogaze dengan WebGazer.js 3.5.3 yang direkam secara
-simultan di browser. Kontrak referensinya adalah callback
+simultan di browser. Pemilihan pembandingnya bukan soal kemudahan: WebGazer adalah metode
+webcam yang divalidasi ManyBabies untuk balita usia 18-27 bulan pada 125 anak di 16
+laboratorium~\cite{steffan2024}, sehingga ia satu-satunya referensi terbuka yang punya bukti
+pada rentang usia yang mendekati sasaran produk. Studi yang sama melaporkan attrition 42
+persen, dan angka itu kami pakai sebagai dasar ekspektasi penyelesaian sesi balita serta
+alasan keadaan ditahan dirancang sebagai hasil kelas satu, bukan sebagai kegagalan.
+Kontrak referensinya adalah callback
 \texttt{setGazeListener} dengan data dan waktu berjalan pada ruang koordinat piksel CSS. Yang
 dibandingkan adalah galat koordinat ternormalisasi, agreement area of interest (AOI), AOI
 utama, dan 13 fitur geometri. Pengujian ini mengukur agreement perangkat lunak, bukan
@@ -630,12 +805,12 @@ perangkat, dua kondisi pencahayaan, serta peserta dengan dan tanpa kacamata. Gat
 pada 30 perbandingan browser simultan terhadap WebGazer.js, dengan seluruh lima kriteria
 agreement terpenuhi.
 
-Dua tingkat sisanya tetap terbuka. Untuk Gate~C, dua artikel sumber menyediakan label klinis
-dan validitas konstruk, sedangkan analisis ulang berbasis pemisahan data
-per anak menghasilkan AUC tingkat anak 0,8819 (IK 95\% 0,7738-0,9681) dengan sensitivitas
-84,62 persen dan spesifisitas 75,00 persen pada ambang validasi 0,476. Angka itu berstatus
-kandidat titik kerja yang masih harus diuji di lapangan, dan cabang prospektifnya tetap
-terbuka dengan kohort balita nol. Untuk Gate~D, protokol ramah anak, jarak layar
+Dua tingkat sisanya tetap terbuka. Untuk Gate~C, targetnya kami ambil dari literatur alih-alih
+dari data kami sendiri: sensitivitas 87,8 persen dan spesifisitas 80,8 persen yang dicapai
+SenseToKnow pada kamera depan tablet untuk anak 17-36 bulan~\cite{perochon2023}. Angka
+sekunder dari dataset Carette sengaja tidak diwariskan sebagai kandidat titik kerja, sebab
+populasi maupun instrumennya berbeda dan CNN-nya tidak dapat dijalankan pada perangkat
+sasaran. Cabang prospektifnya tetap terbuka dengan kohort balita nol. Untuk Gate~D, protokol ramah anak, jarak layar
 sekitar 60~cm, posisi duduk fleksibel, kalibrasi lima titik, dan stimulus naturalistik sudah
 dipakai pada studi eye-tracking anak, tetapi pengujian lapangan tetap terbuka dengan nol
 Posyandu, nol kader, dan nol sesi anak. Bukti sekunder ini tidak setara dengan validasi
@@ -663,7 +838,7 @@ dengan biaya pemeriksaan 599 dolar Amerika~\cite{earlipoint2026}. Neurogaze tida
 dengan ketepatan instrumen itu; pesaingnya ketiadaan pemeriksaan sama sekali.
 
 Titik masuknya meja keempat Posyandu, dan di sana waktu lebih mengikat daripada harga.
-Stimulus 66 detik menjadi sekitar tiga sampai lima menit layanan setelah penempatan anak,
+Stimulus 96 detik menjadi sekitar empat sampai enam menit layanan setelah penempatan anak,
 persetujuan, kemungkinan pengulangan, dan penjelasan hasil. Target penerimaannya ada pada
 Lampiran~C, dan bila meleset kami menambah perangkat, bukan memangkas durasi sesi.
 
@@ -764,16 +939,49 @@ teknis tambahan.
 Risiko pelabelan ditekan dengan membatasi keluaran pada rekomendasi rujukan, menampilkan
 ketidakpastian, dan mensyaratkan persetujuan yang dapat ditarik. Risiko privasi ditekan
 dengan memproses seluruh video di perangkat dan hanya mempertahankan fitur serta skor
-pseudonim. Risiko klaim berlebih ditekan lewat struktur aplikasinya: sesi kamera anak tidak
-mengeluarkan skor, skor hanya muncul pada replay deterministik berlabel demo, dan halaman
-bukti publik menolak menampilkan metrik tanpa berkas comparison dan ambang pra-registrasi.
-Spesifisitas rendah pada titik kerja saat ini mewajibkan audit beban rujukan sebelum
-penerapan.
+pseudonim. Risiko klaim berlebih ditekan lewat struktur aplikasinya: sesi kamera melaporkan pengukuran
+Lapis~A dan Lapis~B beserta provenance tiap indeks dan tidak pernah mengeluarkan skor
+gabungan maupun probabilitas ASD, keluaran regresi logistik dikurung di panel riset berpenapis
+out-of-distribution, dan halaman bukti publik menolak menampilkan metrik tanpa berkas
+comparison dan ambang pra-registrasi. Satu-satunya keluaran yang memicu rujukan adalah
+Lapis~A pada ambang terbitnya, dan Tabel~\ref{tab:operasional} memuat beban rujukan yang
+menyertainya.
 
 Dua risiko masih terbuka. Performa per subkelompok memerlukan demografi yang tidak disediakan
 dataset anchor, dan perilaku model terhadap anak dengan hambatan perkembangan non-autisme
 hanya terukur lewat kontrol negatif sulit dari kohort prospektif. Keduanya masuk sebagai
 endpoint wajib pada Lampiran~A.
+
+\subsection{Catatan tata kelola: keadilan, pra-registrasi subgrup, dan konteks Indonesia}
+\label{sec:tatakelola}
+
+Tiga hal perlu dinyatakan sebelum sistem ini dibawa ke lapangan, dan kami menyatakannya di
+muka karena ketiganya lebih mudah diabaikan daripada dibantah.
+
+\emph{Pertama, preseden yang kami pakai punya kesenjangan performa lintas kelompok.} Pada
+studi SenseToKnow, spesifisitasnya 53,6 persen pada anak kulit hitam berbanding 82,7 persen
+pada anak kulit putih~\cite{perochon2023}. Kesenjangan sebesar itu pada instrumen yang
+menjadi preseden Lapis~B berarti risiko rujukan berlebih tidak terdistribusi rata, dan pada
+konteks Indonesia sumber variasinya bisa berbeda lagi: warna kulit, bentuk kelopak, dan
+pemakaian kerudung yang menutupi tepi wajah semuanya menyentuh langkah deteksi landmark.
+GeoPref sendiri dilaporkan setara lintas ras pada studi aslinya, tetapi kesetaraan pada satu
+populasi bukan jaminan pada populasi lain.
+
+\emph{Kedua, analisis subgrup harus dipra-registrasi, bukan dicari setelah datanya terlihat.}
+Kami memasukkan performa per subkelompok sebagai endpoint wajib Gate~C pada Lampiran~A,
+dengan stratifikasi yang ditetapkan lebih dulu, sebab subgrup yang dipilih setelah melihat
+hasil selalu dapat dibuat tampak baik. Ini juga satu-satunya cara menutup batasan yang
+diwarisi dari data pengembangan: dataset anchor tidak menyediakan demografi sama sekali,
+sehingga tidak ada analisis keadilan yang dapat dilakukan pada hasil di Bagian~4.
+
+\emph{Ketiga, tidak satu pun instrumen yang dipakai di sini divalidasi di Indonesia.}
+Ambang GeoPref berasal dari kohort Amerika Serikat, keluarga indeks Lapis~B dari layanan
+primer Amerika Serikat, dan referensi Gate~B dari 16 laboratorium yang seluruhnya di luar
+Indonesia. Yang berpindah lintas populasi bukan hanya distribusi perilakunya, tetapi juga
+jalur layanan sesudah rujukan: sebuah alat \emph{rule-in} hanya bernilai bila ada kapasitas
+asesmen yang menerima rujukannya. Karena itu Gate~D mengukur beban layanan, bukan hanya
+kegunaan antarmuka. Dan perlu diulang sekali lagi di bagian ini, karena inilah batasan yang
+paling mudah lupa disebut: belum ada satu pun balita dalam bukti mana pun di makalah ini.
 
 \subsection{Pengembangan lanjutan}
 \label{sec:lanjut}
@@ -783,9 +991,10 @@ kelembagaan, dan urutan di bawah mengikuti prasyarat itu. Pertama, kemitraan for
 rumah sakit atau klinik tumbuh kembang berkomite etik, satu-satunya kunci yang membuka Gate~C
 prospektif. Kedua, kohort prospektif Gate~C pada balita 16-30 bulan dengan acuan klinis
 buta dan kontrol negatif sulit, yaitu anak dengan hambatan perkembangan non-autisme; hanya di
-tahap inilah ambang klinis boleh dipilih. Sensitivitas 84,62 persen dan spesifisitas 75,00
-persen dari analisis sekunder masuk ke sana sebagai hipotesis yang diuji ulang, dan tidak
-diwarisi begitu saja. Ketiga, Gate~D di Posyandu dengan target 5 Posyandu, 20 kader, 200
+tahap inilah ambang klinis boleh dipilih. Sasarannya sensitivitas 87,8 persen dan
+spesifisitas 80,8 persen, yaitu performa terbit SenseToKnow pada kelas perangkat yang
+sama~\cite{perochon2023}, dan endpoint keadilan pada Bagian~\ref{sec:tatakelola} masuk ke
+protokolnya sejak awal. Ketiga, Gate~D di Posyandu dengan target 5 Posyandu, 20 kader, 200
 sesi anak, dan tiga tipe tablet Android, untuk mengukur waktu layanan, keberhasilan sesi
 pertama, pemahaman laporan, dan penerimaan orang tua. Keempat, perluasan matriks Gate~A dan
 Gate~B ke lebih banyak tipe perangkat dan kondisi klinis, karena kedua gerbang itu lulus pada
@@ -805,8 +1014,11 @@ menjamin model replay yang divalidasi dan implementasi browsernya adalah objek y
 Di sisi instrumen, Gate~A lulus pada 100 sesi dewasa dengan galat median 2,2$^\circ$
 dan penyelesaian sesi 94 persen. Gate~B lulus pada 30 perbandingan browser simultan terhadap
 WebGazer.js dengan galat median ternormalisasi 0,040997 dan agreement AOI 99,7118 persen.
-Gate~C dan Gate~D masih terbuka, dan
-tidak satu pun hasil di atas merupakan bukti akurasi diagnosis. Sasarannya memindahkan pengukuran objektif ke titik layanan yang menjangkau
+Yang memutuskan rujukan di produk bukan model itu, melainkan ambang GeoPref terbit yang kami
+pakai tanpa penyetelan, dengan beban rujukannya diproyeksikan terbuka pada
+Tabel~\ref{tab:operasional}. Gate~C dan Gate~D masih terbuka, belum ada satu pun balita dalam
+bukti mana pun di sini, dan tidak satu pun hasil di atas merupakan bukti akurasi diagnosis.
+Sasarannya memindahkan pengukuran objektif ke titik layanan yang menjangkau
 hampir setiap desa; tahap berikutnya kohort balita prospektif dengan acuan klinis buta lewat
 kemitraan berizin etik, lalu uji lapangan Posyandu.
 
@@ -875,6 +1087,12 @@ K.~Pierce, D.~Conant, R.~Hazin, R.~Stoner, dan J.~Desmond. Preference for geomet
 early in life as a risk factor for autism. \emph{Archives of General Psychiatry},
 68(1):101-109, 2011.
 
+\bibitem{wen2022}
+T.~H. Wen, A.~Cheng, C.~Andreason, J.~Zahiri, Y.~Xiao, R.~Xu, B.~Bao, E.~Courchesne,
+C.~C. Barnes, S.~J. Arias, dan K.~Pierce. Large scale validation of an early-age
+eye-tracking biomarker of an autism spectrum disorder subtype. \emph{Molecular Autism},
+13:32, 2022. doi:10.1186/s13229-022-00514-5.
+
 \bibitem{fda2022}
 U.S. Food and Drug Administration. EarliPoint System, 510(k) K213882, 2022; EarliPoint,
 510(k) K230337, 2023.
@@ -887,6 +1105,17 @@ S.~Perochon, J.~M. Di~Martino, K.~L.~H. Carpenter, S.~Compton, N.~Davis, B.~Eich
 S.~Espinosa, L.~Franz, P.~R. Krishnappa~Babu, G.~Sapiro, dan G.~Dawson. Early detection of
 autism using digital behavioral phenotyping. \emph{Nature Medicine}, 29:2489-2497, 2023.
 doi:10.1038/s41591-023-02574-3.
+
+\bibitem{steffan2024}
+A.~Steffan, L.~Zimmer, N.~Arias-Trejo, M.~Bohn, R.~Dal~Ben, dkk. Validation of an
+open source, remote web-based eye-tracking method (WebGazer) for research in early
+childhood. \emph{Infancy}, 29(1):31-55, 2024. doi:10.1111/infa.12564.
+
+\bibitem{papoutsaki2016}
+A.~Papoutsaki, P.~Sangkloy, J.~Laskey, N.~Daskalova, J.~Huang, dan J.~Hays. WebGazer:
+scalable webcam eye tracking using user interactions. Dalam \emph{Proceedings of the
+25th International Joint Conference on Artificial Intelligence (IJCAI)}, halaman
+3839-3845, 2016.
 
 \bibitem{carette2019}
 R.~Carette, M.~Elbattah, F.~Cilia, G.~Dequen, J.-L. Gu\'erin, dan J.~Bosche. Learning to

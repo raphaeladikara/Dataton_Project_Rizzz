@@ -67,14 +67,20 @@ Three layers. Do not blur them.
   must never reach `profile`, the audit log, or disk.
 - Keep public copy, paper claims, and documentation aligned with the canonical
   summaries and with `docs/keputusan_ilmiah.md`.
+- `npm test` globs `tests/*.test.mjs` and `tests/*.test.ts`, so a new test file runs
+  without editing `package.json`. Keep it that way; the hand-written list it replaced
+  had silently stopped running nine files.
 - Before declaring a release complete, run the checks in `docs/verifikasi.md`.
 
 ## Known gaps
 
 - No recording is shipped in `app/public/replay/` yet, so the quick demo falls back
   to synthetic points, the layer-B indices stay empty, and the demo report is
-  withheld. `app/src/replay/recording.ts` loads a session as soon as one is dropped
-  in; the live audit export already carries `processedPoints` and `frames`.
+  withheld. `app/src/replay/recording.ts` loads a session as soon as one is
+  registered; the live audit export already carries `processedPoints` and `frames`.
+  Register with `npm run replay:register -- <audit-log.json> --as session-a.json`
+  rather than copying by hand — `inspectAuditLog` refuses a log with no frame trace
+  and says so, which is the failure that would otherwise pass silently.
 - The Gate B known-target block is analysed (`accuracy_against_targets`) and the
   viewing geometry is exported, but no session records the nine targets yet.
 - No toddler appears in any evidence here, and no instrument used here has been

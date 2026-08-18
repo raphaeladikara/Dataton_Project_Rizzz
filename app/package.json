@@ -12,8 +12,10 @@
     "dev:sites": "vinext dev",
     "build:sites": "vinext build",
     "start:sites": "vinext start",
-    "test": "npm run build && node --test tests/next-build.test.mjs tests/offline.test.mjs && tsx --test tests/parity.test.ts tests/calibration.test.ts tests/gaze-pipeline.test.ts tests/audit-log.test.ts tests/aoi-ood.test.ts tests/replay-outcomes.test.ts tests/explain.test.ts tests/session-observations.test.ts tests/video-projection.test.ts tests/gate-b-public-evidence.test.ts tests/gate-c-simulation.test.ts tests/session-validity.test.ts tests/child-flow-contract.test.ts tests/stimulus-protocol.test.ts tests/admin-auth.test.ts",
+    "test": "npm run build && node --test \"tests/*.test.mjs\" && tsx --test \"tests/*.test.ts\"",
     "benchmark": "tsx scripts/benchmark-device.ts",
+    "replay:register": "tsx scripts/register-recording.ts",
+    "replay:check": "tsx scripts/register-recording.ts --check",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
