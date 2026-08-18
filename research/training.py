@@ -81,6 +81,64 @@ def _sensitivity_constrained_threshold(
     return float(positive[min(allowed_misses, len(positive) - 1)])
 
 
+def _youden_threshold(probabilities: np.ndarray, labels: np.ndarray) -> float:
+    """Empirical threshold maximising sensitivity + specificity - 1."""
+    probabilities = np.asarray(probabilities, dtype=float)
+    labels = np.asarray(labels, dtype=int)
+    best_threshold, best_index = float(probabilities.min()), -2.0
+    for threshold in sorted(set(probabilities.tolist())):
+        decision = probabilities >= threshold
+        sensitivity = float(decision[labels == 1].mean())
+        specificity = float((~decision[labels == 0]).mean())
+        index = sensitivity + specificity - 1
+        if index > best_index:
+            best_threshold, best_index = float(threshold), index
+    return best_threshold
+
+
+def _point_at(probabilities: np.ndarray, labels: np.ndarray, threshold: float) -> dict:
+    decision = np.asarray(probabilities, dtype=float) >= threshold
+    labels = np.asarray(labels, dtype=int)
+    return {
+        "threshold": float(threshold),
+        "sensitivity": float(decision[labels == 1].mean()),
+        "specificity": float((~decision[labels == 0]).mean()),
+    }
+
+
+def operating_points(
+    probabilities: np.ndarray, labels: np.ndarray, *, target: float = 0.90
+) -> dict:
+    """Both thresholds the project reports, measured on the same OOF folds.
+
+    The sensitivity-constrained point is what a rule-out instrument would want and
+    what earlier exports shipped alone; at 0.179 specificity it refers most of the
+    cohort. Youden is the balanced point the paper reports. Publishing one without
+    the other lets a reader mistake either for the model's whole behaviour.
+    """
+    probabilities = np.asarray(probabilities, dtype=float)
+    labels = np.asarray(labels, dtype=int)
+    sensitivity_point = _point_at(
+        probabilities,
+        labels,
+        _sensitivity_constrained_threshold(probabilities, labels, target=target),
+    )
+    youden_point = _point_at(probabilities, labels, _youden_threshold(probabilities, labels))
+    return {
+        "target_sensitivity_090": {
+            **sensitivity_point,
+            "rule": "largest_empirical_threshold_with_sensitivity_at_least_target",
+            "target_sensitivity": target,
+            "intended_use": "rule_out_framing_shipped_but_not_recommended",
+        },
+        "youden": {
+            **youden_point,
+            "rule": "maximum_youden_index_on_participant_level_oof",
+            "intended_use": "balanced_reporting_point_used_by_the_paper",
+        },
+    }
+
+
 def bootstrap_threshold(
     probabilities: np.ndarray,
     labels: np.ndarray,
@@ -171,6 +229,7 @@ def train_nested_calibrated(
     auc = float(roc_auc_score(y_part, p_part))
     ci = bootstrap_auc(p_part, y_part)
     threshold = bootstrap_threshold(p_part, y_part)
+    points = operating_points(p_part, y_part)
     decision = p_part >= threshold["threshold"]
     sensitivity = float(decision[y_part == 1].mean())
     specificity = float((~decision[y_part == 0]).mean())
@@ -234,7 +293,11 @@ def train_nested_calibrated(
             "epsilon": EPS,
         },
         "decision": {
-            "refer_if_probability_gte": threshold["threshold"],
+            # Kept for compatibility with readers that predate operating_points;
+            # it now points at the default, which is Youden.
+            "refer_if_probability_gte": points["youden"]["threshold"],
+            "default_operating_point": "youden",
+            "operating_points": points,
             "threshold_status": threshold["clinical_status"],
             "quality_gate_required": True,
         },

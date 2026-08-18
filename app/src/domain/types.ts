@@ -48,6 +48,11 @@ export type ModelExport = {
   calibrator: { coef: number; intercept: number; epsilon: number };
   decision: {
     refer_if_probability_gte: number;
+    default_operating_point: "youden" | "target_sensitivity_090";
+    operating_points: Record<
+      string,
+      { threshold: number; sensitivity: number; specificity: number }
+    >;
     threshold_status: string;
     quality_gate_required: boolean;
   };

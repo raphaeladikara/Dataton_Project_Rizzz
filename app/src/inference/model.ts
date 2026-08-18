@@ -20,6 +20,15 @@ export function validateModel(model: unknown): asserts model is ModelExport {
   ) {
     throw new Error("Model lokal tidak lengkap atau tidak kompatibel.");
   }
+  const active = candidate.decision.operating_points?.[candidate.decision.default_operating_point];
+  if (!active || !Number.isFinite(active.threshold)) {
+    throw new Error(
+      `Model tidak memuat operating point "${candidate.decision.default_operating_point}".`,
+    );
+  }
+  if (active.threshold !== candidate.decision.refer_if_probability_gte) {
+    throw new Error("Ambang model tidak cocok dengan operating point yang dipilih.");
+  }
 }
 
 function sigmoid(value: number) {
