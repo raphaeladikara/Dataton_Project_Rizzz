@@ -34,7 +34,8 @@ test("hero animation mirrors the complete child-first session flow", () => {
     assert.ok(next > cursor, `${stage} is missing or out of order in the hero animation`);
     cursor = next;
   }
-  assert.match(heroDevice, /01 \/ 09|padStart\(2, "0"\).*09/s);
+  // [\s\S]* rather than /s: the dotAll flag needs an ES2018 target and tsc is on ES2017.
+  assert.match(heroDevice, /01 \/ 09|padStart\(2, "0"\)[\s\S]*09/);
   assert.match(heroDevice, /CALIBRATION_TARGETS[\s\S]*?\[82, 82\]/);
   assert.match(heroDevice, /Adegan \{stimulusScene\} dari 10/);
   assert.doesNotMatch(heroDevice, /SCANPATH|heroBoardPath/);
@@ -196,14 +197,30 @@ test("admin evidence reports passed A/B and open C/D from repository evidence", 
   assert.match(adminConsole, /Interpretasi skenario saat ini/);
 });
 
+test("stated session duration is derived from the protocol, never retyped", async () => {
+  const { STIMULUS_TOTAL_SECONDS, SCORED_TRIAL_COUNT } = await import("../src/stimulus/protocol");
+  // 5 baseline + 8 cue trials x 7 + 17 preferential-looking + 13 name calls + 5 ending.
+  assert.equal(STIMULUS_TOTAL_SECONDS, 96);
+  assert.equal(SCORED_TRIAL_COUNT, 8);
+  // No screen may state a duration as a literal; the operator reading it is
+  // deciding whether the child in front of them will sit still for it.
+  for (const source of [page, adminConsole]) {
+    assert.match(source, /STIMULUS_TOTAL_SECONDS/);
+    assert.doesNotMatch(source, /\b66 detik\b/);
+  }
+});
+
 test("admin explains why the stimulus was purpose-built, with sources and limits", () => {
   assert.match(adminConsole, /Stimulus ini dirancang khusus untuk skrining, bukan animasi hiburan/);
   assert.match(adminConsole, /referensi\/stimulus_billeci/);
   assert.match(adminConsole, /doi\.org\/10\.1016\/j\.cub\.2008\.03\.059/);
   assert.match(adminConsole, /doi\.org\/10\.3389\/fpsyg\.2019\.02187/);
-  // The stated protocol numbers must match the shipped protocol.
-  assert.match(adminConsole, /66 detik/);
-  assert.match(adminConsole, /ID-joint-cues-vector-v3/);
+  // Duration and version are read from the protocol module, not retyped. The
+  // hardcoded assertions this replaces kept passing on 66 seconds and v3 for as
+  // long as the shipped battery had been 96 seconds and v4.
+  assert.match(adminConsole, /STIMULUS_TOTAL_SECONDS/);
+  assert.match(adminConsole, /\{STIMULUS_VERSION\}|STIMULUS_VERSION\]/);
+  assert.doesNotMatch(adminConsole, /66 detik|ID-joint-cues-vector-v3/);
   // Design rationale must not be mistaken for clinical validation.
   assert.match(adminConsole, /Batas klaim desain stimulus/);
   assert.match(adminConsole, /bukan instrumen yang sudah tervalidasi secara klinis/);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { loadFirstRecording, recordingFromAuditLog } from "../src/replay/recording";
+import { inspectAuditLog, loadFirstRecording, recordingFromAuditLog } from "../src/replay/recording";
 
 const frame = (index: number) => ({
   t: index * 33.3,
@@ -57,6 +57,34 @@ test("a log with too few gaze points is rejected", () => {
 test("malformed input never throws", () => {
   for (const value of [null, undefined, 42, "log", {}, { gaze: 1 }, { gaze: {}, quality: {} }])
     assert.equal(recordingFromAuditLog(value, "x"), null);
+});
+
+test("a rejected log says which field is missing", () => {
+  const noFrames = auditLog();
+  (noFrames.gaze as Record<string, unknown>).frames = [];
+  const framesVerdict = inspectAuditLog(noFrames, "x");
+  assert.equal(framesVerdict.ok, false);
+  // The reason has to name the replay origin: a log with 0 frames almost always
+  // came from a replay session, and the person registering it needs that clue.
+  assert.match(framesVerdict.ok ? "" : framesVerdict.reason, /frame/i);
+  assert.match(framesVerdict.ok ? "" : framesVerdict.reason, /replay/i);
+
+  const noPoints = auditLog();
+  (noPoints.gaze as Record<string, unknown>).processedPoints = [point(0)];
+  const pointsVerdict = inspectAuditLog(noPoints, "x");
+  assert.equal(pointsVerdict.ok, false);
+  assert.match(pointsVerdict.ok ? "" : pointsVerdict.reason, /1 titik pandangan/);
+
+  for (const [override, pattern] of [
+    [{ gaze: undefined }, /gaze/],
+    [{ quality: undefined }, /quality/],
+    [{ quality: { faceRate: "tinggi", gazeDropout: 0.06 } }, /faceRate/],
+    [{ quality: { faceRate: 0.9, gazeDropout: null } }, /gazeDropout/],
+  ] as const) {
+    const verdict = inspectAuditLog(auditLog(override), "x");
+    assert.equal(verdict.ok, false);
+    assert.match(verdict.ok ? "" : verdict.reason, pattern);
+  }
 });
 
 test("an empty manifest yields no recording and no filename guessing", async () => {

@@ -52,6 +52,19 @@ export const STIMULUS_PHASES: readonly StimulusPhase[] = [
   { id: "positive_ending", label: "Penutup menyenangkan", durationMs: 5000, ostensiveOnsetMs: 0, cueOnsetMs: 0, cue: "positive_ending", target: "center", visualCue: "ending", scored: false },
 ] as const;
 
+/**
+ * Derived, never written by hand.
+ *
+ * The battery grew from 66 to 96 seconds when the preferential-looking and
+ * name-call phases landed, and the operator-facing copy kept quoting 66 —
+ * a kader deciding whether a child will sit still was being told half a minute
+ * less than the session actually runs. Anything that states the duration reads
+ * it from here.
+ */
+export const STIMULUS_TOTAL_MS = STIMULUS_PHASES.reduce((total, phase) => total + phase.durationMs, 0);
+export const STIMULUS_TOTAL_SECONDS = Math.round(STIMULUS_TOTAL_MS / 1000);
+export const SCORED_TRIAL_COUNT = STIMULUS_PHASES.filter((phase) => phase.scored).length;
+
 export function phaseAtElapsed(elapsedMs: number, phases: readonly StimulusPhase[] = STIMULUS_PHASES) {
   let startMs = 0;
   for (let index = 0; index < phases.length; index += 1) {

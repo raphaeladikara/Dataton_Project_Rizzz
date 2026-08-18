@@ -67,6 +67,7 @@ import {
   phaseAtElapsed,
   scoredPhaseTargets,
   STIMULUS_PHASES,
+  STIMULUS_TOTAL_SECONDS,
   STIMULUS_VERSION,
 } from "../src/stimulus/protocol";
 import {
@@ -2376,7 +2377,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <span><b>2</b>{isEngineeringStudy ? "Ikuti arah cue" : "Biarkan menonton"}</span>
                 <span><b>3</b>{isEngineeringStudy ? "Tanpa klik" : "Tanpa mengarahkan"}</span>
               </div>
-              <small>{isEngineeringStudy ? "Stimulus berlangsung sekitar satu menit (66 detik). Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik." : "Stimulus berlangsung sekitar satu menit (66 detik) dengan satu gaya visual yang konsisten. Hentikan bila anak tidak nyaman."}</small>
+              <small>{isEngineeringStudy ? `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, sekitar satu setengah menit. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, sekitar satu setengah menit, dengan satu gaya visual yang konsisten. Hentikan bila anak tidak nyaman.`}</small>
               <button className="startStimulus" disabled={!calibration || sanityPassed !== true || (mode === "replay" && !model)} onClick={() => void runStimulus()}><IconPlay size={15} />{mode === "replay" ? "Saya paham · mulai demo" : isEngineeringStudy ? "Saya paham · mulai pengukuran" : "Mulai tes"}</button>
             </div>}
             </div>

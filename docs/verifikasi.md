@@ -23,9 +23,20 @@ cd app
 npm test
 npm run lint
 npm audit
+npx tsc --noEmit
+npm run replay:check
 ```
 
-`npm test` membangun aplikasi produksi dan menjalankan test kontrak, parity, kalibrasi, pipeline gaze, privasi, replay, serta bukti publik Gate B.
+`npm test` membangun aplikasi produksi lalu menjalankan **seluruh** berkas di `tests/`
+lewat glob, bukan daftar berkas yang ditulis tangan; menambah berkas test baru tidak lagi
+menuntut menyunting `package.json`. Cakupannya kontrak produk, parity, kalibrasi, pipeline
+gaze, privasi, replay, fenotipe, hasil sesi, dan bukti publik Gate B.
+
+`npx tsc --noEmit` harus bersih tanpa satu galat pun.
+
+`npm run replay:check` membaca ulang setiap rekaman yang terdaftar di
+`app/public/replay/index.json`. Manifest kosong bukan kegagalan; ia berarti Demo cepat akan
+memakai simulasi dan mengatakannya di laporan.
 
 ## Artefak yang harus tetap sinkron
 
