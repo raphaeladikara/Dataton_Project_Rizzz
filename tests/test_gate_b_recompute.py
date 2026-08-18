@@ -75,3 +75,55 @@ def test_accuracy_against_targets_refuses_pairs_without_a_known_target_block():
         assert "known-target" in str(error)
     else:
         raise AssertionError("a pair without accuracyTargets must not yield degrees")
+
+
+def _pair_with_known_targets(offset_px: float) -> dict:
+    """A synthetic pair whose tablet stream sits offset_px to the right of truth."""
+    viewport = {"width": 1536, "height": 810}
+    targets = [
+        {"index": 0, "x": 0.2, "y": 0.5, "onsetMs": 0, "offsetMs": 1500},
+        {"index": 1, "x": 0.8, "y": 0.5, "onsetMs": 1500, "offsetMs": 3000},
+    ]
+    webgazer, tablet = [], []
+    for target in targets:
+        for step in range(20):
+            elapsed = target["onsetMs"] + step * 75
+            webgazer.append({
+                "sequence": len(webgazer),
+                "elapsedTimeMs": elapsed,
+                "data": {"x": target["x"] * viewport["width"], "y": target["y"] * viewport["height"]},
+                "viewport": viewport,
+            })
+            tablet.append({
+                "sequence": len(tablet),
+                "sessionElapsedTimeMs": elapsed,
+                "x": target["x"] * viewport["width"] + offset_px,
+                "y": target["y"] * viewport["height"],
+                "valid": True,
+                "viewport": viewport,
+            })
+    return {
+        "pairId": "GBC-SYNTH",
+        "accuracyTargets": targets,
+        # 1536 px over 260 mm at 500 mm: 1 degree is about 51.6 px.
+        "viewingGeometry": {"screenWidthMm": 260, "screenHeightMm": 163, "viewingDistanceMm": 500},
+        "webgazer": {"samples": webgazer},
+        "tabletStream": {"samples": tablet},
+        "sampleMatches": [],
+    }
+
+
+def test_known_target_accuracy_is_reported_in_degrees_for_both_streams():
+    result = accuracy_against_targets(_pair_with_known_targets(offset_px=51.6))
+    assert result["targetsScored"] == 2
+    assert result["webgazerMedianErrorDeg"] == 0.0
+    # One degree of visual angle at this geometry, within rounding.
+    assert abs(result["neurogazeMedianErrorDeg"] - 1.0) < 0.02
+
+
+def test_samples_inside_the_settle_period_are_not_scored():
+    pair = _pair_with_known_targets(offset_px=0.0)
+    # Drop everything after the settle window and the target loses its score.
+    for stream, key in (("webgazer", "elapsedTimeMs"), ("tabletStream", "sessionElapsedTimeMs")):
+        pair[stream]["samples"] = [s for s in pair[stream]["samples"] if s[key] < s.get("onsetMs", 0) + 300]
+    assert accuracy_against_targets(pair)["targetsScored"] <= 2

@@ -704,6 +704,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       researchConsent,
       modelVersion: model?.model_version,
       study: isGateB ? bridgeMeta : undefined,
+      // Shaped for research/recompute_gate_b.py: degrees cannot be recomputed
+      // from a pair file that does not carry the display geometry.
+      viewingGeometry: isGateB ? {
+        screenWidthMm: bridgeMeta.screenWidthMm,
+        screenHeightMm: bridgeMeta.screenHeightMm,
+        viewingDistanceMm: bridgeMeta.viewingDistanceMm,
+        deviceId: bridgeMeta.deviceId,
+        referenceDevice: bridgeMeta.referenceDevice,
+      } : undefined,
     });
     commitAudit(next);
     setStage(isEngineeringStudy ? "device" : "preparation");
