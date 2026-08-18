@@ -829,8 +829,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const referral = useMemo(() => buildReferralRecommendation({
     geopref: geoprefResult,
     jointAttention,
-    blinkSocial: phenotype.blinkSocial,
-    blinkNonsocial: phenotype.blinkNonsocial,
     responseToName: phenotype.responseToName,
   }), [geoprefResult, jointAttention, phenotype]);
   const isGateA = sessionPurpose === "gate_a_adult";

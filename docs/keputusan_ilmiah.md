@@ -256,3 +256,76 @@ bawah 2 detik, sehingga jendela respons 3,3 detik tetap longgar — dan jumlah
 percobaan tetap delapan, karena menguranginya memperburuk daya uji tanda. Baterai
 utuh kini 80 detik, masih yang terpendek di antara seluruh preseden yang dikutip
 makalah ini.
+
+## 15. Kenapa aktornya vektor gambar tangan, bukan rekaman manusia
+
+Blok isyarat arah memakai aktor yang digambar sebagai SVG dan dianimasikan lewat CSS.
+Ini keputusan yang perlu dipertahankan dengan bukti, bukan dengan selera, karena lebih
+dari separuh baterai memakainya.
+
+**Yang memberatkan, dan kami sebut duluan.** Tinjauan stimulus eye-tracking joint
+attention melaporkan perbedaan antar-kelompok yang **lebih tegas** pada stimulus beragen
+manusia dibanding beragen animasi, serta perbedaan fiksasi ke mata dan wajah antara
+aktor manusia dan kartun. Untuk perbandingan antar-kelompok, agen animasi kemungkinan
+memperkecil efek yang ingin diukur.
+
+**Kenapa itu tidak membatalkan pilihan ini.** Sinyal keputusan yang kami ambil dari blok
+ini bukan perbandingan antar-kelompok, melainkan **kontras dalam-subjek**: tatapan ke
+target sesudah isyarat dibanding sebelum isyarat, pada anak yang sama, pada aktor yang
+sama, di dalam percobaan yang sama. Uji tanda tidak menuntut norma populasi, sehingga
+kekuatan efek antar-kelompok pada agen animasi bukan asumsi yang dipakai aturan ini.
+
+**Yang mendukung, dan syaratnya spesifik.** Wajah skematik memang memicu gaze following:
+bayi baru lahir sudah membedakan tatapan langsung dari tatapan menyamping pada wajah
+skematik, dan saccade ke target periferal lebih cepat ketika gerak pupil wajah tengah
+terlihat. Tetapi efeknya dibawa oleh sifat perseptual tertentu, bukan oleh "adanya
+wajah":
+
+1. **Polaritas kontras mata.** Isyarat bergantung pada pola lazim mata—pupil gelap di
+   atas sklera terang. Isyarat dengan polaritas terbalik menghasilkan efek yang jauh
+   lebih lemah.
+2. **Gerak pupil yang terlihat.** Yang menjadi isyarat adalah mata yang bergerak, bukan
+   wajah yang sekadar digambar sudah menghadap ke samping.
+3. **Sinyal ostensif mendahului arah.** Bayi mengikuti tatapan ketika didahului kontak
+   mata atau sapaan, dan tidak ketika didahului animasi non-sosial yang sekadar menarik
+   perhatian.
+
+Ketiganya sudah terpenuhi di aset kami dan sekarang dijaga tes, bukan sekadar niat
+desain: `.sclera` `#fffdf7` melawan `.pupil` `#16181b`; `.eyeball` benar-benar
+ber-*translate* ±16 px pada onset isyarat dengan transisi 240 ms berjeda 50 ms sehingga
+mata bergerak lebih dulu daripada kepala dan tangan; dan epok ostensif mengembalikan
+kontak mata sebelum ada informasi arah sama sekali. Kontrak itu ada di
+`app/tests/child-flow-contract.test.ts`, sehingga penataan ulang gaya visual tidak dapat
+diam-diam mencabut sifat yang membuat isyaratnya bekerja.
+
+**Alasan operasional yang tetap berlaku.** Onset jatuh pada milidetik yang dideklarasikan
+protokol di semua tablet, tanpa bergantung pada dekoder atau frame yang jatuh—dan analisis
+pra/pasca-isyarat kami bergantung persis pada ketepatan itu. Asetnya kecil dan berjalan
+luring penuh. Stimulusnya berupa kode yang berversi dan dapat di-*diff*, bukan gumpalan
+biner. Dan tidak ada anak yang perlu direkam, sehingga tidak ada persoalan izin,
+privasi, maupun lisensi rekaman.
+
+**Batasnya.** Tidak ada satu pun bukti bahwa balita merespons aktor ini. Yang kami punya
+adalah paradigma terbit, sifat perseptual yang sesuai literatur, dan rancangan yang
+dijaga tes. Apakah balita Indonesia benar-benar mengikuti isyaratnya adalah pertanyaan
+Gate C, dan kontrol positif pada orang dewasa hanya menunjukkan instrumennya responsif.
+
+## 16. Tidak ada pengukuran yang melintasi batas medium
+
+Satu sesi menampilkan dua dunia visual: klip video terbit untuk blok pilihan tontonan,
+dan aktor vektor untuk sisanya. Perpindahannya memang terlihat, dan pertanyaan yang
+benar bukan "apakah kelihatan menyambung" melainkan "apakah ada angka yang dihitung
+melintasi sambungan itu".
+
+Jawabannya sekarang tidak ada:
+
+- **Preferensi geometrik** dihitung seluruhnya di dalam klip, oleh modulnya sendiri.
+- **Mengikuti isyarat** membandingkan pasca-isyarat dengan pra-isyarat di dalam
+  percobaan vektor yang sama.
+- **Respons nama** adalah deteksi peristiwa di dalam blok vektor.
+
+Sebelumnya ada satu pengecualian, dan itulah alasan diferensial kedipan dicabut dari
+lapisan keputusan (§10): ia membandingkan fase aktor vektor dengan blok video, sehingga
+"sosial lawan non-sosial" tercampur penuh dengan "vektor lawan video nyata". Selisih apa
+pun bisa saja digerakkan medium, bukan isi adegan, dan arah biasnya sistematis. Dengan
+sinyal itu dicabut, batas medium tidak lagi masuk ke keputusan mana pun.

@@ -15,15 +15,28 @@ tired, socially primed child.
 |---|---|---|
 | **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–48 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
 | **B — Behavioural profile** | Facing-forward, head movement, blink rate, response to name, cue following with a within-session sign test | No. Descriptive, read alongside SDIDTK/M-CHAT |
-| **B2 — Composite recommendation** | A readable rule over four signals that need no toddler norm: the published GeoPref cutoff plus three within-subject contrasts (cue following, blink differential, response to name) | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it |
+| **B2 — Composite recommendation** | A readable rule over three signals that need no toddler norm: the published GeoPref cutoff, plus two within-subject contrasts (cue following, response to name) | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it |
 | **C — Combined weighted model** | Not built. Weights need labelled toddlers | Not yet |
 
 Layer B2 exists because the combining layer was empty and the product could therefore
 recommend nothing. It is not a fitted score: `combinedScore` is still `null` and no
-code path can fill it. Facing-forward and head movement stay out of the rule — both
-carry precedent AUCs but no transferable cutoff, so scoring them would mean inventing
-a number. The one invented parameter, how many signals must deviate, is typed as
-`design_choice_not_validated_cutoff` and says so on screen and on paper.
+code path can fill it. The one invented parameter, how many signals must deviate, is
+typed as `design_choice_not_validated_cutoff` and says so on screen and on paper.
+
+Three indices are deliberately excluded from the rule. Facing-forward and head movement
+carry precedent AUCs but no transferable cutoff, so scoring them would mean inventing a
+number. The blink differential is out for a different reason: the only non-actor block
+in the battery is the preferential-looking clip, so a social/non-social blink contrast
+is fully confounded with rendering medium — hand-drawn vector against real video — and a
+16.75 s window quantises blink rate in steps of 3.6 per minute, which counting noise
+dominates. All three stay on the report as descriptive measures.
+
+**No measurement crosses the medium boundary.** The session runs two visual worlds: a
+published video clip and a vector actor. GeoPref is scored entirely inside the clip;
+cue following compares post-cue against pre-cue within the same vector trial; response
+to name is event detection inside the vector block. Nothing is computed across the seam
+between them, which is why the mixed presentation does not put a confound into any
+decision signal.
 
 Layer A misses most autistic children by design, and the interface says so. Its value
 is the opposite of a questionnaire's: a positive result is worth acting on. Layer B's

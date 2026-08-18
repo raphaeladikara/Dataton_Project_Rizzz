@@ -9,7 +9,6 @@ import {
 const followsCues: ReferralInput["jointAttention"] = { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 8, pValue: 0.0039 };
 const noCueFollowing: ReferralInput["jointAttention"] = { verdict: "NOT_DISTINGUISHABLE", trialsScored: 8, trialsFollowed: 3, pValue: 0.855 };
 
-const blink = (perMinute: number | null) => ({ blinkCount: 4, blinksPerMinute: perMinute, durationMs: 20_000 });
 const nameCalls = (responses: number) => ({
   callsDelivered: 3,
   responses,
@@ -18,12 +17,10 @@ const nameCalls = (responses: number) => ({
   latenciesMs: Array.from({ length: responses }, () => 700),
 });
 
-/** Typical viewing: threshold applied and not met, cues followed, blink suppressed socially, name answered. */
+/** Typical viewing: threshold applied and not met, cues followed, name answered. */
 const typical: ReferralInput = {
   geopref: { percentGeometric: 0.31, threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE" },
   jointAttention: followsCues,
-  blinkSocial: blink(9),
-  blinkNonsocial: blink(17),
   responseToName: nameCalls(3),
 };
 
@@ -32,11 +29,10 @@ const signal = (input: ReferralInput, id: string) =>
 
 test("every signal reports a status, what was measured, and where its direction comes from", () => {
   const result = buildReferralRecommendation(typical);
-  assert.equal(result.signals.length, 4);
+  assert.equal(result.signals.length, 3);
   assert.deepEqual(result.signals.map((item) => item.id), [
     "geometric_preference",
     "cue_following",
-    "blink_differential",
     "response_to_name",
   ]);
   for (const item of result.signals) {
@@ -52,6 +48,16 @@ test("indices without a transferable cutoff never enter the decision", () => {
   const ids = buildReferralRecommendation(typical).signals.map((item) => item.id);
   assert.equal(ids.includes("facing_forward" as never), false);
   assert.equal(ids.includes("head_movement" as never), false);
+});
+
+test("the blink differential is not a decision signal", () => {
+  // Two independent reasons. The only non-actor block in the battery is the
+  // preferential-looking clip, so a social/non-social blink contrast is fully
+  // confounded with rendering medium: hand-drawn vector against real video.
+  // And a 16.75 s window quantises blink rate at 3.6 per minute, so the
+  // comparison is dominated by counting noise before content matters at all.
+  const ids = buildReferralRecommendation(typical).signals.map((item) => item.id);
+  assert.equal(ids.includes("blink_differential" as never), false);
 });
 
 test("a shortened protocol leaves the geometric signal unassessed, never normal", () => {
@@ -80,12 +86,6 @@ test("cue following says it failed to demonstrate, not that the child cannot", (
   // reach significance below seven successes. The wording has to carry that.
   assert.match(deviant.reason, /belum|tidak terbukti/i);
   assert.doesNotMatch(deviant.reason, /tidak mampu|tidak bisa mengikuti/i);
-});
-
-test("blink differential is deviant when social content stops suppressing blinking", () => {
-  assert.equal(signal({ ...typical, blinkSocial: blink(18), blinkNonsocial: blink(12) }, "blink_differential").status, "menyimpang");
-  assert.equal(signal({ ...typical, blinkSocial: blink(9), blinkNonsocial: blink(17) }, "blink_differential").status, "normal");
-  assert.equal(signal({ ...typical, blinkSocial: blink(null) }, "blink_differential").status, "tidak_dapat_dinilai");
 });
 
 test("response to name is deviant at one call or fewer out of three", () => {
@@ -121,12 +121,10 @@ test("the produced-pattern condition trips every assessable signal", () => {
   const result = buildReferralRecommendation({
     geopref: { percentGeometric: 0.88, threshold: 0.69, outcome: "GEOMETRIC_PREFERENCE" },
     jointAttention: noCueFollowing,
-    blinkSocial: blink(16),
-    blinkNonsocial: blink(16),
     responseToName: nameCalls(0),
   });
-  assert.equal(result.assessableCount, 4);
-  assert.equal(result.deviantCount, 4);
+  assert.equal(result.assessableCount, 3);
+  assert.equal(result.deviantCount, 3);
   assert.equal(result.recommendsFollowUp, true);
 });
 
@@ -134,8 +132,6 @@ test("a recommendation is impossible when fewer than two signals can be assessed
   const result = buildReferralRecommendation({
     geopref: null,
     jointAttention: { verdict: "WITHHELD_TOO_FEW_TRIALS", trialsScored: 0, trialsFollowed: 0, pValue: null },
-    blinkSocial: blink(null),
-    blinkNonsocial: blink(null),
     responseToName: nameCalls(0),
   });
   assert.equal(result.assessableCount, 1);
