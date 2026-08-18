@@ -10,8 +10,8 @@ Plan file: `C:\Users\Raphael Angelo\.claude\plans\oke-bikinin-plannya-secara-rec
 
 ## Current State
 
-Branch `feat/live-measured-outcome`, 13 commits, merged to `main` and pushed at
-checkpoint time. Working tree clean. All checks green:
+13 commits, since merged into `main`. That branch no longer exists; the repo keeps
+only `main`. Working tree clean. All checks green:
 
 - 22 Python tests, 138 TypeScript tests, ESLint clean, `next build` succeeds
 - `research/gate_evidence_repository.py --rebuild --verify` passes (130 files)
