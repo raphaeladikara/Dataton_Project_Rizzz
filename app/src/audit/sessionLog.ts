@@ -35,12 +35,22 @@ export type SessionAuditLog = {
   };
   modelVersion?: string;
   study?: GateBStudyMeta;
+  /** Needed to express Gate B error in degrees rather than pixels. */
+  viewingGeometry?: ViewingGeometry;
   device?: DeviceDiagnostics;
   calibration?: CalibrationDiagnostics;
   quality?: Quality;
   gaze?: Record<string, unknown>;
   assessment?: Record<string, unknown>;
   events: AuditEvent[];
+};
+
+export type ViewingGeometry = {
+  screenWidthMm: number;
+  screenHeightMm: number;
+  viewingDistanceMm: number;
+  deviceId: string;
+  referenceDevice: string;
 };
 
 export function createSessionAudit(input: {
@@ -52,6 +62,7 @@ export function createSessionAudit(input: {
   researchConsent: boolean;
   modelVersion?: string;
   study?: GateBStudyMeta;
+  viewingGeometry?: ViewingGeometry;
 }): SessionAuditLog {
   const sessionId = globalThis.crypto?.randomUUID?.() ?? `ng-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const ageText = input.profile.age.trim();
@@ -90,6 +101,7 @@ export function createSessionAudit(input: {
     },
     modelVersion: input.modelVersion,
     ...(input.study ? { study: input.study } : {}),
+    ...(input.viewingGeometry ? { viewingGeometry: input.viewingGeometry } : {}),
     events: [{ atMs: 0, type: "session.created", level: "info" }],
   };
 }
