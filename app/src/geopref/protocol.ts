@@ -54,15 +54,24 @@ export function classifyGeoprefAoi(point: Pick<Point, "x" | "y">, aoi: { left: B
 }
 
 /**
- * Side assignment must not correlate with anything about the child, so it is
- * derived from the pseudonymous session id rather than chosen by the operator.
+ * Anything counterbalanced per session derives from this, so the assignment
+ * cannot correlate with the child and the operator cannot pick it. The
+ * stimulus module reuses it to counterbalance the directional cue order.
  */
-export function geoprefLayout(sessionId: string): { geometricSide: GeoprefSide; socialSide: GeoprefSide } {
+export function sessionHash(sessionId: string): number {
   let hash = 0;
   for (let index = 0; index < sessionId.length; index += 1) {
     hash = (hash * 31 + sessionId.charCodeAt(index)) >>> 0;
   }
-  const geometricSide: GeoprefSide = hash % 2 === 0 ? "left" : "right";
+  return hash;
+}
+
+/**
+ * Side assignment must not correlate with anything about the child, so it is
+ * derived from the pseudonymous session id rather than chosen by the operator.
+ */
+export function geoprefLayout(sessionId: string): { geometricSide: GeoprefSide; socialSide: GeoprefSide } {
+  const geometricSide: GeoprefSide = sessionHash(sessionId) % 2 === 0 ? "left" : "right";
   return { geometricSide, socialSide: geometricSide === "left" ? "right" : "left" };
 }
 

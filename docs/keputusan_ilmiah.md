@@ -127,3 +127,104 @@ rekomputasi (0,997118, bukan 0,997574).
 - Spesifisitas SenseToKnow berbeda antar kelompok ras pada studi aslinya (53,6%
   pada anak kulit hitam vs 82,7% kulit putih). Analisis subgrup harus
   dipra-registrasi untuk Gate C. GeoPref dilaporkan setara lintas ras.
+
+---
+
+## 10. Kenapa lapisan rekomendasi boleh dibangun tanpa balita berlabel
+
+Keputusan §4 melarang skor gabungan berbobot, dan larangan itu tetap berlaku:
+`PhenotypeProfile.combinedScore` masih bertipe `null` dan tidak ada jalur kode yang
+dapat mengisinya. Yang dibangun di `app/src/outcome/referralRecommendation.ts` bukan
+skor, melainkan **aturan yang dapat dibaca manusia**, dan perbedaannya menentukan.
+
+Perochon dkk. mencapai performa gabungannya dengan bobot yang di-fit pada 475 balita
+berlabel. Bobot itu tidak dapat direkonstruksi dari AUC yang mereka laporkan, jadi
+menebaknya berarti mengarang. Jalan keluarnya bukan menebak bobot, melainkan
+**memilih hanya sinyal yang dapat dinilai tanpa norma populasi**:
+
+| Sinyal | Kenapa tidak butuh norma balita |
+|---|---|
+| Preferensi geometrik | Ambangnya terbit dan eksternal (Wen dkk. 2022) |
+| Mengikuti isyarat | Kontras dalam-subjek: sesudah isyarat vs sebelum isyarat, anak yang sama |
+| Diferensial kedipan | Kontras dalam-subjek: fase aktor vs blok pilihan tontonan |
+| Respons nama | Deteksi peristiwa dalam-subjek pada tiga panggilan |
+
+`facingForward` dan `headMovement` sengaja **tidak** masuk keputusan. Keduanya membawa
+AUC preseden tetapi tidak punya ambang terbit yang dapat dipindahkan, jadi
+memasukkannya berarti mengarang angka. Keduanya tetap tampil sebagai deskriptif.
+
+Satu parameter tetap merupakan karangan kami: berapa sinyal harus menyimpang.
+`REFERRAL_DEVIANT_THRESHOLD` bernilai 2, ditandai `design_choice_not_validated_cutoff`
+di tipe datanya, dan dinyatakan sebagai pilihan desain di layar maupun di cetakan.
+Justifikasinya harus lewat jalan yang sama seperti pemilihan titik kerja GeoPref:
+biaya operasional pada antrean nyata, bukan performa pada data kami.
+
+Dua jalur dilaporkan berdampingan dan tidak pernah dilebur. Ambang 69% adalah
+satu-satunya angka di sistem ini yang bukan kami yang menentukan; meleburnya ke dalam
+komposit berarti kehilangan kemampuan mengatakan itu.
+
+## 11. Kenapa mode demonstrasi tidak melanggar invarian
+
+Klip yang tersedia lebih pendek daripada protokol terbit, jadi `validatedProtocol`
+bernilai `false` dan jalur `RULE_IN_GEOMETRIC` tidak dapat dicapai. Konsekuensinya
+tidak disengaja: bentuk laporan rujukan — hal yang paling perlu dilihat penguji —
+tidak pernah muncul.
+
+Mode demonstrasi menerapkan ambang pada klip pendek itu, tetapi menghasilkan
+**jenis keluaran yang berbeda**: `GEOMETRIC_PREFERENCE_DEMONSTRATION` di scorer,
+`RULE_IN_DEMONSTRATION` di resolver, dengan `emitsReferral: false` yang ditulis
+langsung di cabangnya, bukan dibaca dari konfigurasi.
+
+Invariannya karena itu tetap utuh dan tetap dapat dijaga tes: **protokol yang tidak
+tervalidasi tidak pernah memicu rujukan.** Mode ini hanya dapat dimasuki dari kontrol
+demo dan hanya dalam mode replay; `start()` menghitung ulang flag-nya setiap kali dan
+menggerbangnya pada mode, sehingga tidak ada argumen yang menyalakannya di lapangan.
+Ia dicatat di log audit sebagai `session.demonstration_mode`, jadi sesi yang diekspor
+tidak dapat menyembunyikannya.
+
+## 12. Kenapa kontrol positif memakai orang dewasa yang memproduksi pola
+
+Gate A membuktikan ketelitian, Gate B membuktikan kesepakatan. Tidak satu pun
+membuktikan bahwa pipeline dapat membedakan dua kondisi perilaku — dan kalau tidak
+bisa, seluruh premisnya runtuh. Kontrol positif menutup celah itu tanpa melibatkan
+balita.
+
+Bingkainya adalah kontrol positif, bukan klasifikasi: beri instrumen sinyal yang
+diketahui ada, periksa apakah ia merespons. Yang dihasilkan adalah responsivitas
+instrumen, bukan sensitivitas maupun spesifisitas. Protokol, bahasa yang wajib
+dipakai, dan batas klaimnya ada di `docs/kontrol_positif.md`.
+
+Risiko sirkularitasnya nyata dan ditangani dengan dua cara: arah tiap sinyal diambil
+dari literatur, bukan dari data akting; dan bila kelak ada model ter-fit, evaluasinya
+harus dikelompokkan per orang, sama seperti kontrol negatif pada CNN.
+
+## 13. Urutan isyarat harus diseimbangkan, bukan beralternasi
+
+Sampai v4, delapan percobaan isyarat berjalan pada urutan kiri, kanan, kiri, kanan,
+kiri, kanan, kiri, kanan — tetap, di setiap sesi.
+
+Itu confound, bukan sekadar kurang rapi. Anak yang sekadar memindai kiri-kanan secara
+ritmis akan mencetak "mengikuti isyarat" pada setiap percobaan tanpa joint attention
+apa pun, dan uji tanda di `app/src/inference/jointAttention.ts` tidak dapat
+membedakan keduanya justru karena urutan isyaratnya sendiri beralternasi. Sejak
+lapisan rekomendasi memakai sinyal ini untuk memutuskan, cacat itu berhenti menjadi
+persoalan akademis.
+
+Sejak v5, urutan dipermutasi dari hash id sesi dengan syarat jumlah kiri sama dengan
+kanan dan tidak ada tiga sisi sama beruntun. Deterministik, dapat diaudit dari log,
+dan tidak dapat dipilih operator — pola yang sama dengan penyeimbangan sisi GeoPref.
+
+## 14. Kenapa blok pilihan tontonan dipindah ke depan
+
+Blok itu membawa satu-satunya ambang terbit di sistem ini, tetapi pada v4 ia berjalan
+pada detik ke-61 dari 96 — di posisi kesembilan dari dua belas fase. Dua hal
+menggerusnya di sana: perhatian balita paling habis di akhir baterai, dan enam puluh
+detik ajakan sosial intensif sebelumnya mem-*prime* perhatian sosial, yang menekan
+preferensi geometrik justru ke arah berlawanan dengan yang diandalkan pemicu rujukan.
+
+Sejak v5 ia berjalan kedua, tepat sesudah perhatian awal. Durasi tiap percobaan
+isyarat juga turun dari 7 ke 5 detik — latensi mengikuti pandangan berada jauh di
+bawah 2 detik, sehingga jendela respons 3,3 detik tetap longgar — dan jumlah
+percobaan tetap delapan, karena menguranginya memperburuk daya uji tanda. Baterai
+utuh kini 80 detik, masih yang terpendek di antara seluruh preseden yang dikutip
+makalah ini.

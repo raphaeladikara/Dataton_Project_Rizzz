@@ -132,3 +132,29 @@ test("the side assignment actually flips which panel counts as geometric", () =>
   const rightGeometric = scoreGeopref(points, { geometricSide: "right", socialSide: "left", validatedProtocol: true });
   assert.ok(Math.abs(leftGeometric.percentGeometric! + rightGeometric.percentGeometric! - 1) < 1e-9);
 });
+
+test("demonstration mode applies the held threshold but marks the outcome as such", () => {
+  const points = Array.from({ length: 120 }, (_, index) => ({ t: index * 50, x: 0.66, y: 0.5 }));
+  const layout = { geometricSide: "right" as const, socialSide: "left" as const, validatedProtocol: false };
+  assert.equal(scoreGeopref(points, layout).outcome, "MEASURED_PROTOCOL_ABBREVIATED");
+  assert.equal(scoreGeopref(points, { ...layout, demonstrationMode: true }).outcome, "GEOMETRIC_PREFERENCE_DEMONSTRATION");
+});
+
+test("demonstration mode still reports below-threshold looking as its own outcome", () => {
+  const points = Array.from({ length: 120 }, (_, index) => ({ t: index * 50, x: 0.34, y: 0.5 }));
+  const result = scoreGeopref(points, { geometricSide: "right", socialSide: "left", validatedProtocol: false, demonstrationMode: true });
+  assert.equal(result.outcome, "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION");
+  assert.equal(result.rulesOutAsd, false);
+});
+
+test("demonstration mode changes nothing once the protocol is validated", () => {
+  const points = Array.from({ length: 120 }, (_, index) => ({ t: index * 50, x: 0.66, y: 0.5 }));
+  const layout = { geometricSide: "right" as const, socialSide: "left" as const, validatedProtocol: true };
+  assert.deepEqual(scoreGeopref(points, { ...layout, demonstrationMode: true }), scoreGeopref(points, layout));
+});
+
+test("demonstration mode cannot rescue a session with too little looking", () => {
+  const points = Array.from({ length: 120 }, (_, index) => ({ t: index * 50, x: 0.02, y: 0.02 }));
+  const result = scoreGeopref(points, { geometricSide: "right", socialSide: "left", validatedProtocol: false, demonstrationMode: true });
+  assert.equal(result.outcome, "WITHHELD_INSUFFICIENT_LOOKING");
+});

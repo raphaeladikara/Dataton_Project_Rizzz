@@ -87,3 +87,42 @@ test("no outcome may ever claim a diagnosis or reassure", () => {
     assert.equal(outcome.reassures, false);
   });
 });
+
+test("a demonstration rule-in shows the full report but never emits a referral", () => {
+  const outcome = resolveSessionOutcome({
+    ...baseInput,
+    geopref: { ...baseInput.geopref, outcome: "GEOMETRIC_PREFERENCE_DEMONSTRATION" },
+  });
+  assert.equal(outcome.kind, "RULE_IN_DEMONSTRATION");
+  assert.equal(outcome.emitsReferral, false);
+  assert.equal(outcome.reassures, false);
+  assert.equal(outcome.claimsDiagnosis, false);
+  assert.match(outcome.headline, /demonstrasi/i);
+  assert.match(outcome.summaryLine, /tidak berlaku|bukan rujukan|tidak sah/i);
+});
+
+test("a below-threshold demonstration is also marked and also inert", () => {
+  const outcome = resolveSessionOutcome({
+    ...baseInput,
+    geopref: { ...baseInput.geopref, percentGeometric: 0.4, outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" },
+  });
+  assert.equal(outcome.kind, "RULE_IN_DEMONSTRATION");
+  assert.equal(outcome.emitsReferral, false);
+  assert.match(outcome.headline, /demonstrasi/i);
+});
+
+test("only a validated protocol can ever set emitsReferral", () => {
+  const outcomes = [
+    "GEOMETRIC_PREFERENCE",
+    "NO_GEOMETRIC_PREFERENCE",
+    "MEASURED_PROTOCOL_ABBREVIATED",
+    "GEOMETRIC_PREFERENCE_DEMONSTRATION",
+    "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION",
+  ] as const;
+  outcomes.forEach((geoprefOutcome) => {
+    const outcome = resolveSessionOutcome({ ...baseInput, geopref: { ...baseInput.geopref, outcome: geoprefOutcome } });
+    if (outcome.emitsReferral) assert.equal(geoprefOutcome, "GEOMETRIC_PREFERENCE");
+    assert.equal(outcome.reassures, false);
+    assert.equal(outcome.claimsDiagnosis, false);
+  });
+});

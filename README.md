@@ -6,13 +6,24 @@ Neurogaze is an offline-first web application for gaze-measurement research rela
 
 ## What a session produces
 
-A 96-second battery measures three things and reports them separately.
+An 80-second battery measures three things and reports them separately. Preferential
+looking runs second, right after the opening attention block, because it carries the
+only externally published threshold in the system and should not be measured on a
+tired, socially primed child.
 
 | Layer | What it is | Can it trigger a referral? |
 |---|---|---|
-| **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–49 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only automatic trigger |
+| **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–49 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
 | **B — Behavioural profile** | Facing-forward, head movement, blink rate, response to name, cue following with a within-session sign test | No. Descriptive, read alongside SDIDTK/M-CHAT |
-| **C — Combined model** | Not built. Weights need labelled toddlers | Not yet |
+| **B2 — Composite recommendation** | A readable rule over four signals that need no toddler norm: the published GeoPref cutoff plus three within-subject contrasts (cue following, blink differential, response to name) | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it |
+| **C — Combined weighted model** | Not built. Weights need labelled toddlers | Not yet |
+
+Layer B2 exists because the combining layer was empty and the product could therefore
+recommend nothing. It is not a fitted score: `combinedScore` is still `null` and no
+code path can fill it. Facing-forward and head movement stay out of the rule — both
+carry precedent AUCs but no transferable cutoff, so scoring them would mean inventing
+a number. The one invented parameter, how many signals must deviate, is typed as
+`design_choice_not_validated_cutoff` and says so on screen and on paper.
 
 Layer A misses most autistic children by design, and the interface says so. Its value
 is the opposite of a questionnaire's: a positive result is worth acting on. Layer B's
@@ -64,12 +75,20 @@ The reasoning behind these decisions is recorded in
 
 ### Known gaps
 
-- Replay still plays synthetic points until a recorded session is registered, so the
-  behavioural indices are empty on the fallback path and the demo report is withheld.
-  The loader, the export, and the registration command all exist:
-  `npm run replay:register -- <audit-log.json> --as session-a.json`, which refuses a log
-  that carries no frame trace instead of registering a recording that would reproduce the
-  synthetic path's empty indices.
+- Replay still plays synthetic points until a recorded session is registered, and the
+  demo report is withheld. The synthetic scanpath is genuinely out of distribution, so
+  the OOD guard flags it and the quality gate refuses to score — the report now names
+  the offending features instead of only saying no. Registering one real session is
+  what fixes this: `npm run replay:register -- <audit-log.json> --as session-a.json`,
+  which refuses a log that carries no frame trace instead of registering a recording
+  that would reproduce the synthetic path's empty indices.
+- Because of that, the composite recommendation and the demonstration report have
+  been verified by contract and unit tests but never seen rendering with real numbers.
+  The positive-control protocol that produces those recordings is in
+  [`docs/kontrol_positif.md`](docs/kontrol_positif.md).
+- Nothing in this repository demonstrates that the pipeline can separate two
+  behavioural conditions. Gate A shows accuracy, Gate B shows agreement; neither shows
+  discriminative response. That is what the positive control is for.
 - The Gate B known-target block (nine targets, absolute accuracy for both streams)
   is implemented on the analysis side but no session has recorded one yet.
 - No toddler appears in any evidence in this repository.

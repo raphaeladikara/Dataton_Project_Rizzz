@@ -229,7 +229,7 @@ landmark tidak pernah diunggah maupun disimpan. Log teknis hidup di memori sampa
 operator memilih mengunduh. Nama panggilan anak dipakai untuk memanggil namanya lewat
 speech synthesis, dan tidak pernah masuk ke profil, log audit, maupun disk.
 
-**"Kenapa 96 detik? Balita tidak akan duduk selama itu."**
+**"Kenapa 80 detik? Balita tidak akan duduk selama itu."**
 Ini keterbatasan yang kami akui dan belum uji. Baterainya belum pernah dijalankan pada
 balita. Toleransi terhadap durasi ini adalah salah satu hal pertama yang harus diukur
 Gate C, dan attrition 42 persen dari ManyBabies adalah ekspektasi awal kami, bukan

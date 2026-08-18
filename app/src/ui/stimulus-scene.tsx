@@ -76,13 +76,14 @@ export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, p
   if (visualCue === "geopref" && geoprefSource) {
     return (
       <div className={`${state} geoprefStage`} data-mirrored={String(geoprefNeedsMirror(geometricSide))} aria-hidden="true">
+        {/* No loop. The phase is exactly as long as the clip, and a loop would
+            replay the opening frames into the dwell score. */}
         <video
           className="geoprefVideo"
           src={geoprefSource}
           autoPlay
           muted
           playsInline
-          loop
           preload="auto"
         />
       </div>
