@@ -71,6 +71,11 @@ autistic children by design, and the interface has to say so plainly.
 
 ## Constraints
 
+- **No child is recorded by this team before ethics approval.** No toddler, no autistic
+  child, not for training and not for a demo. Parental consent is not valid without an
+  ethics review; five institutions were approached and all five declined. Everything
+  labelled in the decision path comes from data other researchers published under an
+  open licence. See [`docs/etika_perekaman.md`](docs/etika_perekaman.md).
 - Mid-range Android tablets, ~26–30 fps front camera, frequently offline.
 - Indonesian only. Copy is read aloud to caregivers, so it must be plain-spoken.
 - Must remain operable in poor lighting and with the tablet on a stand.

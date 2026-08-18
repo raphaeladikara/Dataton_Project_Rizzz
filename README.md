@@ -16,12 +16,21 @@ tired, socially primed child.
 | **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–48 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
 | **B — Behavioural profile** | Facing-forward, head movement, blink rate, response to name, cue following with a within-session sign test | No. Descriptive, read alongside SDIDTK/M-CHAT |
 | **B2 — Composite recommendation** | A readable rule over three signals that need no toddler norm: the published GeoPref cutoff, plus two within-subject contrasts (cue following, response to name) | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it |
-| **C — Combined weighted model** | Not built. Weights need labelled toddlers | Not yet |
+| **C — Combined weighted model** | Being replaced rather than built. No toddler will be recorded by this team before ethics approval, so the layer is assembled from published operating points and weights fitted on an openly licensed labelled dataset instead | Not yet |
 
 Layer B2 exists because the combining layer was empty and the product could therefore
 recommend nothing. It is not a fitted score: `combinedScore` is still `null` and no
 code path can fill it. The one invented parameter, how many signals must deviate, is
 typed as `design_choice_not_validated_cutoff` and says so on screen and on paper.
+
+That parameter is being withdrawn rather than defended. Its replacement is a sum of
+log likelihood ratios whose every term carries a citation, with any signal that has no
+published operating point — and any signal the session could not assess — contributing
+LR = 1 and therefore moving nothing. The relative weighting between signals is fitted
+on 59 labelled children from an openly licensed published dataset (Cilia et al. 2022,
+CC BY 4.0), because no child is recorded by this team. What transfers is the relative
+weighting, not the operating point. The design, the four audits that gate it, and the
+criteria for rejecting it outright are in [`docs/model_rujukan.md`](docs/model_rujukan.md).
 
 Three indices are deliberately excluded from the rule. Facing-forward and head movement
 carry precedent AUCs but no transferable cutoff, so scoring them would mean inventing a
@@ -130,7 +139,13 @@ The reasoning behind these decisions is recorded in
   discriminative response. That is what the positive control is for.
 - The Gate B known-target block (nine targets, absolute accuracy for both streams)
   is implemented on the analysis side but no session has recorded one yet.
-- No toddler appears in any evidence in this repository.
+- No toddler appears in any evidence in this repository, and none will before ethics
+  approval. Recording a child requires parental consent, and parental consent is not
+  valid without an ethics review that states what is being asked; recording an autistic
+  child requires more than that again. Five institutions were approached and all five
+  declined, which was the right call at this stage of evidence. The constraint, what it
+  rules out, what is permitted instead, and the answers to the questions a panel will
+  ask are in [`docs/etika_perekaman.md`](docs/etika_perekaman.md).
 
 ## Run the application
 

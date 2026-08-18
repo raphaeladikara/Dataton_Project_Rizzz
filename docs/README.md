@@ -9,7 +9,9 @@
 - [`checkpoint_2026-08-18.md`](checkpoint_2026-08-18.md): status penuh setelah Fase 4–6, dan delapan aturan yang tidak boleh dilanggar.
 - [`pitch_7_menit.md`](pitch_7_menit.md): naskah presentasi semifinal beserta peta waktu, jawaban pertanyaan, dan sumber tiap angka.
 - [`pitch_10_menit.md`](pitch_10_menit.md): naskah sesi demo 10 menit, termasuk urutan dua sesi langsung dan bahasa yang wajib dipakai saat memperagakan pola.
-- [`jalur_rujukan.md`](jalur_rujukan.md): kenapa belum ada rujukan yang bisa keluar, dua kunci yang menahannya, dan rencana empat langkah membukanya. **Baca ini sebelum kontrol positif.**
+- [`jalur_rujukan.md`](jalur_rujukan.md): kenapa belum ada rujukan yang bisa keluar, kunci yang menahannya, dan rencana delapan langkah membukanya. **Baca ini sebelum kontrol positif.**
+- [`etika_perekaman.md`](etika_perekaman.md): kenapa tidak ada balita dan tidak ada anak ASD yang direkam tim ini, apa yang sudah dicoba, apa yang boleh dikerjakan sebagai gantinya, dan jawaban untuk pertanyaan juri soal izin. **Baca sebelum sesi perekaman apa pun.**
+- [`model_rujukan.md`](model_rujukan.md): rancangan model rujukan — kalibrasi likelihood-ratio, bobot dari data terbit CC BY 4.0, empat audit yang menggerbanginya, dan kriteria menolaknya.
 - [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif — alat, peserta, naskah instruksi, penamaan berkas, kriteria mutu, dan cara mendaftarkan rekamannya.
 - [`model_dikarantina.md`](model_dikarantina.md): kenapa CNN 0,882 dan CNN wajah 0,932 tidak dipakai, uji berpasangan yang menggantikan argumen "CI bertumpang tindih", dan apakah keduanya bisa dibuat berguna.
 - [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md): klaim dampak yang bisa dipertahankan, biaya per pemeriksaan, jalur integrasi, dan jalur pengumpulan data Gate C.

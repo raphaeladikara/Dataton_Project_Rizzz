@@ -139,11 +139,26 @@ informasi yang diandalkannya adalah jenis yang paling rusak di perangkat sasaran
 
 Pertanyaan yang tepat, dan jawabannya berbeda untuk tiga kemungkinan penggunaan.
 
-**Melatih ulang pada representasi 30 Hz — tidak bisa, dan ini bukan soal usaha.**
-Yang tersedia di `data/autism eye tracking dataset/` adalah 547 berkas PNG. Tidak ada
-CSV sampel pandangan, tidak ada stempel waktu, tidak ada urutan. Untuk membangun
-representasi 30 Hz dibutuhkan deret waktu aslinya, dan deret itu tidak ada di data yang
-kita punya. Informasinya bukan sulit direkonstruksi; ia tidak ada.
+**Melatih ulang pada representasi 30 Hz — bisa, dan versi lama catatan ini keliru.**
+
+Yang tertulis di sini sebelumnya: yang tersedia hanyalah 547 PNG, tidak ada CSV, tidak
+ada stempel waktu, jadi deret waktunya "bukan sulit direkonstruksi; ia tidak ada".
+
+Yang tidak ada adalah di folder kami. Tim yang sama menerbitkan **data mentahnya** —
+Cilia dkk. 2022, `10.6084/m9.figshare.20113592.v1`, CC BY 4.0: 25 berkas CSV koordinat
+mentah dari SMI Red-M pada 60 Hz, sekitar 2,17 juta baris, 59 anak usia 3–12 tahun
+lengkap dengan ID partisipan dan skor CARS. 547 PNG itu adalah render dari CSV ini.
+
+Desimasi 60 → 30 Hz karena itu adalah operasi yang sah dan terdefinisi, tidak seperti
+sparsifikasi piksel yang dipakai `degradasi.json` dan yang menyatakan sendiri sebagai
+proksi. Klaim lama dicabut, dan ini dicatat sebagai koreksi alih-alih diperbaiki diam-diam.
+
+Yang **tidak** berubah karena koreksi ini: keempat alasan CNN scanpath tidak dipakai
+tetap berdiri. Kontrak masukan CNN menuntut turunan kedua dan ketiga dari sinyal
+250 Hz, dan itu tetap mustahil dari kamera 30 fps berapa pun rapinya CSV-nya. Yang
+dibuka koreksi ini bukan CNN-nya, melainkan kemungkinan menghitung **indeks perilaku**
+dari koordinat mentah — jalur yang berbeda, dan yang dirancang di
+[`model_rujukan.md`](model_rujukan.md).
 
 **Dipakai sebagai lapis kedua di jalur rujukan — tidak, dan korelasi 0,93 adalah
 alasannya.** Model kedua berguna kalau ia salah pada kasus yang berbeda dari model
@@ -159,9 +174,16 @@ cukup, dan lebih tahan terhadap perangkat murah. Itu kesimpulan yang berguna bag
 siapa pun yang membangun hal serupa.
 
 **Model yang benar-benar akan masuk jalur rujukan bukan salah satu dari keduanya.**
-Model itu dilatih pada sinyal NeuroGaze sendiri — perangkat yang benar, stimulus yang
-benar, fitur yang benar — dan datanya dihasilkan kontrol positif lalu Gate C. Rencana
-dan kriterianya ada di [`jalur_rujukan.md`](jalur_rujukan.md).
+Ia tidak bekerja di ruang piksel sama sekali. Yang dipasang adalah bobot relatif antar
+**indeks perilaku** — mengikuti isyarat, preferensi sosial/non-sosial, dispersi
+tatapan — yang dihitung dari koordinat mentah Cilia, diaudit terhadap desimasi 30 Hz
+dan terhadap alas shortcut tingkat sesi, lalu dipindahkan ke NeuroGaze dengan lingkup
+yang dinyatakan. Rancangan, kriteria penolakan, dan urutannya ada di
+[`model_rujukan.md`](model_rujukan.md).
+
+Kenapa bukan dilatih pada data NeuroGaze sendiri: itu menuntut balita berlabel, dan
+merekamnya menuntut kaji etik yang belum ada. Batasnya dan alasannya di
+[`etika_perekaman.md`](etika_perekaman.md).
 
 ---
 

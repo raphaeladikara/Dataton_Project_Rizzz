@@ -149,7 +149,9 @@ rekomputasi (0,997118, bukan 0,997574).
 
 ## 9. Yang masih belum dijawab
 
-- Belum ada satu pun balita dalam bukti mana pun di repo ini.
+- Belum ada satu pun balita dalam bukti mana pun di repo ini, dan tidak akan ada
+  sebelum kaji etik lolos. Itu batas yang dipasang sengaja, bukan celah yang tersisa —
+  lihat §17 dan `docs/etika_perekaman.md`.
 - Tidak ada instrumen di sini yang divalidasi di Indonesia.
 - Toleransi balita terhadap baterai 96 detik belum diuji.
 - Spesifisitas SenseToKnow berbeda antar kelompok ras pada studi aslinya (53,6%
@@ -186,6 +188,12 @@ Satu parameter tetap merupakan karangan kami: berapa sinyal harus menyimpang.
 di tipe datanya, dan dinyatakan sebagai pilihan desain di layar maupun di cetakan.
 Justifikasinya harus lewat jalan yang sama seperti pemilihan titik kerja GeoPref:
 biaya operasional pada antrean nyata, bukan performa pada data kami.
+
+> **Diperbarui.** Parameter itu dicabut, bukan dijustifikasi. Penggantinya adalah
+> penjumlahan likelihood-ratio yang setiap sukunya punya kutipan, dengan sinyal tanpa
+> titik operasi terbit ber-LR = 1. Alasannya di §18; rancangannya di
+> `docs/model_rujukan.md`. Bagian tabel di atas — sinyal mana yang boleh ikut dan
+> kenapa — tetap berlaku apa adanya.
 
 Dua jalur dilaporkan berdampingan dan tidak pernah dilebur. Ambang 69% adalah
 satu-satunya angka di sistem ini yang bukan kami yang menentukan; meleburnya ke dalam
@@ -329,3 +337,119 @@ lapisan keputusan (§10): ia membandingkan fase aktor vektor dengan blok video, 
 "sosial lawan non-sosial" tercampur penuh dengan "vektor lawan video nyata". Selisih apa
 pun bisa saja digerakkan medium, bukan isi adegan, dan arah biasnya sistematis. Dengan
 sinyal itu dicabut, batas medium tidak lagi masuk ke keputusan mana pun.
+
+---
+
+## 17. Kenapa tidak ada balita dan tidak ada anak ASD yang direkam tim ini
+
+Ini keputusan ilmiah, bukan sekadar kepatuhan administratif, dan konsekuensinya
+membentuk seluruh rencana model.
+
+Cara paling lurus mengganti `REFERRAL_DEVIANT_THRESHOLD = 2` dengan angka yang punya
+artefak adalah membangun pita normatif dari balita tipikal: sebaran tiap indeks
+terhadap usia, "menyimpang" dinyatakan sebagai persentil. Spesifisitasnya kemudian
+terukur secara konstruksi — flag di persentil ke-5 berarti laju positif-palsu sekitar
+5% — dan bahasanya sudah dikenal kader lewat KMS.
+
+Jalan itu ditutup, dan ditutupnya bukan karena sulit.
+
+**Balita tidak dapat memberi persetujuan.** Yang menggantikan persetujuannya adalah
+keputusan orang lain, dan struktur yang mengawasi keputusan orang lain itu adalah kaji
+etik. Melewatinya bukan mempercepat penelitian; itu menghapus satu-satunya pihak yang
+mewakili kepentingan anaknya.
+
+**Risiko dan manfaatnya belum seimbang.** Instrumen yang belum lulus Gate C tidak
+menawarkan manfaat apa pun kepada anak yang direkam; yang ditawarkannya kepada kami
+adalah data. Itu persis konfigurasi yang dirancang untuk dicegah kaji etik.
+
+**Anak autistik bukan sumber data.** Larangan menyebut peserta kontrol positif
+"berpura-pura autis" (§12, dan `kontrol_positif.md`) berdiri di atas prinsip yang sama,
+dan prinsip itu berlaku lebih keras ketika yang dibicarakan adalah merekrut anak
+autistik sungguhan untuk memvalidasi alat yang mungkin tidak pernah sampai kepada
+mereka.
+
+Lima lembaga dihubungi untuk kaji etik dan seluruhnya menolak. Pada tahap bukti saat
+ini penolakan itu benar, dan yang mengubah tahapnya adalah bukti — bukan negosiasi.
+
+Konsekuensi untuk desain: pita normatif dipindahkan ke spesifikasi Gate C, dan
+lapisan keputusan dibangun dari dua sumber yang tidak menuntut satu rekaman anak pun.
+Rinciannya di `docs/etika_perekaman.md` dan `docs/model_rujukan.md`.
+
+---
+
+## 18. Kenapa likelihood-ratio menggantikan aturan pencacahan
+
+§10 membenarkan aturan komposit dengan alasan yang masih berlaku: hanya sinyal yang
+dapat dinilai tanpa norma populasi yang boleh ikut. Yang tidak dibenarkan §10 adalah
+cara menggabungkannya.
+
+Pencacahan — "berapa sinyal menyimpang, apakah mencapai dua" — punya tiga cacat, dan
+tidak satu pun soal implementasi.
+
+1. **Angka dua tidak punya artefak.** Tipenya sendiri mengakuinya lewat
+   `design_choice_not_validated_cutoff`.
+2. **Ketiga sinyal dihitung setara.** Preferensi geometrik membawa spesifisitas 98%;
+   respons nama tidak membawa apa pun sekuat itu. Menjumlahkannya satu-satu adalah
+   pernyataan tanpa dasar bahwa keduanya sama informatifnya.
+3. **`tidak_dapat_dinilai` merusak penyebutnya.** Dua dari dua bukan hal yang sama
+   dengan dua dari tiga, tetapi aturannya memperlakukannya begitu.
+
+Penjumlahan log-likelihood-ratio memperbaiki ketiganya sekaligus. Tiap sinyal
+menyumbang LR yang diturunkan dari sensitivitas dan spesifisitas terbit; sinyal tanpa
+titik operasi terbit — dan sinyal yang tidak terukur pada sesi itu — mendapat LR = 1
+dan tidak menggerakkan keputusan sama sekali.
+
+Aturan LR = 1 itu yang menjaga lapis ini jujur. Ia berarti sebuah sinyal boleh tampil
+di laporan sebagai deskriptif tanpa pernah menyelundup ke keputusan hanya karena ada.
+
+Yang dihasilkan adalah probabilitas pasca-tes, dan angkanya rendah hati dengan
+sendirinya: pada prevalensi 1%, GeoPref positif menggerakkan probabilitas ke 7,9%.
+Itu membenarkan "disarankan pemeriksaan lanjutan" dan membantah "ini diagnosis" dalam
+satu bilangan yang bisa dicetak dan dipertahankan.
+
+Dua batas ikut dan wajib dilaporkan: independensi bersyarat itu salah karena sinyalnya
+berkorelasi pada anak yang sama, sehingga perkalian LR melebihkan keyakinan dan butuh
+analisis sensitivitas; dan selama `validatedProtocol` bernilai salah, GeoPref pun
+ber-LR = 1, sehingga Kunci 1 tetap kunci.
+
+Yang tidak berubah: `combinedScore` tetap `null`. Probabilitas pasca-tes adalah
+keluaran lajur komposit yang membawa turunannya sendiri, bukan skor gabungan berbobot
+atas seluruh indeks, dan Lapis A tetap dilaporkan terpisah tanpa pernah dilebur.
+
+---
+
+## 19. Kenapa bobot dipasang pada data terbit, bukan pada data sendiri
+
+§10 menyatakan bobot Perochon dkk. tidak dapat direkonstruksi dari AUC yang mereka
+laporkan, jadi menebaknya berarti mengarang. Itu benar. Yang tidak dipertimbangkan
+waktu itu adalah kemungkinan ketiga: memasang bobot pada anak berlabel yang datanya
+sudah diterbitkan orang lain.
+
+Cilia dkk. 2022 (`10.6084/m9.figshare.20113592.v1`, CC BY 4.0) berisi koordinat
+eye-tracking mentah 59 anak usia 3–12 tahun, 29 ASD dan 30 TD, pada 60 Hz, lengkap
+dengan ID partisipan. Consent-nya sudah diambil pihak yang punya izinnya, dan
+lisensinya menyatakan penggunaan ulang.
+
+Memakainya bukan versi lebih longgar dari §17, melainkan konsekuensi langsungnya:
+kalau perekaman anak harus dijarangkan, data anak yang sudah ada harus dipakai
+semaksimal mungkin.
+
+**Yang dipindahkan adalah bobot relatif antar indeks, bukan titik operasinya.** Ini
+pembatasan yang menentukan. Titik operasi bergantung pada usia, perangkat, dan
+stimulus — ketiganya berbeda. Bobot relatif jauh lebih tahan, dan klaimnya jauh lebih
+sempit.
+
+**Ruang indeks, bukan ruang piksel.** Kegagalan transfer model Carette (§1) berasal
+dari fitur yang mengkodekan di mana stimulus studi itu duduk di layar. Koordinat mentah
+membiarkan indeks perilaku dihitung sebagai gantinya — mengikuti isyarat, preferensi
+sosial/non-sosial, dispersi tatapan — dan indeks itu mengacu ke stimulus, bukan ke
+layar. Respons nama tidak punya padanan di protokol Cilia, jadi bobotnya tidak dapat
+dipasang dari sana dan itu dicatat alih-alih ditambal.
+
+Empat audit menggerbanginya, dengan kriteria penolakan yang ditulis sebelum angkanya
+dilihat: desimasi 60 → 30 Hz, alas shortcut tingkat sesi, kebocoran partisipan lewat
+`GroupKFold`, dan penjaga OOD dua arah. Dengan n=59 dan usia yang salah, penolakan
+adalah hasil yang cukup mungkin — dan kalau ditolak, penolakannya yang diterbitkan
+sementara lapis likelihood-ratio tetap dikirim sendirian.
+
+Rinciannya di `docs/model_rujukan.md`.
