@@ -59,21 +59,38 @@ test("malformed input never throws", () => {
     assert.equal(recordingFromAuditLog(value, "x"), null);
 });
 
-test("loading falls through missing recordings and returns null when none exist", async () => {
+test("an empty manifest yields no recording and no filename guessing", async () => {
   const tried: string[] = [];
   const fetcher = (async (url: string) => {
     tried.push(url);
-    return { ok: false, json: async () => ({}) };
+    return { ok: true, json: async () => ({ recordings: [] }) };
   }) as unknown as typeof fetch;
-  assert.equal(await loadFirstRecording(["/replay/a.json", "/replay/b.json"], fetcher), null);
-  assert.deepEqual(tried, ["/replay/a.json", "/replay/b.json"]);
+  assert.equal(await loadFirstRecording("/replay/index.json", fetcher), null);
+  assert.deepEqual(tried, ["/replay/index.json"]);
 });
 
-test("loading returns the first usable recording", async () => {
+test("a missing manifest is not an error", async () => {
+  const fetcher = (async () => ({ ok: false, json: async () => ({}) })) as unknown as typeof fetch;
+  assert.equal(await loadFirstRecording("/replay/index.json", fetcher), null);
+});
+
+test("loading returns the first usable recording listed in the manifest", async () => {
   const fetcher = (async (url: string) => ({
     ok: true,
-    json: async () => (url.endsWith("a.json") ? { gaze: {} } : auditLog()),
+    json: async () => {
+      if (url.endsWith("index.json")) return { recordings: ["broken.json", "session-b.json"] };
+      return url.endsWith("broken.json") ? { gaze: {} } : auditLog();
+    },
   })) as unknown as typeof fetch;
-  const recording = await loadFirstRecording(["/replay/a.json", "/replay/b.json"], fetcher);
-  assert.equal(recording?.id, "b.json");
+  const recording = await loadFirstRecording("/replay/index.json", fetcher);
+  assert.equal(recording?.id, "session-b.json");
+});
+
+test("the shipped manifest is valid and honest about being empty", async () => {
+  const { readFileSync } = await import("node:fs");
+  const manifest = JSON.parse(
+    readFileSync(new URL("../public/replay/index.json", import.meta.url), "utf8"),
+  );
+  assert.ok(Array.isArray(manifest.recordings));
+  assert.match(manifest.note, /simulasi/i);
 });
