@@ -1,7 +1,29 @@
 {
-  "schema": "neurogaze-gate-b-public-evidence-v2",
+  "schema": "neurogaze-gate-b-public-evidence-v3",
   "status": "gate_b_passed",
-  "publishedAt": "2026-08-17T00:00:00.000Z",
+  "publishedAt": "2026-08-18T00:00:00.000Z",
+  "headline": {
+    "metric": "known_target_median_error_deg",
+    "valueDeg": 2.357,
+    "p90Deg": 3.576,
+    "sessions": 94,
+    "population": "94 sesi dewasa Gate A yang lulus mutu, 25 partisipan, 3 perangkat",
+    "definition": "Galat sudut median terhadap target yang posisinya diketahui dan tidak dipakai melatih kalibrasi.",
+    "why": "Ini satu-satunya angka akurasi absolut yang dimiliki proyek ini. Kesepakatan antar dua penaksir tidak bisa menghasilkannya: keduanya bisa sepakat sambil sama-sama meleset.",
+    "source": "research/hasil/gate_a/gate_a_summary.json"
+  },
+  "comparator": {
+    "label": "WebGazer.js",
+    "medianErrorDeg": 4.17,
+    "source": "Papoutsaki dkk. 2016, IJCAI",
+    "note": "Angka yang dilaporkan penulis WebGazer pada studi mereka sendiri, pada perangkat dan protokol berbeda. Ditampilkan sebagai konteks besaran, bukan hasil uji tanding."
+  },
+  "toddlerReference": {
+    "claim": "WebGazer adalah metode yang divalidasi ManyBabies untuk balita 18-27 bulan, karena itu ia dipakai sebagai pembanding Gate B.",
+    "source": "Steffan dkk. 2024, Infancy (MB-ManyWebcams), N=125, 16 lab",
+    "attritionRate": 0.42,
+    "attritionNote": "Studi yang sama melaporkan attrition 42% pada webcam balita. Itu dasar mengapa NeuroGaze menahan hasil alih-alih memaksakan angka."
+  },
   "study": {
     "title": "Uji agreement Gate B Neurogaze terhadap WebGazer",
     "protocolVersion": "neurogaze-webgazer-comparison-v3",
@@ -17,16 +39,56 @@
     "nPairsReady": 27,
     "nPairsWithheld": 3
   },
-  "metrics": {
+  "agreement": {
     "validPairRate": 0.9,
     "retryRate": 0.1,
     "medianPairErrorPx": 44.159,
     "medianPairErrorNorm": 0.040997,
     "p90PairMedianErrorPx": 52.445,
     "meanAoiAgreement": 0.997574,
+    "meanAoiAgreementRecomputed": 0.997118,
+    "pairsWithAoiClassificationDelta": 4,
     "primaryAoiAgreementCount": 27,
     "primaryAoiAgreementRate": 1.0,
-    "meanFeatureIccA1": 0.505043
+    "meanFeatureIccA1": 0.505043,
+    "aoiBoxWidthShare": 0.28,
+    "saturationNote": "Kotak AOI selebar 28% layar sementara galat median antar aliran hanya 4,1% lebar layar. Angka setinggi ini nyaris tidak bisa tidak terjadi, jadi ia bukan bukti akurasi."
+  },
+  "featureAgreement": {
+    "nFeatures": 13,
+    "primaryMetric": "bland_altman_limits_of_agreement",
+    "meanIccA1": 0.505043,
+    "iccRange": {
+      "min": 0.084,
+      "max": 0.869
+    },
+    "iccCaveat": "ICC adalah rasio varians. Ketika semua partisipan menonton stimulus yang sama, varians antar-partisipan kecil, sehingga ICC bisa rendah walau selisih absolutnya kecil. Karena itu batas kesepakatan Bland-Altman yang dipakai sebagai metrik utama, dan ICC dilaporkan apa adanya.",
+    "examples": [
+      {
+        "feature": "ink_frac",
+        "iccA1": 0.08426,
+        "blandAltmanMeanDifference": -0.004063,
+        "blandAltmanLower95": -0.011758,
+        "blandAltmanUpper95": 0.003633,
+        "reading": "ICC 0,084 terdengar buruk, tapi kedua aliran tidak pernah berselisih lebih dari 0,012 pada skala 0-1."
+      },
+      {
+        "feature": "radial_std",
+        "iccA1": 0.868958,
+        "blandAltmanMeanDifference": -0.001483,
+        "blandAltmanLower95": -0.00364,
+        "blandAltmanUpper95": 0.000675,
+        "reading": "Contoh sebaliknya: ICC tinggi dan batas kesepakatan sempit, keduanya sepakat."
+      },
+      {
+        "feature": "aspect_ratio",
+        "iccA1": 0.634884,
+        "blandAltmanMeanDifference": 0.008933,
+        "blandAltmanLower95": -0.053148,
+        "blandAltmanUpper95": 0.071014,
+        "reading": "Fitur dengan selisih terlebar; dilaporkan agar batas ini terlihat, bukan disembunyikan."
+      }
+    ]
   },
   "thresholds": {
     "minimumPairs": 30,
@@ -35,19 +97,24 @@
     "minimumMeanAoiAgreement": 0.95,
     "minimumPrimaryAoiAgreementRate": 0.95
   },
-  "conclusion": "Gate B lulus: aliran gaze Neurogaze memenuhi seluruh kriteria agreement yang dicatat terhadap referensi WebGazer.js.",
+  "conclusion": "Gate B passes only when every recorded WebGazer agreement criterion is met.",
   "limitations": [
+    "Galat 2,36° diukur pada orang dewasa. Tidak ada balita dalam bukti ini.",
     "Gate B menguji agreement pengukuran terhadap WebGazer.js, bukan sensitivitas, spesifisitas, atau akurasi diagnosis ASD.",
-    "Rata-rata ICC(A,1) 13 fitur dilaporkan secara deskriptif dan bukan kriteria kelulusan Gate B.",
+    "Akurasi absolut hanya boleh dikutip dari blok target diketahui Gate A, tidak pernah dari kesepakatan antar aliran.",
+    "Rata-rata ICC(A,1) 13 fitur dilaporkan deskriptif dan bukan kriteria kelulusan Gate B.",
     "Generalisasi klinis pada balita tetap memerlukan Gate C prospektif dengan hasil klinis independen."
   ],
   "source": {
     "summary": "research/hasil/gate_b/gate_b_summary.json",
+    "gateASummary": "research/hasil/gate_a/gate_a_summary.json",
     "manifest": "research/hasil/evidence_manifest.json",
-    "rawDirectory": "research/hasil/gate_b/pasangan"
+    "rawDirectory": "research/hasil/gate_b/pasangan",
+    "generator": "research/export_public_evidence.py"
   },
   "terminology": {
-    "headlineMetric": "WebGazer reference agreement",
+    "headlineMetric": "known-target angular accuracy",
+    "agreementMetric": "WebGazer reference agreement",
     "diagnosticAccuracyAvailable": false
   }
 }

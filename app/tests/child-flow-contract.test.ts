@@ -208,3 +208,38 @@ test("admin explains why the stimulus was purpose-built, with sources and limits
   assert.match(adminConsole, /Batas klaim desain stimulus/);
   assert.match(adminConsole, /bukan instrumen yang sudah tervalidasi secara klinis/);
 });
+
+test("step numbering has one source, so no screen can disagree with the rail", () => {
+  // The fullscreen calibration screen used to say "Langkah 3 dari 6" while the
+  // rail said 09 / 09.
+  assert.doesNotMatch(page, /Langkah \d+ dari \d+</);
+  assert.match(page, /function sessionStepPosition\(stage: Stage\)/);
+  assert.match(page, /sessionStepPosition\("calibration"\)\.number/);
+});
+
+test("the report can be handed over on paper, not only as audit.json", () => {
+  assert.match(page, /className="printSummary"/);
+  assert.match(page, /window\.print\(\)/);
+  for (const required of ["Batas klaim", "Ambang rujukan 69%", "sensitivitas ambang ini 17%"])
+    assert.ok(page.includes(required), `print summary is missing: ${required}`);
+});
+
+test("every screen change is announced and skippable", () => {
+  assert.match(page, /className="skipLink" href="#konten"/);
+  assert.match(page, /id="konten"/);
+  assert.match(page, /className="srOnly" role="status" aria-live="polite"/);
+});
+
+test("the quick demo runs the real pipeline and says what produced the report", () => {
+  assert.match(page, /async function startQuickDemo\(\)/);
+  // It must not stage a fake report: the demo goes through runCalibration and
+  // runStimulus like any other session.
+  assert.match(page, /await runStimulus\(\{ fast: true \}\)/);
+  assert.match(page, /REKAMAN — bukan sesi langsung/);
+  assert.match(page, /SIMULASI — bukan sesi langsung/);
+});
+
+test("the child calibration target is a face that stays visible while active", () => {
+  assert.match(page, /<CalibrationCharacter active=\{calibrationTarget === index\} \/>/);
+  assert.doesNotMatch(page, /calibrationTarget === index \? <i \/> : useTechnicalCalibration \? index \+ 1 : <IconChild/);
+});
