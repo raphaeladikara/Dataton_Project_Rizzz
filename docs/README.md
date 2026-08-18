@@ -5,6 +5,8 @@
 - [`panduan_gate_b_webgazer.md`](panduan_gate_b_webgazer.md): kontrak data dan analisis Gate B.
 - [`panduan_operator.md`](panduan_operator.md): cara menjalankan webapp dengan aman.
 - [`panduan_audit_kalibrasi.md`](panduan_audit_kalibrasi.md): pengambilan dan interpretasi log kalibrasi.
+- [`keputusan_ilmiah.md`](keputusan_ilmiah.md): alasan di balik keputusan yang menentukan batas klaim.
+- [`provenance/permintaan_stimulus_ucsd.md`](provenance/permintaan_stimulus_ucsd.md): draf permintaan akses stimulus GeoPref penuh.
 - [`verifikasi.md`](verifikasi.md): pemeriksaan sebelum commit atau rilis.
 
 Dokumen ini mengikuti ringkasan yang dibangun dari data mentah di `research/hasil`. Jika angka berubah setelah penambahan bukti baru, perbarui ringkasan, manifest, aplikasi, paper, dan dokumen dalam perubahan yang sama.
