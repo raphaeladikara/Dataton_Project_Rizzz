@@ -54,21 +54,60 @@ test("child calibration has five positions and technical mode is flag-gated", ()
   assert.match(page, /useTechnicalCalibration \? TARGETS : CHILD_TARGETS/);
 });
 
-test("stimulus uses paired directional micro-trials and a non-scored ending", () => {
-  const ids = ["baseline", "gaze_left", "gaze_right", "pointing_left", "pointing_right", "positive_ending"];
-  let cursor = stimulusProtocol.indexOf("const STIMULUS_PHASES");
-  for (const id of ids) {
-    const next = stimulusProtocol.indexOf(`id: "${id}"`, cursor);
-    assert.ok(next > cursor, `${id} is out of order`);
-    cursor = next;
+test("stimulus uses paired directional micro-trials and a non-scored ending", async () => {
+  const { GEOPREF_PHASE_ID, NAME_CALL_PHASE_ID, STIMULUS_PHASES, sessionStimulusPhases } =
+    await import("../src/stimulus/protocol");
+  const byId = (id: string) => STIMULUS_PHASES.find((phase) => phase.id === id)!;
+
+  // Four cue kinds, each present as a left/right pair plus one repeat.
+  for (const id of ["gaze_left", "gaze_right", "pointing_left", "pointing_right"]) {
+    assert.ok(byId(id), `${id} is missing`);
+    assert.equal(byId(id).scored, true);
+    assert.ok(byId(`${id}_repeat`), `${id}_repeat is missing`);
   }
-  assert.match(stimulusProtocol, /id: "positive_ending"[^\n]*scored: false/);
+  assert.equal(byId("positive_ending").scored, false);
+
   // The preferential-looking and name-call blocks are scored by their own
   // modules, so they must never carry scored: true and never enter the
   // cue-following denominator.
-  assert.match(stimulusProtocol, /id: GEOPREF_PHASE_ID[^\n]*target: "none"[^\n]*scored: false/);
-  assert.match(stimulusProtocol, /id: NAME_CALL_PHASE_ID[^\n]*target: "none"[^\n]*scored: false/);
+  for (const id of [GEOPREF_PHASE_ID, NAME_CALL_PHASE_ID]) {
+    assert.equal(byId(id).target, "none");
+    assert.equal(byId(id).scored, false);
+  }
+
+  // Fixed anchors. Only the eight directional trials are counterbalanced; the
+  // blocks that bracket them stay where the protocol declares them.
+  for (const sessionId of ["NG-0001", "NG-0042", "NG-9999"]) {
+    const phases = sessionStimulusPhases(sessionId);
+    assert.equal(phases[0].id, "baseline");
+    assert.equal(phases[1].id, GEOPREF_PHASE_ID);
+    assert.equal(phases.at(-2)!.id, NAME_CALL_PHASE_ID);
+    assert.equal(phases.at(-1)!.id, "positive_ending");
+  }
+
+  // Cue order must never be hardcoded back into a fixed alternating list.
+  assert.match(stimulusProtocol, /sessionStimulusPhases/);
   assert.doesNotMatch(sessionCss, /visual-(?:gaze|point)-(?:left|right)\.cue-active[^}]*animation:/);
+});
+
+test("the composite lane is reported beside the GeoPref lane, never merged into it", () => {
+  const sessionCssText = readFileSync(new URL("../app/session.css", import.meta.url), "utf8");
+  // Lane 2 renders as its own section with its own heading, and every signal
+  // ships its measured value, its reason, and its literature source.
+  assert.match(page, /className="referralLane"/);
+  assert.match(page, /referral\.signals\.map/);
+  assert.match(page, /referralMeasured/);
+  assert.match(page, /referralReason/);
+  // It must never be folded into the GeoPref headline or badge.
+  assert.doesNotMatch(page, /sessionOutcome\.headline[^\n]*referral\./);
+  assert.doesNotMatch(page, /referral\.recommendsFollowUp \? "PERIKSA LANJUT"/);
+  // Engineering sessions measure the device, not a child, so no lane at all.
+  assert.match(page, /\{!isEngineeringStudy && <section className="referralLane"/);
+  // The printed hand-off carries the same per-signal reasoning the screen shows.
+  assert.match(page, /<h2>Rekomendasi komposit<\/h2>/);
+  // Deviant signals must not borrow the coral used for the published rule-in.
+  assert.match(sessionCssText, /\.referralLane\b/);
+  assert.match(sessionCssText, /\[data-status="menyimpang"\][^}]*--amber/);
 });
 
 test("reports use safe language and hide technical detail by default", () => {
@@ -199,14 +238,15 @@ test("admin evidence reports passed A/B and open C/D from repository evidence", 
 
 test("stated session duration is derived from the protocol, never retyped", async () => {
   const { STIMULUS_TOTAL_SECONDS, SCORED_TRIAL_COUNT } = await import("../src/stimulus/protocol");
-  // 5 baseline + 8 cue trials x 7 + 17 preferential-looking + 13 name calls + 5 ending.
-  assert.equal(STIMULUS_TOTAL_SECONDS, 96);
+  // 5 baseline + 16.75 preferential-looking + 8 cue trials x 5 + 13 name calls
+  // + 5 ending = 79.75 s.
+  assert.equal(STIMULUS_TOTAL_SECONDS, 80);
   assert.equal(SCORED_TRIAL_COUNT, 8);
   // No screen may state a duration as a literal; the operator reading it is
   // deciding whether the child in front of them will sit still for it.
   for (const source of [page, adminConsole]) {
     assert.match(source, /STIMULUS_TOTAL_SECONDS/);
-    assert.doesNotMatch(source, /\b66 detik\b/);
+    assert.doesNotMatch(source, /\b(?:66|96) detik\b/);
   }
 });
 
@@ -248,12 +288,30 @@ test("every screen change is announced and skippable", () => {
 });
 
 test("the quick demo runs the real pipeline and says what produced the report", () => {
-  assert.match(page, /async function startQuickDemo\(\)/);
+  assert.match(page, /async function startQuickDemo\(options/);
   // It must not stage a fake report: the demo goes through runCalibration and
   // runStimulus like any other session.
   assert.match(page, /await runStimulus\(\{ fast: true \}\)/);
   assert.match(page, /REKAMAN — bukan sesi langsung/);
   assert.match(page, /SIMULASI — bukan sesi langsung/);
+});
+
+test("demonstration mode is reachable only from replay and never emits a referral", () => {
+  // The flag cannot survive a live session: start() recomputes it and gates it
+  // on the replay mode, so there is no argument that turns it on in the field.
+  assert.match(page, /setDemonstrationMode\(modeChoice === "replay" && Boolean\(options\.demonstration\)\)/);
+  assert.match(page, /startQuickDemo\(\{ demonstration: true \}\)/);
+  // The operator-facing banner has to say the threshold was applied on purpose
+  // and that the session produces no referral.
+  assert.match(page, /MODE DEMONSTRASI/);
+  assert.match(page, /demonstrationMode && <div className="demonstrationBanner"/);
+  // It is written into the audit log, so an exported session cannot hide it.
+  assert.match(page, /recordAudit\("session\.demonstration_mode"/);
+  // The only place the demonstration threshold is applied is the scorer, which
+  // marks the outcome so sessionOutcome can force emitsReferral to false.
+  const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
+  assert.match(outcome, /isDemonstrationOutcome\(input\.geopref\.outcome\)/);
+  assert.match(outcome, /kind: "RULE_IN_DEMONSTRATION"[\s\S]{0,400}?emitsReferral: false/);
 });
 
 test("the child calibration target is a face that stays visible while active", () => {

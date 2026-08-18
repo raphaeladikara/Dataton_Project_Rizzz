@@ -1,3 +1,4 @@
+import { phaseAtElapsed, type StimulusPhase } from "../stimulus/protocol";
 import type { Point, ReplayScenario } from "../domain/types";
 
 export const SCENARIOS: ReplayScenario[] = [
@@ -62,4 +63,40 @@ export function replayPoints(scenario: ReplayScenario, count = 360): Point[] {
     });
   }
   return points;
+}
+
+/**
+ * Sample rate for the synthetic fallback, in Hz.
+ *
+ * Below the ~26-30 fps of the target tablets, so the fallback never looks
+ * denser than a real recording, but dense enough that the per-epoch contract in
+ * gaze/aoi.ts is satisfied for every scored phase.
+ */
+export const SYNTHETIC_REPLAY_HZ = 20;
+
+/**
+ * Gaze points for the synthetic demo path, laid out on the protocol's own clock.
+ *
+ * The count used to be a hardcoded 180 frames, which happened to clear the
+ * eight-sample post-cue contract while trials were 7 s long. Shortening the
+ * trials dropped it under, and the demo began withholding for a reason that had
+ * nothing to do with the child or the camera. Deriving the count from the
+ * protocol means a future timing change cannot quietly break the demo again.
+ */
+export function syntheticSessionPoints(
+  scenario: ReplayScenario,
+  phases: readonly StimulusPhase[],
+): Point[] {
+  const durationMs = phases.reduce((sum, phase) => sum + phase.durationMs, 0);
+  const count = Math.max(180, Math.round((durationMs / 1000) * SYNTHETIC_REPLAY_HZ));
+  return replayPoints(scenario, count).map((point, index) => {
+    const elapsedMs = (index / Math.max(count - 1, 1)) * Math.max(durationMs - 1, 0);
+    const state = phaseAtElapsed(elapsedMs, phases)!;
+    return {
+      ...point,
+      t: elapsedMs,
+      phase: state.phase.id,
+      epoch: state.cueActive ? ("post_cue" as const) : ("pre_cue" as const),
+    };
+  });
 }

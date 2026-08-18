@@ -79,3 +79,28 @@ test("OOD assessment reports coverage and offending feature", () => {
   assert.equal(shifted.passed, false);
   assert.deepEqual(shifted.flaggedFeatures, ["ink_frac"]);
 });
+
+test("OOD assessment shows how far each feature sits from the reference", () => {
+  const reference: OodReference = {
+    schemaVersion: 1,
+    featureSchemaHash: "test",
+    rule: { robustZMax: 5, outsideQuantileIsFlag: true },
+    features: {
+      ink_frac: { median: 0.1, madScale: 0.02, lower: 0.02, upper: 0.2 },
+      span_y: { median: 0.5, madScale: 0.1, lower: 0.2, upper: 0.8 },
+      centroid_x: { median: 0.5, madScale: 0.05, lower: 0.3, upper: 0.7 },
+    },
+  };
+  const assessment = assessFeatureOod({ ink_frac: 0.5, span_y: 0.52, centroid_x: 0.62 }, reference);
+  // Every feature is reported, worst first, so the panel can show why the
+  // guard refused rather than just that it did.
+  assert.deepEqual(assessment.featureDistance.map((item) => item.name), ["ink_frac", "centroid_x", "span_y"]);
+  assert.equal(assessment.featureDistance[0].robustZ, 20);
+  assert.equal(assessment.featureDistance[0].outside, true);
+  assert.equal(assessment.featureDistance[0].value, 0.5);
+  assert.equal(assessment.featureDistance[2].outside, false);
+  // A feature the session never produced is named rather than silently zeroed.
+  const missing = assessFeatureOod({ ink_frac: 0.11, span_y: 0.5 }, reference);
+  assert.deepEqual(missing.missingFeatures, ["centroid_x"]);
+  assert.equal(missing.featureDistance.find((item) => item.name === "centroid_x")?.robustZ, null);
+});

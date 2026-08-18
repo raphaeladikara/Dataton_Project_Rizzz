@@ -6,6 +6,23 @@ export type OodReference = {
   features: Record<string, { median: number; madScale: number; lower: number; upper: number }>;
 };
 
+/**
+ * Per-feature distance from the reference cohort, worst first.
+ *
+ * The guard used to report only which features it flagged, which makes the
+ * refusal an assertion. Carrying the distance turns it into something a reader
+ * can check: this is the feature, this is the session's value, this is the
+ * reference median, this is how many robust deviations apart they are.
+ */
+export type OodFeatureDistance = {
+  name: string;
+  value: number | null;
+  median: number;
+  /** null when the session never produced the feature. */
+  robustZ: number | null;
+  outside: boolean;
+};
+
 export type OodAssessment = {
   passed: boolean;
   coverage: number;
@@ -13,6 +30,7 @@ export type OodAssessment = {
   multivariateDistance?: number;
   flaggedFeatures: string[];
   missingFeatures: string[];
+  featureDistance: OodFeatureDistance[];
 };
 
 export function assessFeatureOod(features: Record<string, number>, reference: OodReference): OodAssessment {
@@ -37,6 +55,21 @@ export function assessFeatureOod(features: Record<string, number>, reference: Oo
   }
   const explanatory = multivariateFailed ? [...robustZ].sort((a, b) => b.z - a.z).slice(0, 3) : [];
   const flaggedFeatures = [...new Set([...severe, ...(includeOutside ? outside : []), ...explanatory].map((item) => item.name))];
+  const measured = new Map(robustZ.map((item) => [item.name, item]));
+  const featureDistance: OodFeatureDistance[] = names
+    .map((name) => {
+      const entry = measured.get(name);
+      return {
+        name,
+        value: entry ? features[name] : null,
+        median: reference.features[name].median,
+        robustZ: entry ? entry.z : null,
+        outside: entry ? entry.outside : false,
+      };
+    })
+    // Missing features sort last: an absent feature is a coverage problem, not
+    // a distance one, and missingFeatures already names it.
+    .sort((left, right) => (right.robustZ ?? -1) - (left.robustZ ?? -1));
   return {
     passed: missingFeatures.length === 0 && flaggedFeatures.length === 0 && !multivariateFailed,
     coverage: names.length ? (names.length - missingFeatures.length) / names.length : 0,
@@ -44,5 +77,6 @@ export function assessFeatureOod(features: Record<string, number>, reference: Oo
     multivariateDistance,
     flaggedFeatures,
     missingFeatures,
+    featureDistance,
   };
 }

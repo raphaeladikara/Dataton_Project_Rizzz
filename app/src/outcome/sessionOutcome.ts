@@ -1,10 +1,12 @@
-import type { GeoprefResult } from "../geopref/score";
+import { isDemonstrationOutcome, type GeoprefResult } from "../geopref/score";
 import type { JointAttentionProfile } from "../inference/jointAttention";
 
 export type SessionOutcomeKind =
   | "RULE_IN_GEOMETRIC"
   | "MEASURED_NO_RULE_IN"
   | "MEASURED_PROTOCOL_ABBREVIATED"
+  /** Stage demonstration of the full report shape. Structurally inert. */
+  | "RULE_IN_DEMONSTRATION"
   | "WITHHELD";
 
 export type SessionOutcome = {
@@ -51,6 +53,19 @@ export function resolveSessionOutcome(input: SessionOutcomeInput): SessionOutcom
 
   const geometric = percent(input.geopref.percentGeometric);
   const social = percent(1 - input.geopref.percentGeometric);
+
+  // The threshold was applied to a clip shorter than the one it was derived on,
+  // so this shows what a report looks like and nothing more. emitsReferral is
+  // false here by construction, not by configuration.
+  if (isDemonstrationOutcome(input.geopref.outcome)) {
+    const above = input.geopref.outcome === "GEOMETRIC_PREFERENCE_DEMONSTRATION";
+    return {
+      ...base, kind: "RULE_IN_DEMONSTRATION",
+      headline: `MODE DEMONSTRASI · ${geometric}% waktu pada pola geometrik${above ? " — di atas ambang 69%" : ""}`,
+      summaryLine: `${cueLine(input.jointAttention)} Ambang 69% diterapkan pada klip yang lebih pendek daripada protokol terbit, jadi angka ini tidak sah untuk keputusan apa pun dan bukan rujukan. Bentuk laporan inilah yang akan muncul bila stimulus penuh tersedia.`,
+      emitsReferral: false,
+    };
+  }
 
   if (input.geopref.outcome === "MEASURED_PROTOCOL_ABBREVIATED") {
     return {

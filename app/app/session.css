@@ -1430,6 +1430,46 @@
   margin: 22px 0;
 }
 
+/* Slate, never the coral of a real referral. A demonstration must not be
+   mistakable at a glance for the outcome it is imitating. */
+.demonstrationBanner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin: 22px 0 0;
+  padding: 16px 18px;
+  border: 1px dashed var(--slate-200);
+  border-left: 4px solid var(--slate-700);
+  border-radius: 14px;
+  background: var(--slate-50);
+}
+.researchPanel { margin: 26px 0 0; padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: var(--sand-50); }
+.researchPanelHead small { color: var(--ink-400); font-size: .76rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
+.researchPanelHead h2 { margin: 8px 0 10px; font-size: 1.35rem; }
+.researchPanelHead p { margin: 0; color: var(--text-muted); font-size: .86rem; line-height: 1.65; }
+.researchPanelGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0 16px; }
+.researchPanelGrid article { padding: 15px; border: 1px solid var(--line-soft); border-radius: 13px; background: var(--paper); }
+.researchPanelGrid span { display: block; color: var(--ink-400); font-size: .74rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.researchPanelGrid strong { display: block; margin: 8px 0 6px; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.researchPanelGrid small { color: var(--text-muted); font-size: .76rem; line-height: 1.45; }
+.researchPanelGrid article[data-verdict="reject"] strong { color: var(--amber-700); }
+.researchPanelGrid article[data-verdict="pass"] strong { color: var(--teal-700); }
+.gateReasons { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--amber-100); border-left: 4px solid var(--amber-500); border-radius: 12px; background: var(--amber-50); }
+.gateReasons strong { display: block; margin-bottom: 7px; font-size: .86rem; color: var(--amber-700); }
+.gateReasons ul { margin: 0; padding-left: 18px; color: var(--ink-600); font-size: .82rem; line-height: 1.6; }
+
+.oodTable { width: 100%; margin: 12px 0; border-collapse: collapse; font-size: .78rem; font-variant-numeric: tabular-nums; }
+.oodTable th, .oodTable td { padding: 7px 9px; border-bottom: 1px solid var(--line-soft); text-align: left; }
+.oodTable thead th { color: var(--ink-400); font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; }
+.oodTable tbody th { font-family: var(--font-mono-stack, monospace); font-weight: 600; }
+.oodTable tr[data-outside="true"] { background: var(--amber-50); }
+.oodTable tr[data-outside="true"] td:last-child { color: var(--amber-700); font-weight: 700; }
+
+.demonstrationBanner span { color: var(--slate-700); line-height: 0; }
+.demonstrationBanner p { margin: 0; color: var(--ink-700); font-size: .86rem; line-height: 1.6; }
+.demonstrationBanner strong { letter-spacing: .04em; }
+
 .reportGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2370,6 +2410,29 @@ dd {
 .observationMeaning aside p { margin: 5px 0 16px; color: rgba(255,255,255,.72); font-size: .82rem; line-height: 1.5; }
 .observationMeaning aside p:last-child { margin-bottom: 0; }
 .observationDetails { margin: 0; }
+
+/* Lane 2: the composite rule. Deliberately not the coral of the GeoPref
+   rule-in — a rule we wrote ourselves must never be mistaken on sight for the
+   one threshold we took from a published cohort. */
+.referralLane { padding: 26px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); }
+.referralLane[data-recommends="true"] { border-color: var(--amber-200); background: linear-gradient(135deg, var(--amber-50), var(--paper)); }
+.referralHead small { color: var(--teal-700); font-size: .78rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+.referralHead h2 { margin: 8px 0 10px; font-size: 1.4rem; line-height: 1.2; }
+.referralHead p { margin: 0; color: var(--text-muted); font-size: .88rem; line-height: 1.6; }
+.referralSignals { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 20px 0 0; padding: 0; list-style: none; }
+.referralSignals li { padding: 16px; border: 1px solid var(--line-soft); border-left: 3px solid var(--slate-200); border-radius: 14px; background: var(--paper-2); }
+.referralSignals li[data-status="menyimpang"] { border-left-color: var(--amber-500); }
+.referralSignals li[data-status="normal"] { border-left-color: var(--teal-400); }
+.referralSignalTop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.referralSignalTop strong { font-size: .92rem; }
+.referralSignalTop span { flex: none; font-size: .72rem; font-weight: 750; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-400); }
+.referralSignals li[data-status="menyimpang"] .referralSignalTop span { color: var(--amber-700); }
+.referralSignals li[data-status="normal"] .referralSignalTop span { color: var(--teal-700); }
+.referralMeasured { margin: 10px 0 0; font-variant-numeric: tabular-nums; font-weight: 700; font-size: .95rem; }
+.referralReason { margin: 7px 0 0; color: var(--text-muted); font-size: .82rem; line-height: 1.55; }
+.referralSignals li small { display: block; margin-top: 10px; color: var(--ink-300); font-size: .72rem; line-height: 1.45; }
+.referralLimit { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--line-soft); color: var(--text-muted); font-size: .82rem; line-height: 1.6; }
+
 .observationLead { position: relative; overflow: hidden; }
 .observationLead::after { content: ""; position: absolute; right: -80px; top: -110px; width: 250px; height: 250px; border: 1px solid rgba(9,106,92,.1); border-radius: 50%; box-shadow: 0 0 0 28px rgba(9,106,92,.035), 0 0 0 60px rgba(9,106,92,.02); pointer-events: none; }
 .observationLead > * { position: relative; z-index: 1; }

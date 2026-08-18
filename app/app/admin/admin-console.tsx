@@ -37,20 +37,21 @@ const STIMULUS_METRICS = [
   [
     "Durasi total",
     `${STIMULUS_TOTAL_SECONDS} detik`,
-    `5 + (${SCORED_TRIAL_COUNT} × 7) + 17 + 13 + 5 detik`,
+    `5 + 16,75 + (${SCORED_TRIAL_COUNT} × 5) + 13 + 5 detik`,
   ],
   ["Percobaan berskor", `${SCORED_TRIAL_COUNT}`, "4 jenis isyarat × kiri/kanan"],
-  ["Epok pra-isyarat", "2,0 detik", "Tanpa informasi kiri/kanan"],
-  ["Jendela respons", "5,0 detik", "Latensi mengikuti pandangan < 1,5 detik"],
+  ["Epok pra-isyarat", "1,7 detik", "Tanpa informasi kiri/kanan"],
+  ["Jendela respons", "3,3 detik", "Latensi mengikuti pandangan < 1,5 detik"],
   ["Objek sasaran", "2 identik", "Diam sepanjang seluruh sesi"],
-  ["Versi stimulus", "v4", STIMULUS_VERSION],
+  ["Urutan isyarat", "Diseimbangkan", "Diturunkan dari id sesi, bukan dipilih operator"],
+  ["Versi stimulus", "v5", STIMULUS_VERSION],
 ] as const;
 
 const TRIAL_TIMELINE = [
-  ["0,0–1,4 dtk", "Istirahat", "Model menunduk ke meja. Wajah netral, tangan di bawah tepi meja, tidak ada arah sama sekali."],
-  ["1,4 dtk", "Sinyal ostensif", "Kepala terangkat, kontak mata, alis naik, senyum. Ini mengundang anak sebelum ada isyarat arah."],
-  ["2,0 dtk", "Isyarat arah", "Wajah kembali netral dan diam. Mata bergerak lebih dulu, kepala menyusul, tangan menunjuk paling akhir."],
-  ["2,0–7,0 dtk", "Jendela respons", "Adegan dibekukan pada pose isyarat. Seluruh pandangan pada periode ini dihitung sebagai respons."],
+  ["0,0–1,2 dtk", "Istirahat", "Model menunduk ke meja. Wajah netral, tangan di bawah tepi meja, tidak ada arah sama sekali."],
+  ["1,2 dtk", "Sinyal ostensif", "Kepala terangkat, kontak mata, alis naik, senyum. Ini mengundang anak sebelum ada isyarat arah."],
+  ["1,7 dtk", "Isyarat arah", "Wajah kembali netral dan diam. Mata bergerak lebih dulu, kepala menyusul, tangan menunjuk paling akhir."],
+  ["1,7–5,0 dtk", "Jendela respons", "Adegan dibekukan pada pose isyarat. Seluruh pandangan pada periode ini dihitung sebagai respons."],
 ] as const;
 
 const DESIGN_CHOICES = [
@@ -58,8 +59,8 @@ const DESIGN_CHOICES = [
   ["Objek tidak pernah bergerak", "Gerakan menarik pandangan secara otomatis. Jika objek bergerak, yang terukur adalah refleks terhadap gerakan, bukan respons terhadap ajakan."],
   ["Pra-isyarat benar-benar netral", "Model menunduk dengan tangan di bawah tepi meja, jadi tidak ada informasi kiri atau kanan sebelum onset. Ini membuat pembanding pra-isyarat sah dipakai."],
   ["Isyarat berupa perubahan status, bukan animasi berulang", "Animasi yang terus berjalan menjadi sumber gerakan tersendiri. Isyarat di sini adalah satu perpindahan pose pada milidetik yang sudah dideklarasikan protokol."],
-  ["Tanpa suara dan tanpa teks", "Baterai ini khusus mengukur tatapan. Uji respons terhadap panggilan nama membutuhkan pemanggil di luar layar dan pengukuran putaran kepala, sehingga sengaja tidak dimasukkan."],
-  ["Kiri dan kanan selalu berpasangan, tiap pasangan diulang", "Anak yang cenderung selalu melihat ke satu sisi tidak akan tampak seolah merespons. Pengulangan juga memberi keterandalan pada tingkat anak, bukan satu tebakan."],
+  ["Blok isyarat tanpa suara, panggilan nama terpisah", "Percobaan isyarat arah sengaja bisu supaya yang terukur murni tatapan. Respons terhadap panggilan nama diukur di bloknya sendiri: suara keluar dari speaker tablet pada tiga offset tetap, dan putaran kepala dibaca dari jejak pose, sehingga tidak butuh pemanggil di luar layar."],
+  ["Kiri dan kanan berpasangan, urutannya diseimbangkan tiap sesi", "Empat isyarat kiri dan empat kanan membuat anak yang selalu melihat ke satu sisi tidak tampak merespons. Urutannya diacak dari id sesi—bukan dipilih operator—karena urutan kiri-kanan-kiri-kanan yang tetap membuat anak yang sekadar memindai bergantian mencetak nilai seperti anak yang benar-benar mengikuti isyarat, dan uji tanda tidak bisa membedakan keduanya."],
   ["Gerak diam-diam hanya bernapas dan berkedip", "Wajah yang benar-benar beku terasa mati dan cepat kehilangan perhatian anak. Kedip dan napas dibuat simetris di tengah, sehingga tidak bisa menarik pandangan ke satu sisi."],
 ] as const;
 
@@ -127,7 +128,7 @@ export function AdminConsole() {
       </article>
 
       <article className={styles.gateDossier} data-gate="B">
-        <header className={styles.dossierHeader}><div><span className={styles.kicker}>Struktur satu percobaan · 7 detik</span><h3>Ajakan dulu, baru arah — bukan langsung menoleh</h3></div><span className={styles.principleStatus}>Onset bertimestamp</span></header>
+        <header className={styles.dossierHeader}><div><span className={styles.kicker}>Struktur satu percobaan · 5 detik</span><h3>Ajakan dulu, baru arah — bukan langsung menoleh</h3></div><span className={styles.principleStatus}>Onset bertimestamp</span></header>
         <div className={styles.trialTimeline}>
           {TRIAL_TIMELINE.map(([time, title, note]) => <article key={time}><small>{time}</small><strong>{title}</strong><p>{note}</p></article>)}
         </div>
@@ -145,7 +146,7 @@ export function AdminConsole() {
       <article className={styles.gateDossier} data-gate="D">
         <header className={styles.dossierHeader}><div><span className={styles.kicker}>Durasi dan bentuk aset</span><h3>{STIMULUS_TOTAL_SECONDS} detik, dan digambar sebagai vektor</h3></div><span className={styles.principleStatus}>Percobaan isyarat turun dari 120 detik</span></header>
         <div className={styles.dossierColumns}>
-          <section><h4>Kenapa dipendekkan</h4><p>Versi sebelumnya berdurasi 120 detik dengan tiap percobaan 13 detik. Balita usia 16–30 bulan sulit bertahan selama itu di depan layar, dan sesi yang gagal di tengah jalan menghasilkan rekaman yang tidak dapat dinilai. Durasi tiap percobaan dipangkas menjadi 7 detik—2 detik pra-isyarat dan 5 detik jendela respons—tanpa mengurangi jumlah percobaan berskor, karena respons mengikuti pandangan biasanya muncul jauh di bawah 1,5 detik setelah isyarat. Blok preferential-looking 17 detik dan panggilan nama 13 detik ditambahkan sesudah pemangkasan itu, sehingga sesi utuh kini {STIMULUS_TOTAL_SECONDS} detik, masih lebih pendek daripada 120 detik versi lama.</p><div className={styles.truthNote}><IconShieldCheck size={16} /><span><strong>Yang tidak dikorbankan.</strong> Delapan percobaan berskor dan penyeimbangan kiri–kanan tetap utuh; yang dipotong hanya waktu tunggu.</span></div></section>
+          <section><h4>Kenapa dipendekkan, dan kenapa urutannya berubah</h4><p>Versi paling awal berdurasi 120 detik dengan tiap percobaan 13 detik. Balita usia 16–30 bulan sulit bertahan selama itu, dan sesi yang gagal di tengah jalan menghasilkan rekaman yang tidak dapat dinilai. Tiap percobaan kini 5 detik—1,7 detik pra-isyarat dan 3,3 detik jendela respons—tanpa mengurangi jumlah percobaan berskor, karena respons mengikuti pandangan biasanya muncul jauh di bawah 1,5 detik setelah isyarat.</p><p>Blok pilihan tontonan juga dipindahkan ke depan, tepat sesudah perhatian awal. Blok itu membawa satu-satunya ambang terbit di seluruh sistem, tetapi sebelumnya berjalan pada detik ke-61—saat perhatian paling habis, dan sesudah satu menit ajakan sosial intensif yang justru menekan preferensi geometrik ke arah berlawanan dengan yang diandalkan pemicu rujukan.</p><div className={styles.truthNote}><IconShieldCheck size={16} /><span><strong>Yang tidak dikorbankan.</strong> Delapan percobaan berskor dan keseimbangan kiri–kanan tetap utuh; yang dipotong hanya waktu tunggu, dan yang ditambahkan adalah penyeimbangan urutan.</span></div></section>
           <section><h4>Kenapa vektor, bukan rekaman video</h4><p>Adegan digambar sebagai SVG dan dianimasikan lewat CSS, bukan diputar sebagai berkas video. Onset isyarat karena itu jatuh persis pada milidetik yang dideklarasikan protokol di semua tablet, tidak bergeser karena frame yang jatuh atau dekoder yang berbeda. Asetnya juga kecil, berjalan luring penuh, dan tidak membawa masalah lisensi atau privasi seperti rekaman aktor.</p></section>
         </div>
         <div className={styles.predictionNote}><IconAlert size={17} /><div><strong>Batas klaim desain stimulus</strong><p>Rancangan yang berdasar tidak membuat keluarannya menjadi diagnosis. Baterai ini bukan GeoPref dan bukan instrumen yang sudah tervalidasi secara klinis; ia baru berstatus stimulus riset yang dapat diuji. Nilai validitasnya tetap ditentukan Gate C, bukan oleh kualitas rancangan di halaman ini.</p><small>Perubahan apa pun pada adegan atau waktu wajib menaikkan versi stimulus, karena hasil lama tidak lagi sebanding.</small></div></div>

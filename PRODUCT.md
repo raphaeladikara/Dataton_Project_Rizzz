@@ -8,9 +8,10 @@ Posyandu table with limited time. Design serves the measurement; it never perfor
 ## What it is
 
 An offline-first PWA that measures a toddler's attention patterns on an ordinary
-Android tablet and reports what was measured. It runs a 96-second battery:
-joint-attention micro-trials, a preferential-looking block, and three name calls.
-All camera processing happens on device. Raw video and landmarks are never stored.
+Android tablet and reports what was measured. It runs an 80-second battery:
+a preferential-looking block, eight joint-attention micro-trials in a counterbalanced
+order, and three name calls. All camera processing happens on device. Raw video and
+landmarks are never stored.
 
 ## Who uses it
 
@@ -25,11 +26,20 @@ All camera processing happens on device. Raw video and landmarks are never store
 
 ## What it must never do
 
-It is not a diagnostic device. One automatic referral trigger exists: the published
-GeoPref threshold of 69% geometric fixation (Wen et al. 2022, n=1863, 12–49 months,
-98% specificity). Everything else on the report is descriptive measurement with no
-validated cutoff. A below-threshold result must never read as reassurance — the test
-misses most autistic children by design, and the interface has to say so plainly.
+It is not a diagnostic device. Two lanes reach the report and they are never merged.
+
+The first is the published GeoPref threshold of 69% geometric fixation (Wen et al.
+2022, n=1863, 12–49 months, 98% specificity) — the only cutoff in the system we did
+not choose ourselves, which is exactly why it stays separable.
+
+The second is a composite recommendation: a readable rule over four signals that need
+no toddler norm. It recommends a follow-up examination, carries its reasoning per
+signal, and states that it is not validated on toddlers. It is not a score and never
+becomes one.
+
+Everything else on the report is descriptive measurement with no validated cutoff. No
+result on either lane may read as reassurance — the published test misses most
+autistic children by design, and the interface has to say so plainly.
 
 ## Design principles
 

@@ -41,6 +41,7 @@ import { activeGeoprefAsset } from "../src/geopref/stimulusMeta";
 import { geoprefLayout, GEOPREF_VIDEO_ASPECT } from "../src/geopref/protocol";
 import { scoreGeopref } from "../src/geopref/score";
 import { resolveSessionOutcome } from "../src/outcome/sessionOutcome";
+import { buildReferralRecommendation } from "../src/outcome/referralRecommendation";
 import {
   appendAuditEvent,
   createSessionAudit,
@@ -58,7 +59,7 @@ import {
 import { assessFeatureOod, type OodAssessment, type OodReference } from "../src/quality/ood";
 import type { GateBStudyMeta } from "../src/gateb/studyMeta";
 import { loadFirstRecording, type RecordedSession } from "../src/replay/recording";
-import { replayPoints, SCENARIOS } from "../src/replay/scenarios";
+import { SCENARIOS, syntheticSessionPoints } from "../src/replay/scenarios";
 import { geometryFeatures } from "../src/scanpath/features";
 import {
   GEOPREF_PHASE_ID,
@@ -66,6 +67,7 @@ import {
   NAME_CALL_PHASE_ID,
   phaseAtElapsed,
   scoredPhaseTargets,
+  sessionStimulusPhases,
   STIMULUS_PHASES,
   STIMULUS_TOTAL_SECONDS,
   STIMULUS_VERSION,
@@ -523,6 +525,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [recording, setRecording] = useState<RecordedSession | null>(null);
   const recordingRef = useRef<RecordedSession | null>(null);
   const [demoRun, setDemoRun] = useState<"idle" | "calibrating" | "measuring" | "done">("idle");
+  /**
+   * Stage demonstration of the full rule-in report. Reachable only from the
+   * demo controls and only in replay mode, so a field session cannot enter it,
+   * and the outcome it produces has emitsReferral hard-coded to false.
+   */
+  const [demonstrationMode, setDemonstrationMode] = useState(false);
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -803,9 +811,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     return scoreGeopref(geoprefPoints, {
       ...geoprefLayout(profile.childId || "NG-0000"),
       validatedProtocol: geoprefAsset.validatedProtocol,
+      demonstrationMode,
       viewportAspect: stageAspect,
     });
-  }, [points, profile.childId, geoprefAsset, stageAspect]);
+  }, [points, profile.childId, geoprefAsset, stageAspect, demonstrationMode]);
   const jointAttention = useMemo(() => summarizeJointAttention(cueSummary), [cueSummary]);
   const sessionOutcome = useMemo(() => resolveSessionOutcome({
     mode,
@@ -814,6 +823,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     geopref: geoprefResult,
     jointAttention,
   }), [mode, quality, validity, geoprefResult, jointAttention]);
+  // Lane 2. Reported beside the GeoPref lane, never merged into it: the 69%
+  // cutoff is the one number in this system we did not choose, and folding it
+  // into a composite would throw that away.
+  const referral = useMemo(() => buildReferralRecommendation({
+    geopref: geoprefResult,
+    jointAttention,
+    blinkSocial: phenotype.blinkSocial,
+    blinkNonsocial: phenotype.blinkNonsocial,
+    responseToName: phenotype.responseToName,
+  }), [geoprefResult, jointAttention, phenotype]);
   const isGateA = sessionPurpose === "gate_a_adult";
   const isGateB = sessionPurpose === "gate_b_bridge";
   const isEngineeringStudy = isGateA || isGateB;
@@ -831,11 +850,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     modeChoice: Mode,
     replay = scenario,
     purpose: SessionPurpose = modeChoice === "replay" ? "demo_replay" : "gate_a_adult",
+    options: { demonstration?: boolean } = {},
   ) {
     setBusy(false);
     recordingRef.current = null;
     setRecording(null);
     setDemoRun("idle");
+    // Replay only. There is no argument that reaches this from a live session.
+    setDemonstrationMode(modeChoice === "replay" && Boolean(options.demonstration));
     setMode(modeChoice);
     setSessionPurpose(purpose);
     setScenario(replay);
@@ -1050,9 +1072,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
    * the stimulus block, the quality gate, and the same outcome resolver a live
    * session uses. The only difference is where the gaze comes from.
    */
-  async function startQuickDemo() {
-    start("replay", SCENARIOS[0]);
-    setProfile({ childId: "NG-DEMO-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
+  async function startQuickDemo(options: { demonstration?: boolean } = {}) {
+    start("replay", SCENARIOS[0], "demo_replay", options);
+    setProfile({ childId: options.demonstration ? "NG-PERAGA-01" : "NG-DEMO-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
+    if (options.demonstration) recordAudit("session.demonstration_mode", { enabled: true, reason: "ambang_69_diterapkan_pada_protokol_dipersingkat" }, "warning");
     const found = await loadFirstRecording();
     recordingRef.current = found;
     setRecording(found);
@@ -1329,10 +1352,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
   async function runStimulus(options: { fast?: boolean } = {}) {
     if (!calibration || (mode === "replay" && !model)) return;
+    // Cue order is counterbalanced per session, so the run order comes from the
+    // session id rather than the declaration order. Everything downstream that
+    // cares about ordering has to read this, not STIMULUS_PHASES.
+    const orderedPhases = sessionStimulusPhases(profile.childId || "NG-0000");
     const retryPhaseIds = validity?.outcome === "RETRY_STAGE" ? validity.invalidStages : [];
     const runPhases = retryPhaseIds.length
-      ? STIMULUS_PHASES.filter((phase) => retryPhaseIds.includes(phase.id))
-      : STIMULUS_PHASES;
+      ? orderedPhases.filter((phase) => retryPhaseIds.includes(phase.id))
+      : orderedPhases;
     const preservedPoints = retryPhaseIds.length ? points.filter((point) => !retryPhaseIds.includes(point.phase ?? "")) : [];
     setBusy(true);
     setStimulusPaused(false);
@@ -1363,11 +1390,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         frameTraceRef.current.reset();
         replayed.frames.forEach((frame) => frameTraceRef.current.record(frame));
       } else {
-        captured = replayPoints(scenario, totalFrames).map((point, index) => {
-          const virtualElapsed = (index / Math.max(totalFrames - 1, 1)) * Math.max(durationMs - 1, 0);
-          const state = phaseAtElapsed(virtualElapsed, runPhases)!;
-          return { ...point, phase: state.phase.id, epoch: state.cueActive ? "post_cue" as const : "pre_cue" as const };
-        });
+        // Density follows the protocol clock, not the progress-animation step
+        // count, so a timing change cannot silently starve the phase contract.
+        captured = syntheticSessionPoints(scenario, runPhases);
       }
       const stepPause = options.fast ? 8 : 140;
       for (let index = 0; index < totalFrames; index += 6) {
@@ -1491,7 +1516,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       setGazeDiagnostics(processed.diagnostics);
     }
     captured = [...preservedPoints, ...captured].sort((a, b) => {
-      const phaseDelta = STIMULUS_PHASES.findIndex((phase) => phase.id === a.phase) - STIMULUS_PHASES.findIndex((phase) => phase.id === b.phase);
+      const phaseDelta = orderedPhases.findIndex((phase) => phase.id === a.phase) - orderedPhases.findIndex((phase) => phase.id === b.phase);
       return phaseDelta || a.t - b.t;
     });
     setProgress(100);
@@ -1723,13 +1748,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <i aria-hidden="true"><IconEye size={13} /></i>
                 Pendamping skrining untuk Posyandu
               </span>
-              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>dalam beberapa menit</em>.</h1>
+              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>dalam {STIMULUS_TOTAL_SECONDS} detik</em>.</h1>
               <p className="lead" style={{ "--i": 2 } as CSSProperties}>
                 Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi.
               </p>
               <div className="heroActions" style={{ "--i": 3 } as CSSProperties}>
                 <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}>
                   Mulai observasi kamera <span aria-hidden="true"><IconArrowRight size={16} /></span>
+                </button>
+                <button className="textButton" onClick={() => void startQuickDemo({ demonstration: true })}>
+                  Peragakan bentuk laporan rujukan
                 </button>
                 <button className="secondary" onClick={() => void startQuickDemo()}>
                   <IconPlay size={14} /> Demo cepat: langsung ke laporan
@@ -2211,6 +2239,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {isEngineeringStudy ? (quality.passed ? "LULUS TEKNIS · TANPA SKOR" : "BELUM LULUS · TANPA SKOR") : sessionOutcome.emitsReferral ? "PERIKSA LANJUT" : sessionOutcome.kind === "WITHHELD" ? "REKAMAN DITAHAN" : "TERUKUR"}
             </span>
           </div>
+          {demonstrationMode && <div className="demonstrationBanner" role="status">
+            <span aria-hidden="true"><IconResearch size={18} /></span>
+            <p><strong>MODE DEMONSTRASI.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan rujukan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun. Di lapangan ambang ini ditahan.</p>
+          </div>}
           <div className="warning">
             <span aria-hidden="true"><IconAlert size={18} /></span>
             <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : "Gunakan bersama SDIDTK/M-CHAT dan penilaian tenaga kesehatan. Ambang rujukan mengikuti GeoPref (Wen dkk., 2022); indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
@@ -2232,6 +2264,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <article><span><IconTimer size={19} /> Respons nama</span><strong>{phenotype.responseToName.proportion == null ? "—" : `${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered}`}</strong><p>{phenotype.responseToName.medianLatencyMs == null ? "Belum terukur." : `Median ${Math.round(phenotype.responseToName.medianLatencyMs)} ms.`}</p></article>
                 <article><span><IconGauge size={19} /> Laju kedip</span><strong>{phenotype.blinkSocial.blinksPerMinute == null ? "—" : `${phenotype.blinkSocial.blinksPerMinute.toFixed(1).replace(".", ",")}/mnt`}</strong><p>Saat adegan sosial.</p></article>
               </section>
+              {!isEngineeringStudy && <section className="referralLane" aria-labelledby="referral-heading" data-recommends={String(referral.recommendsFollowUp)}>
+                <div className="referralHead">
+                  <small>Jalur kedua · aturan komposit</small>
+                  <h2 id="referral-heading">{referral.headline}</h2>
+                  <p>Empat sinyal yang dapat dinilai tanpa data pembanding balita: satu memakai ambang terbit, tiga membandingkan anak dengan dirinya sendiri. Batas {referral.threshold} sinyal adalah pilihan desain, bukan ambang tervalidasi.</p>
+                </div>
+                <ul className="referralSignals">
+                  {referral.signals.map((item) => <li key={item.id} data-status={item.status}>
+                    <div className="referralSignalTop"><strong>{item.label}</strong><span>{item.status === "menyimpang" ? "Menyimpang" : item.status === "normal" ? "Sesuai harapan" : "Tidak dapat dinilai"}</span></div>
+                    <p className="referralMeasured">{item.measured}</p>
+                    <p className="referralReason">{item.reason}</p>
+                    <small>{item.source}</small>
+                  </li>)}
+                </ul>
+                <p className="referralLimit">Rekomendasi ini bukan diagnosis dan tidak menggantikan ambang GeoPref. Arah tiap sinyal diambil dari literatur, tetapi aturan gabungannya belum divalidasi pada balita. Hasil yang tidak memicu rekomendasi tetap bukan tanda aman.</p>
+              </section>}
               <section className="observationAnswer">
                 <span className="observationQuestion"><IconInfo size={20} /></span>
                 <div><small>Cara membaca hasil ini</small><h2>{sessionOutcome.emitsReferral ? "Kenapa hasil ini perlu ditindaklanjuti?" : "Kenapa hasil ini belum berarti aman?"}</h2><p>{sessionOutcome.emitsReferral ? "Preferensi kuat pada pola geometrik jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita usia 12 sampai 49 bulan. Bawa hasil ini ke kader atau Puskesmas bersama SDIDTK." : "Ambang rujukan otomatis dirancang untuk memastikan hasil positif, bukan menyingkirkan ASD. Sensitivitasnya hanya 17 persen, jadi sebagian besar anak ASD tidak terdeteksi di sini. Indeks lain di atas adalah pengukuran deskriptif yang belum punya ambang tervalidasi; skrining perkembangan rutin tetap diperlukan."}</p></div>
@@ -2306,6 +2354,47 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {mode === "live" && !isEngineeringStudy && quality.passed ? <div><small>Model tidak tersedia</small><h2>Rekaman valid, tetapi estimasi tidak dapat dihitung</h2><p>Kamera, kalibrasi, dan seluruh fase stimulus berhasil direkam. Pemeriksaan kualitas lulus, tetapi model lokal atau format fitur tidak tersedia sehingga sistem menahan hasil.</p><div className="captureStatusGrid"><article><span>Pemeriksaan kualitas</span><strong>Lulus</strong><small>{Math.round(quality.faceRate * 100)}% wajah · {Math.round(quality.gazeDropout * 100)}% sampel hilang</small></article><article><span>Stimulus</span><strong>{cueSummary?.adequatePhaseCount ?? 0}/{cueSummary?.expectedPhaseCount ?? 0} fase</strong><small>{points.length} sampel valid</small></article><article><span>Estimasi</span><strong>Ditahan</strong><small>Periksa model lokal</small></article></div><div className="reportNextStep"><span><IconDownload size={18} /></span><div><strong>Langkah berikutnya</strong><p>Unduh catatan audit, lalu periksa aset model dan kecocokan format fitur sebelum mengulang sesi.</p></div></div><details className="reportTechnical"><summary>Ringkasan teknis sesi</summary><p><strong>Status:</strong> VALID · pemeriksaan kualitas lulus.</p><p><strong>Kalibrasi:</strong> {quality.calibrationErrorDeg.toFixed(2)}°.</p><p><strong>Model:</strong> {modelError ?? "inferensi tidak menghasilkan nilai"}.</p></details></div> : <div><small>Hasil ditahan</small><h2>Tes belum dapat dinilai</h2><p>{validity?.userMessage ?? "Kami belum mendapatkan rekaman tatapan yang cukup baik untuk memberikan hasil. Ini bukan hasil risiko anak."}</p><h3>Apa yang bisa dilakukan?</h3><ol><li>Pastikan wajah terlihat penuh dan tablet sejajar wajah.</li><li>Hindari pantulan cahaya pada kacamata.</li><li>Biarkan anak melihat layar tanpa diarahkan.</li><li>Ulangi tes saat anak lebih tenang.</li></ol>{validity?.primaryReasonCode && <details className="reportTechnical"><summary>Lihat detail untuk petugas</summary><p><strong>Masalah utama:</strong> {validity.userMessage}</p>{validity.invalidStages.length > 0 && <p><strong>Tahap:</strong> {validity.invalidStages.join(", ")}</p>}<p><strong>Saran:</strong> {validity.operatorAction}</p><code>reasonCode={validity.primaryReasonCode}</code></details>}</div>}
             </div>
           )}
+          {/* Research panel. The Carette model ships, runs, and produces a
+              number every session; the guard decides whether that number may be
+              read. Until now the refusal was invisible, so the strongest piece
+              of engineering in the project looked from the outside like an
+              absence of one. This shows the refusal happening. */}
+          <section className="researchPanel" aria-labelledby="research-panel-heading">
+            <div className="researchPanelHead">
+              <small>Panel riset · bukan bagian dari keputusan</small>
+              <h2 id="research-panel-heading">Model scanpath dan penjaga distribusi</h2>
+              <p>Regresi logistik 13 fitur (AUC tingkat anak 0,823 pada 54 anak Carette) dikirim ke perangkat dan dijalankan setiap sesi. Penjaga out-of-distribution memutuskan apakah keluarannya boleh dibaca. Fitur geometrinya mengkodekan tata letak stimulus asal, jadi batas keputusannya tidak berpindah ke stimulus ini — penolakan di bawah adalah rancangan, bukan kegagalan.</p>
+            </div>
+            <div className="researchPanelGrid">
+              <article><span>Model</span><strong>{model?.model_version ?? "tidak dimuat"}</strong><small>{modelError ?? "13 fitur geometri, kalibrasi Platt"}</small></article>
+              <article data-verdict={oodAssessment ? (oodAssessment.passed ? "pass" : "reject") : "none"}><span>Putusan penjaga</span><strong>{oodAssessment ? (oodAssessment.passed ? "Dalam rentang" : "Ditolak") : "Tidak dinilai"}</strong><small>{oodAssessment ? `${oodAssessment.flaggedFeatures.length} fitur ditandai · cakupan ${Math.round(oodAssessment.coverage * 100)}%` : "Referensi OOD belum dimuat"}</small></article>
+              <article><span>Keluaran model</span><strong>{riskInterpretable && risk !== null ? risk.toFixed(2).replace(".", ",") : "ditahan"}</strong><small>{riskInterpretable ? "Hanya untuk panel ini; tidak ada jalur kode yang memakainya untuk memutuskan" : "Penjaga menolak, jadi angkanya tidak ditampilkan"}</small></article>
+              <article><span>Jarak terjauh</span><strong>{oodAssessment && Number.isFinite(oodAssessment.maxRobustZ) ? `${oodAssessment.maxRobustZ.toFixed(1).replace(".", ",")} z` : "—"}</strong><small>{oodAssessment?.multivariateDistance == null ? "Robust-z terhadap median referensi" : `Mahalanobis ${oodAssessment.multivariateDistance.toFixed(1).replace(".", ",")}`}</small></article>
+            </div>
+            {/* When a session is withheld the operator is told to try again but
+                never told which gate refused. That is the one thing they need
+                in order to change anything about the next attempt. */}
+            {!quality.passed && quality.reasons.length > 0 && <div className="gateReasons">
+              <strong>Gerbang mutu menahan sesi ini</strong>
+              <ul>{quality.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
+            </div>}
+            {oodAssessment && oodAssessment.featureDistance.length > 0 && <details className="reportTechnical">
+              <summary>Lihat jarak tiap fitur terhadap kohort referensi</summary>
+              <table className="oodTable">
+                <thead><tr><th scope="col">Fitur</th><th scope="col">Sesi ini</th><th scope="col">Median referensi</th><th scope="col">Robust-z</th><th scope="col">Status</th></tr></thead>
+                <tbody>
+                  {oodAssessment.featureDistance.map((item) => <tr key={item.name} data-outside={String(item.outside)}>
+                    <th scope="row">{item.name}</th>
+                    <td>{item.value == null ? "—" : item.value.toFixed(3).replace(".", ",")}</td>
+                    <td>{item.median.toFixed(3).replace(".", ",")}</td>
+                    <td>{item.robustZ == null ? "—" : item.robustZ.toFixed(1).replace(".", ",")}</td>
+                    <td>{item.robustZ == null ? "tidak terhitung" : item.outside ? "di luar rentang" : "di dalam rentang"}</td>
+                  </tr>)}
+                </tbody>
+              </table>
+              <p>Robust-z adalah jarak terhadap median kohort Carette dibagi skala MAD-nya. Angka besar berarti sesi ini menghasilkan nilai fitur yang tidak pernah ditemui model saat dilatih.</p>
+            </details>}
+          </section>
           {/* Paper hand-off. A kader gives the Puskesmas a sheet, not audit.json,
               so the printed page carries the result, its provenance, and the
               claim limits without any of the on-screen chrome. */}
@@ -2327,6 +2416,20 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             <p className="printHeadline">{sessionOutcome.headline}</p>
             <p>{sessionOutcome.summaryLine}</p>
             <p><strong>Arahan rujukan otomatis:</strong> {sessionOutcome.emitsReferral ? "Ya — disarankan pemeriksaan lanjutan." : "Tidak."}</p>
+            {!isEngineeringStudy && <>
+              <h2>Rekomendasi komposit</h2>
+              <p className="printHeadline">{referral.headline}</p>
+              <table>
+                <tbody>
+                  {referral.signals.map((item) => <tr key={item.id}>
+                    <th scope="row">{item.label}</th>
+                    <td>{item.status === "menyimpang" ? "Menyimpang" : item.status === "normal" ? "Sesuai harapan" : "Tidak dapat dinilai"}</td>
+                    <td>{item.measured}. {item.reason} ({item.source})</td>
+                  </tr>)}
+                </tbody>
+              </table>
+              <p>Aturan ini memakai {referral.threshold} sinyal menyimpang sebagai batas. Batas itu pilihan desain, bukan ambang tervalidasi, dan aturan gabungannya belum diuji pada balita. Hasil yang tidak memicu rekomendasi bukan tanda aman.</p>
+            </>}
             <h2>Angka yang diukur</h2>
             <table>
               <tbody>
@@ -2377,7 +2480,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <span><b>2</b>{isEngineeringStudy ? "Ikuti arah cue" : "Biarkan menonton"}</span>
                 <span><b>3</b>{isEngineeringStudy ? "Tanpa klik" : "Tanpa mengarahkan"}</span>
               </div>
-              <small>{isEngineeringStudy ? `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, sekitar satu setengah menit. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, sekitar satu setengah menit, dengan satu gaya visual yang konsisten. Hentikan bila anak tidak nyaman.`}</small>
+              <small>{isEngineeringStudy ? `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
               <button className="startStimulus" disabled={!calibration || sanityPassed !== true || (mode === "replay" && !model)} onClick={() => void runStimulus()}><IconPlay size={15} />{mode === "replay" ? "Saya paham · mulai demo" : isEngineeringStudy ? "Saya paham · mulai pengukuran" : "Mulai tes"}</button>
             </div>}
             </div>
