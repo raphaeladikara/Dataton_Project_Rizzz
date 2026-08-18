@@ -5,8 +5,10 @@ selesai, apa yang belum, batasan nyata yang ditemukan, dan urutan kerja terbaik 
 menuntaskan proyek. Melanjutkan `docs/checkpoint_2026-08-17.md`, yang berhenti setelah
 Fase 3 dan Task 25.
 
-**Status repo:** branch `feat/gate-evidence-and-demo-path` sudah di-merge ke `main`
-(11 commit di depan `origin/main`, belum di-push). Working tree bersih.
+**Status repo:** seluruh pekerjaan sudah berada di `main` dan ter-push ke
+`origin/main`. Repo hanya punya satu branch, `main`; branch fitur sudah dihapus di lokal
+maupun remote. Riwayat commit ditulis ulang sehingga satu-satunya kontributor adalah
+Raphael Angelo. Working tree bersih.
 
 ---
 
@@ -319,6 +321,20 @@ Hasil yang diharapkan: `youden`, lalu
 `['lr_target_sensitivity', 'lr_youden', 'geopref_published', 'gate_c_target']`.
 
 Daftar lengkapnya ada di `docs/verifikasi.md`.
+
+Seluruh perintah di atas dijalankan ulang pada 06bfd5d dan lolos: 39 tes Python,
+156 tes TypeScript, ESLint bersih, `next build` sukses, manifest 130 berkas
+terverifikasi, dan kedua generator melaporkan artefaknya sudah mutakhir.
+
+### Keadaan git saat checkpoint ini
+
+- Branch: hanya `main`, sinkron dengan `origin/main` pada `06bfd5d` (30 commit).
+- Branch fitur `feat/live-measured-outcome` dan `feat/gate-evidence-and-demo-path`
+  sudah di-merge dan dihapus di lokal maupun remote.
+- Riwayat ditulis ulang untuk membuang trailer co-author; satu-satunya author dan
+  committer di seluruh riwayat adalah Raphael Angelo. Hash commit lama tidak berlaku
+  lagi, jadi klon lama harus di-clone ulang, bukan di-pull.
+- Working tree bersih.
 
 ---
 
