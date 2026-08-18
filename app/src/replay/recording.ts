@@ -80,22 +80,40 @@ export function recordingFromAuditLog(log: unknown, id: string): RecordedSession
   };
 }
 
-/** Manifest of recordings shipped with the app, newest usable one first. */
-export const RECORDING_URLS = ["/replay/session-a.json", "/replay/session-b.json", "/replay/session-c.json"];
+/**
+ * Recordings are registered in app/public/replay/index.json.
+ *
+ * A manifest rather than a probe list: guessing filenames means a 404 in the
+ * console on every demo, and an operator reading the console should only see
+ * things that are actually wrong.
+ */
+export const RECORDING_MANIFEST_URL = "/replay/index.json";
 
 export async function loadFirstRecording(
-  urls: string[] = RECORDING_URLS,
+  manifestUrl: string = RECORDING_MANIFEST_URL,
   fetcher: typeof fetch = fetch,
 ): Promise<RecordedSession | null> {
-  for (const url of urls) {
+  let files: string[] = [];
+  try {
+    const response = await fetcher(manifestUrl, { cache: "no-store" });
+    if (!response.ok) return null;
+    const manifest: unknown = await response.json();
+    const listed = isObject(manifest) ? manifest.recordings : null;
+    files = Array.isArray(listed) ? listed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return null;
+  }
+
+  for (const file of files) {
+    const url = file.startsWith("/") ? file : `/replay/${file}`;
     try {
       const response = await fetcher(url, { cache: "no-store" });
       if (!response.ok) continue;
       const recording = recordingFromAuditLog(await response.json(), url.split("/").pop() ?? url);
       if (recording) return recording;
     } catch {
-      // A missing recording is the expected state until sessions are recorded;
-      // the caller falls back to the synthetic scenario and says so on screen.
+      // A listed file that will not parse is a broken recording, not a reason
+      // to abandon the rest of the manifest.
     }
   }
   return null;
