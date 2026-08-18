@@ -147,6 +147,70 @@ def gate_c_arms() -> list[dict[str, Any]]:
     ]
 
 
+REFERRAL_CAPACITY = 0.20
+
+
+def composite_rule_break_even(
+    *,
+    prevalence: float = TARGET_PREVALENCE,
+    capacity: float = REFERRAL_CAPACITY,
+) -> dict[str, Any]:
+    """Specificity the composite rule must reach to fit the referral capacity.
+
+    The other arms assume a sensitivity and a specificity and read off the cost.
+    That is not available here: nobody has measured what the composite rule does
+    on toddlers, and assuming a pair of numbers would invent exactly the kind of
+    figure the rest of this project refuses to invent.
+
+    So the question is asked backwards. Referral rate is
+
+        prevalence x sensitivity + (1 - prevalence) x (1 - specificity)
+
+    At a prevalence of 1% the first term cannot exceed 0.01 whatever the
+    sensitivity, so the referral rate is governed almost entirely by the false
+    positives. Solving for the specificity that keeps the rate inside `capacity`
+    turns an unknown into a requirement Gate C can be designed to test.
+    """
+    # Worst case for the capacity constraint: perfect sensitivity refers every
+    # true case, so it contributes its whole prevalence share.
+    def required(at_capacity: float) -> float:
+        return round(1 - (at_capacity - prevalence * 1.0) / (1 - prevalence), 4)
+
+    return {
+        "id": "composite_rule_break_even",
+        "label": "Aturan komposit, spesifisitas minimum yang dibutuhkan",
+        "status": "requirement_not_measurement",
+        "question": "Berapa spesifisitas minimum aturan komposit supaya laju rujukannya muat di kapasitas rujukan?",
+        "assumptions": {
+            "referral_capacity": capacity,
+            "prevalence": prevalence,
+            "sensitivity_assumed": 1.0,
+            "source": "Aritmetika atas kapasitas rujukan yang dinyatakan; bukan performa terukur.",
+        },
+        "required_specificity": required(capacity),
+        "sensitivity_to_capacity": {
+            f"{value:.2f}": required(value) for value in (0.05, 0.10, 0.20, 0.30)
+        },
+        "circularity_warning": (
+            "Kapasitas 0,20 dipilih menyamai laju rujukan lengan target Gate C (0,199), jadi "
+            "kemiripan syarat ini dengan spesifisitas Perochon 0,808 adalah akibat konstruksi, "
+            "bukan temuan. Jangan sajikan sebagai kebetulan yang mengesankan."
+        ),
+        "what_this_actually_shows": (
+            "Pada prevalensi 1%, suku sensitivitas tidak pernah melebihi 0,01 sehingga laju rujukan "
+            "hampir seluruhnya ditentukan spesifisitas. Konsekuensinya: menaikkan sensitivitas aturan "
+            "komposit nyaris tidak membebani antrean, sedangkan kehilangan beberapa poin spesifisitas "
+            "membebaninya secara langsung. Itu yang menentukan ke mana Gate C harus diarahkan."
+        ),
+        "note": (
+            "Blok ini sengaja tidak mengasumsikan sensitivitas dan spesifisitas aturan komposit. "
+            "Keduanya belum diukur pada balita, dan mengarangnya akan mengulang persis kesalahan "
+            "yang dihindari lengan-lengan lain. Yang dihitung adalah syarat yang harus dipenuhi."
+        ),
+        "unlocks": "docs/jalur_rujukan.md, langkah 3",
+    }
+
+
 def gate_c_simulation(
     *,
     cohort_size: int = COHORT_SIZE,
@@ -173,12 +237,14 @@ def gate_c_simulation(
             "coverage_source": "Steffan et al. 2024, Infancy: attrition webcam balita 42%; 0,90 adalah asumsi perencanaan yang lebih longgar dan harus diuji di lapangan.",
         },
         "arms": arms,
+        "composite_rule": composite_rule_break_even(prevalence=prevalence),
         "limitations": [
             "Tidak ada balita prospektif yang direkrut; setiap angka adalah ekspektasi, bukan observasi.",
             "Lengan regresi logistik berasal dari 54 partisipan Carette usia sekolah pada 250 Hz dan tidak berlaku untuk balita.",
             "Lengan GeoPref memakai performa terbit pada stimulus UCSD penuh; klip CC BY 16,75 detik belum tentu mereproduksinya.",
             "Lengan target Gate C adalah performa instrumen lain, bukan milik NeuroGaze.",
             "Prevalensi dan coverage teknis adalah asumsi perencanaan yang dinyatakan, bukan hasil pengukuran lokal.",
+            "Blok composite_rule adalah syarat, bukan lengan: sensitivitas dan spesifisitas aturan komposit pada balita belum pernah diukur.",
             "Simulasi ini tidak bisa meluluskan Gate C atau memilih ambang klinis.",
         ],
     }

@@ -3,7 +3,19 @@ import { STIMULUS_PHASES } from "../stimulus/protocol";
 
 export const MIN_SCORED_TRIALS = 5;
 
-export type JointAttentionVerdict = "FOLLOWS_CUES" | "NOT_DISTINGUISHABLE" | "WITHHELD_TOO_FEW_TRIALS";
+/**
+ * `NOT_DISTINGUISHABLE` and `DOES_NOT_FOLLOW` are different findings and must not
+ * be collapsed. With eight trials a one-sided sign test cannot reach p < 0.05
+ * below seven successes, so a child who followed six of eight cues fails
+ * significance while having followed most of them. Reading that as evidence of
+ * not following is the absence-of-evidence fallacy, and it used to reach the
+ * referral rule directly.
+ */
+export type JointAttentionVerdict =
+  | "FOLLOWS_CUES"
+  | "NOT_DISTINGUISHABLE"
+  | "DOES_NOT_FOLLOW"
+  | "WITHHELD_TOO_FEW_TRIALS";
 
 export type JointAttentionProfile = {
   trialsScored: number;
@@ -72,6 +84,31 @@ export function summarizeJointAttention(summary: CueFeatureSummary | null): Join
     medianLiftPoints: medianLift === null ? null : medianLift * 100,
     medianLatencyMs: median(latencies),
     faceToTargetTransitions: summary.faceTargetTransitions,
-    pValue, verdict: pValue < 0.05 ? "FOLLOWS_CUES" : "NOT_DISTINGUISHABLE",
+    pValue, verdict: cueVerdict(pValue, medianLift, trialsFollowed, trialsScored),
   };
+}
+
+/**
+ * Three findings, not two.
+ *
+ *  - significant                          → the child followed, demonstrably;
+ *  - not significant but the lift is up   → the direction is right and the
+ *    session simply cannot carry the evidence — indeterminate, not deviant;
+ *  - lift strictly below zero on a minority of trials → post-cue looking sat
+ *    under the same trial's own pre-cue baseline, which is a measurement of not
+ *    following rather than a failure to measure following.
+ *
+ * Both comparisons are strict. A median lift of exactly zero on four of eight
+ * trials is chance, and chance is inconclusive: it is the case the session was
+ * too short to resolve, not a finding about the child.
+ */
+function cueVerdict(
+  pValue: number,
+  medianLift: number | null,
+  trialsFollowed: number,
+  trialsScored: number,
+): JointAttentionVerdict {
+  if (pValue < 0.05) return "FOLLOWS_CUES";
+  if (medianLift !== null && medianLift < 0 && trialsFollowed * 2 < trialsScored) return "DOES_NOT_FOLLOW";
+  return "NOT_DISTINGUISHABLE";
 }

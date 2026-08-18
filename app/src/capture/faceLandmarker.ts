@@ -47,6 +47,50 @@ export type Calibration = {
   diagnostics?: CalibrationDiagnostics;
 };
 
+/** Physical geometry needed to turn a screen distance into a visual angle. */
+export type ViewingGeometry = {
+  screenWidthMm: number;
+  screenHeightMm: number;
+  viewingDistanceMm: number;
+};
+
+/**
+ * Degrees per normalised screen unit assumed when no viewing geometry is given.
+ *
+ * This is the constant every Gate A figure was computed under, including the
+ * published 2.36 deg median and 3.58 deg p90. It asserts that the screen
+ * subtends 45 deg, which no device in Gate A actually does: a 226 mm tablet at
+ * 500 mm subtends 2*atan(113/500) = 25.5 deg. The constant therefore overstates
+ * the error by roughly 1.8x — conservative in direction, but it is an assumed
+ * number sitting under a headline comparison against WebGazer's published
+ * 4.17 deg, which was measured under different geometry again.
+ *
+ * It stays as the fallback so archived evidence keeps reproducing under the
+ * convention it was recorded with. Pass a ViewingGeometry to get the real angle.
+ */
+export const LEGACY_DEGREES_PER_UNIT = 45;
+
+/**
+ * Visual angle subtended by a displacement given in normalised screen units.
+ *
+ * x is normalised to screen width and y to screen height, so the two axes carry
+ * different millimetres per unit and cannot be combined before conversion.
+ */
+export function visualAngleDeg(
+  dxNormalized: number,
+  dyNormalized: number,
+  geometry?: ViewingGeometry,
+): number {
+  if (!geometry || !(geometry.viewingDistanceMm > 0)) {
+    return Math.hypot(dxNormalized, dyNormalized) * LEGACY_DEGREES_PER_UNIT;
+  }
+  const millimetres = Math.hypot(
+    dxNormalized * geometry.screenWidthMm,
+    dyNormalized * geometry.screenHeightMm,
+  );
+  return (2 * Math.atan(millimetres / 2 / geometry.viewingDistanceMm) * 180) / Math.PI;
+}
+
 export type EyeMeasurement = {
   signal: EyeSignal | null;
   accepted: boolean;
@@ -242,10 +286,16 @@ function projectCurve(curve: Array<[number, number]>, signal: number): number {
 export function fitCalibration(
   samples: CalibrationSample[],
   targetDiagnostics: CalibrationTargetDiagnostic[] = [],
-  options: { minimumTrainingTargets?: number; minimumTrainingSamples?: number } = {},
+  options: {
+    minimumTrainingTargets?: number;
+    minimumTrainingSamples?: number;
+    /** Omit to fall back to LEGACY_DEGREES_PER_UNIT, the Gate A convention. */
+    geometry?: ViewingGeometry;
+  } = {},
 ): Calibration {
   const minimumTrainingTargets = options.minimumTrainingTargets ?? 7;
   const minimumTrainingSamples = options.minimumTrainingSamples ?? 35;
+  const geometry = options.geometry;
   const explicitPhases = samples.some((sample) => sample.phase !== undefined);
   const validation = explicitPhases
     ? samples.filter((sample) => sample.phase === "validation")
@@ -278,14 +328,14 @@ export function fitCalibration(
   const draft: Calibration = { x, y, curveX, curveY, errorDeg: 0 };
   const trainingErrors = representatives.map(({ signal, target }) => {
     const point = applyCalibration(draft, signal);
-    return Math.hypot(point.x - target.x, point.y - target.y) * 45;
+    return visualAngleDeg(point.x - target.x, point.y - target.y, geometry);
   });
   const validationCenter = {
     u: median(validation.map((sample) => sample.signal.u)),
     v: median(validation.map((sample) => sample.signal.v)),
   };
   const beforeCorrection = applyCalibration(draft, validationCenter);
-  const centerDriftDeg = Math.hypot(beforeCorrection.x - 0.5, beforeCorrection.y - 0.5) * 45;
+  const centerDriftDeg = visualAngleDeg(beforeCorrection.x - 0.5, beforeCorrection.y - 0.5, geometry);
   // The final center target corrects session drift. Grid slopes remain untouched.
   x[0] += 0.5 - beforeCorrection.x;
   y[0] += 0.5 - beforeCorrection.y;
@@ -293,7 +343,7 @@ export function fitCalibration(
   curveY?.forEach((point) => { point[1] += 0.5 - beforeCorrection.y; });
   const validationErrors = validation.map(({ signal, target }) => {
     const point = applyCalibration({ x, y, curveX, curveY, errorDeg: 0 }, signal);
-    return Math.hypot(point.x - target.x, point.y - target.y) * 45;
+    return visualAngleDeg(point.x - target.x, point.y - target.y, geometry);
   });
   const gridMedianErrorDeg = median(trainingErrors);
   const validationErrorDeg = median(validationErrors);

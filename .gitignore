@@ -15,6 +15,15 @@ tmp/
 # disk untuk dipakai sendiri, hanya tidak ikut dipublikasikan.
 referensi/
 
+# Dataset wajah — alasan yang sama seperti referensi/, dan lebih berat.
+# 3.487 foto wajah anak berlabel Autistic/Non_Autistic, dengan enam dari enam
+# metadata tata kelola tidak tersedia (research/hasil/audit_wajah.json):
+# tanpa provenance, tanpa lisensi, tanpa consent, tanpa ID partisipan. Proyek
+# ini mengarantina modelnya justru karena itu; menerbitkan gambarnya di repo
+# publik akan membatalkan seluruh alasannya. Notebook audit membaca path lokal.
+# Cara mengeluarkannya dari riwayat: docs/pembersihan_dataset_wajah.md
+data/
+
 # Artefak kompilasi LaTeX (dihasilkan ulang oleh pdflatex)
 *.aux
 *.log

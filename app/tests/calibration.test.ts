@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { applyCalibration, eyeMeasurement, eyeSignal, fitCalibration, type CalibrationSample } from "../src/capture/faceLandmarker";
+import {
+  applyCalibration,
+  eyeMeasurement,
+  eyeSignal,
+  fitCalibration,
+  visualAngleDeg,
+  LEGACY_DEGREES_PER_UNIT,
+  type CalibrationSample,
+} from "../src/capture/faceLandmarker";
 
 const targets = [
   [0.12, 0.14], [0.5, 0.14], [0.88, 0.14],
@@ -141,4 +149,33 @@ test("measurement rejects an iris landmark that falls outside its eye", () => {
   const measurement = eyeMeasurement(landmarks);
   assert.equal(measurement.accepted, false);
   assert.equal(measurement.reason, "iris");
+});
+
+test("visual angle uses real geometry when it is available, and says so when it is not", () => {
+  // A 226 mm x 141 mm tablet at 500 mm: a full-width miss subtends
+  // 2*atan(113/500) = 25.46 deg, not the 45 deg the legacy constant asserts.
+  const geometry = { screenWidthMm: 226, screenHeightMm: 141, viewingDistanceMm: 500 };
+  const fullWidth = visualAngleDeg(1, 0, geometry);
+  assert.ok(Math.abs(fullWidth - 25.46) < 0.05, `full-width angle was ${fullWidth}`);
+
+  // Halving the viewing distance widens the same displacement.
+  assert.ok(visualAngleDeg(1, 0, { ...geometry, viewingDistanceMm: 250 }) > fullWidth);
+
+  // The axes carry different millimetres per unit, so they must not be pooled
+  // before conversion: an x miss and a y miss of equal normalised size differ.
+  assert.notEqual(visualAngleDeg(0.2, 0, geometry), visualAngleDeg(0, 0.2, geometry));
+
+  // Without geometry the legacy convention is reproduced exactly, so archived
+  // Gate A numbers keep recomputing under the convention they were recorded with.
+  assert.equal(visualAngleDeg(0.1, 0), 0.1 * LEGACY_DEGREES_PER_UNIT);
+  assert.equal(visualAngleDeg(0.1, 0, { ...geometry, viewingDistanceMm: 0 }), 0.1 * LEGACY_DEGREES_PER_UNIT);
+});
+
+test("the legacy constant overstates error on every Gate A device", () => {
+  // Gate A recorded screenWidthMm per device; none of them subtend 45 deg at a
+  // realistic viewing distance, which is why the published figures are high.
+  for (const screenWidthMm of [226, 260, 214]) {
+    const real = visualAngleDeg(1, 0, { screenWidthMm, screenHeightMm: screenWidthMm * 0.62, viewingDistanceMm: 500 });
+    assert.ok(real < LEGACY_DEGREES_PER_UNIT, `${screenWidthMm} mm subtended ${real} deg`);
+  }
 });

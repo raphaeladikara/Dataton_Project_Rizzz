@@ -1,0 +1,677 @@
+{
+  "study_type": "real_temporal_decimation",
+  "question": "Ketika sesi yang sama dicuplik lebih lambat, keluarga fitur mana yang bergeser lebih jauh?",
+  "why_this_exists": "degradasi.json menurunkan laju cuplik dengan menghapus piksel dari raster dan menyatakan sendiri bahwa itu proxy, bukan resampling temporal. Data Carette berupa PNG tanpa stempel waktu sehingga operasi temporal tidak terdefinisi di sana. Pasangan Gate B membawa (x, y, t) sungguhan, jadi desimasi waktu dapat dijalankan apa adanya.",
+  "source": "research/hasil/gate_b/pasangan, aliran WebGazer pada pasangan comparison_ready",
+  "n_sessions": 27,
+  "baseline_rate_hz": 26.16,
+  "saccade_threshold_normalised_per_s": 1.2,
+  "conditions": [
+    {
+      "decimation_factor": 1,
+      "effective_rate_hz": 26.16,
+      "geometri": {
+        "median_relative_change": 0.0,
+        "median_spearman": 1.0,
+        "features_below_spearman_0_8": 0,
+        "n_features": 13
+      },
+      "kinematik": {
+        "median_relative_change": 0.0,
+        "median_spearman": 1.0,
+        "features_below_spearman_0_8": 0,
+        "n_features": 6
+      },
+      "per_feature": [
+        {
+          "feature": "ink_frac",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "centroid_x",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "centroid_y",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "std_x",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "std_y",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "span_x",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "span_y",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "radial_mean",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "radial_std",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "grid_entropy",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "n_active_cells",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "bbox_fill",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "aspect_ratio",
+          "family": "geometri",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "vel_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "vel_std",
+          "family": "kinematik",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "acc_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "jerk_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "fixation_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        },
+        {
+          "feature": "saccade_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.0,
+          "spearman_vs_full_rate": 1.0
+        }
+      ]
+    },
+    {
+      "decimation_factor": 2,
+      "effective_rate_hz": 13.08,
+      "geometri": {
+        "median_relative_change": 0.0164,
+        "median_spearman": 0.8035,
+        "features_below_spearman_0_8": 6,
+        "n_features": 13
+      },
+      "kinematik": {
+        "median_relative_change": 0.6935,
+        "median_spearman": 0.6194,
+        "features_below_spearman_0_8": 6,
+        "n_features": 6
+      },
+      "per_feature": [
+        {
+          "feature": "ink_frac",
+          "family": "geometri",
+          "median_relative_change": 0.2056,
+          "spearman_vs_full_rate": 0.9072
+        },
+        {
+          "feature": "centroid_x",
+          "family": "geometri",
+          "median_relative_change": 0.0108,
+          "spearman_vs_full_rate": 0.8956
+        },
+        {
+          "feature": "centroid_y",
+          "family": "geometri",
+          "median_relative_change": 0.0049,
+          "spearman_vs_full_rate": 0.9164
+        },
+        {
+          "feature": "std_x",
+          "family": "geometri",
+          "median_relative_change": 0.0114,
+          "spearman_vs_full_rate": 0.8089
+        },
+        {
+          "feature": "std_y",
+          "family": "geometri",
+          "median_relative_change": 0.0323,
+          "spearman_vs_full_rate": 0.8449
+        },
+        {
+          "feature": "span_x",
+          "family": "geometri",
+          "median_relative_change": 0.0164,
+          "spearman_vs_full_rate": 0.8035
+        },
+        {
+          "feature": "span_y",
+          "family": "geometri",
+          "median_relative_change": 0.0151,
+          "spearman_vs_full_rate": 0.6025
+        },
+        {
+          "feature": "radial_mean",
+          "family": "geometri",
+          "median_relative_change": 0.0146,
+          "spearman_vs_full_rate": 0.6398
+        },
+        {
+          "feature": "radial_std",
+          "family": "geometri",
+          "median_relative_change": 0.0177,
+          "spearman_vs_full_rate": 0.8126
+        },
+        {
+          "feature": "grid_entropy",
+          "family": "geometri",
+          "median_relative_change": 0.0166,
+          "spearman_vs_full_rate": 0.6514
+        },
+        {
+          "feature": "n_active_cells",
+          "family": "geometri",
+          "median_relative_change": 0.0455,
+          "spearman_vs_full_rate": 0.4128
+        },
+        {
+          "feature": "bbox_fill",
+          "family": "geometri",
+          "median_relative_change": 0.1736,
+          "spearman_vs_full_rate": 0.7405
+        },
+        {
+          "feature": "aspect_ratio",
+          "family": "geometri",
+          "median_relative_change": 0.0164,
+          "spearman_vs_full_rate": 0.5623
+        },
+        {
+          "feature": "vel_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.4898,
+          "spearman_vs_full_rate": 0.5635
+        },
+        {
+          "feature": "vel_std",
+          "family": "kinematik",
+          "median_relative_change": 0.3845,
+          "spearman_vs_full_rate": 0.7033
+        },
+        {
+          "feature": "acc_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.7271,
+          "spearman_vs_full_rate": 0.6752
+        },
+        {
+          "feature": "jerk_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.8609,
+          "spearman_vs_full_rate": 0.685
+        },
+        {
+          "feature": "fixation_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.66,
+          "spearman_vs_full_rate": 0.4396
+        },
+        {
+          "feature": "saccade_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.8717,
+          "spearman_vs_full_rate": 0.4396
+        }
+      ]
+    },
+    {
+      "decimation_factor": 3,
+      "effective_rate_hz": 8.72,
+      "geometri": {
+        "median_relative_change": 0.0283,
+        "median_spearman": 0.6787,
+        "features_below_spearman_0_8": 11,
+        "n_features": 13
+      },
+      "kinematik": {
+        "median_relative_change": 0.7974,
+        "median_spearman": 0.5326,
+        "features_below_spearman_0_8": 6,
+        "n_features": 6
+      },
+      "per_feature": [
+        {
+          "feature": "ink_frac",
+          "family": "geometri",
+          "median_relative_change": 0.3268,
+          "spearman_vs_full_rate": 0.7839
+        },
+        {
+          "feature": "centroid_x",
+          "family": "geometri",
+          "median_relative_change": 0.0152,
+          "spearman_vs_full_rate": 0.8449
+        },
+        {
+          "feature": "centroid_y",
+          "family": "geometri",
+          "median_relative_change": 0.0101,
+          "spearman_vs_full_rate": 0.8211
+        },
+        {
+          "feature": "std_x",
+          "family": "geometri",
+          "median_relative_change": 0.0105,
+          "spearman_vs_full_rate": 0.7534
+        },
+        {
+          "feature": "std_y",
+          "family": "geometri",
+          "median_relative_change": 0.0602,
+          "spearman_vs_full_rate": 0.7497
+        },
+        {
+          "feature": "span_x",
+          "family": "geometri",
+          "median_relative_change": 0.0283,
+          "spearman_vs_full_rate": 0.6787
+        },
+        {
+          "feature": "span_y",
+          "family": "geometri",
+          "median_relative_change": 0.0297,
+          "spearman_vs_full_rate": 0.697
+        },
+        {
+          "feature": "radial_mean",
+          "family": "geometri",
+          "median_relative_change": 0.0355,
+          "spearman_vs_full_rate": 0.5928
+        },
+        {
+          "feature": "radial_std",
+          "family": "geometri",
+          "median_relative_change": 0.0174,
+          "spearman_vs_full_rate": 0.6197
+        },
+        {
+          "feature": "grid_entropy",
+          "family": "geometri",
+          "median_relative_change": 0.0156,
+          "spearman_vs_full_rate": 0.5128
+        },
+        {
+          "feature": "n_active_cells",
+          "family": "geometri",
+          "median_relative_change": 0.087,
+          "spearman_vs_full_rate": 0.2699
+        },
+        {
+          "feature": "bbox_fill",
+          "family": "geometri",
+          "median_relative_change": 0.2815,
+          "spearman_vs_full_rate": 0.4805
+        },
+        {
+          "feature": "aspect_ratio",
+          "family": "geometri",
+          "median_relative_change": 0.0281,
+          "spearman_vs_full_rate": 0.5775
+        },
+        {
+          "feature": "vel_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.6418,
+          "spearman_vs_full_rate": 0.4872
+        },
+        {
+          "feature": "vel_std",
+          "family": "kinematik",
+          "median_relative_change": 0.5185,
+          "spearman_vs_full_rate": 0.5958
+        },
+        {
+          "feature": "acc_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.8659,
+          "spearman_vs_full_rate": 0.5781
+        },
+        {
+          "feature": "jerk_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.9528,
+          "spearman_vs_full_rate": 0.6056
+        },
+        {
+          "feature": "fixation_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.7288,
+          "spearman_vs_full_rate": 0.3016
+        },
+        {
+          "feature": "saccade_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.9534,
+          "spearman_vs_full_rate": 0.3016
+        }
+      ]
+    },
+    {
+      "decimation_factor": 4,
+      "effective_rate_hz": 6.54,
+      "geometri": {
+        "median_relative_change": 0.0419,
+        "median_spearman": 0.4426,
+        "features_below_spearman_0_8": 12,
+        "n_features": 13
+      },
+      "kinematik": {
+        "median_relative_change": 0.8131,
+        "median_spearman": 0.3044,
+        "features_below_spearman_0_8": 6,
+        "n_features": 6
+      },
+      "per_feature": [
+        {
+          "feature": "ink_frac",
+          "family": "geometri",
+          "median_relative_change": 0.444,
+          "spearman_vs_full_rate": 0.4335
+        },
+        {
+          "feature": "centroid_x",
+          "family": "geometri",
+          "median_relative_change": 0.0167,
+          "spearman_vs_full_rate": 0.7802
+        },
+        {
+          "feature": "centroid_y",
+          "family": "geometri",
+          "median_relative_change": 0.0099,
+          "spearman_vs_full_rate": 0.8333
+        },
+        {
+          "feature": "std_x",
+          "family": "geometri",
+          "median_relative_change": 0.0219,
+          "spearman_vs_full_rate": 0.4426
+        },
+        {
+          "feature": "std_y",
+          "family": "geometri",
+          "median_relative_change": 0.0824,
+          "spearman_vs_full_rate": 0.6093
+        },
+        {
+          "feature": "span_x",
+          "family": "geometri",
+          "median_relative_change": 0.0352,
+          "spearman_vs_full_rate": 0.6324
+        },
+        {
+          "feature": "span_y",
+          "family": "geometri",
+          "median_relative_change": 0.0468,
+          "spearman_vs_full_rate": 0.5598
+        },
+        {
+          "feature": "radial_mean",
+          "family": "geometri",
+          "median_relative_change": 0.0447,
+          "spearman_vs_full_rate": 0.0885
+        },
+        {
+          "feature": "radial_std",
+          "family": "geometri",
+          "median_relative_change": 0.0419,
+          "spearman_vs_full_rate": 0.5629
+        },
+        {
+          "feature": "grid_entropy",
+          "family": "geometri",
+          "median_relative_change": 0.0257,
+          "spearman_vs_full_rate": 0.3828
+        },
+        {
+          "feature": "n_active_cells",
+          "family": "geometri",
+          "median_relative_change": 0.1304,
+          "spearman_vs_full_rate": 0.2372
+        },
+        {
+          "feature": "bbox_fill",
+          "family": "geometri",
+          "median_relative_change": 0.3999,
+          "spearman_vs_full_rate": 0.3523
+        },
+        {
+          "feature": "aspect_ratio",
+          "family": "geometri",
+          "median_relative_change": 0.0325,
+          "spearman_vs_full_rate": 0.4158
+        },
+        {
+          "feature": "vel_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.7147,
+          "spearman_vs_full_rate": 0.3065
+        },
+        {
+          "feature": "vel_std",
+          "family": "kinematik",
+          "median_relative_change": 0.5895,
+          "spearman_vs_full_rate": 0.6013
+        },
+        {
+          "feature": "acc_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.9115,
+          "spearman_vs_full_rate": 0.3022
+        },
+        {
+          "feature": "jerk_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.9751,
+          "spearman_vs_full_rate": 0.4475
+        },
+        {
+          "feature": "fixation_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.7112,
+          "spearman_vs_full_rate": -0.0763
+        },
+        {
+          "feature": "saccade_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.9416,
+          "spearman_vs_full_rate": -0.0763
+        }
+      ]
+    },
+    {
+      "decimation_factor": 5,
+      "effective_rate_hz": 5.23,
+      "geometri": {
+        "median_relative_change": 0.0558,
+        "median_spearman": 0.3864,
+        "features_below_spearman_0_8": 13,
+        "n_features": 13
+      },
+      "kinematik": {
+        "median_relative_change": 0.8444,
+        "median_spearman": 0.1926,
+        "features_below_spearman_0_8": 6,
+        "n_features": 6
+      },
+      "per_feature": [
+        {
+          "feature": "ink_frac",
+          "family": "geometri",
+          "median_relative_change": 0.7909,
+          "spearman_vs_full_rate": 0.3596
+        },
+        {
+          "feature": "centroid_x",
+          "family": "geometri",
+          "median_relative_change": 0.0291,
+          "spearman_vs_full_rate": 0.3864
+        },
+        {
+          "feature": "centroid_y",
+          "family": "geometri",
+          "median_relative_change": 0.0198,
+          "spearman_vs_full_rate": 0.7375
+        },
+        {
+          "feature": "std_x",
+          "family": "geometri",
+          "median_relative_change": 0.0483,
+          "spearman_vs_full_rate": 0.2338
+        },
+        {
+          "feature": "std_y",
+          "family": "geometri",
+          "median_relative_change": 0.0569,
+          "spearman_vs_full_rate": 0.5702
+        },
+        {
+          "feature": "span_x",
+          "family": "geometri",
+          "median_relative_change": 0.0388,
+          "spearman_vs_full_rate": 0.5499
+        },
+        {
+          "feature": "span_y",
+          "family": "geometri",
+          "median_relative_change": 0.0558,
+          "spearman_vs_full_rate": 0.7009
+        },
+        {
+          "feature": "radial_mean",
+          "family": "geometri",
+          "median_relative_change": 0.0537,
+          "spearman_vs_full_rate": 0.2955
+        },
+        {
+          "feature": "radial_std",
+          "family": "geometri",
+          "median_relative_change": 0.091,
+          "spearman_vs_full_rate": 0.754
+        },
+        {
+          "feature": "grid_entropy",
+          "family": "geometri",
+          "median_relative_change": 0.1107,
+          "spearman_vs_full_rate": -0.0311
+        },
+        {
+          "feature": "n_active_cells",
+          "family": "geometri",
+          "median_relative_change": 0.2273,
+          "spearman_vs_full_rate": 0.28
+        },
+        {
+          "feature": "bbox_fill",
+          "family": "geometri",
+          "median_relative_change": 0.7718,
+          "spearman_vs_full_rate": 0.2228
+        },
+        {
+          "feature": "aspect_ratio",
+          "family": "geometri",
+          "median_relative_change": 0.0269,
+          "spearman_vs_full_rate": 0.7143
+        },
+        {
+          "feature": "vel_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.7536,
+          "spearman_vs_full_rate": 0.2021
+        },
+        {
+          "feature": "vel_std",
+          "family": "kinematik",
+          "median_relative_change": 0.6543,
+          "spearman_vs_full_rate": 0.3962
+        },
+        {
+          "feature": "acc_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.9352,
+          "spearman_vs_full_rate": 0.1832
+        },
+        {
+          "feature": "jerk_mean",
+          "family": "kinematik",
+          "median_relative_change": 0.9852,
+          "spearman_vs_full_rate": 0.3529
+        },
+        {
+          "feature": "fixation_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.7147,
+          "spearman_vs_full_rate": 0.0755
+        },
+        {
+          "feature": "saccade_ratio",
+          "family": "kinematik",
+          "median_relative_change": 0.953,
+          "spearman_vs_full_rate": 0.0755
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Tidak ada label ASD pada data Gate B, jadi studi ini melaporkan stabilitas fitur dan bukan AUC.",
+    "Sumbernya aliran WebGazer, bukan aliran NeuroGaze, karena hanya yang pertama punya laju cukup tinggi untuk didesimasi.",
+    "Stabilitas fitur adalah syarat perlu untuk transfer antar laju cuplik, bukan syarat cukup.",
+    "Desimasi menjaga sampel yang benar-benar terekam; kamera yang lebih lambat juga mengubah blur dan waktu pajan, yang tidak dimodelkan di sini."
+  ]
+}

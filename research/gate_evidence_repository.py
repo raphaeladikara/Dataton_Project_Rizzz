@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from collections import Counter
 from pathlib import Path
 from statistics import mean, median
@@ -150,6 +151,57 @@ def verify_manifest(manifest_path: Path) -> list[str]:
     return errors
 
 
+# Gate A converted screen distance to visual angle with a flat 45 deg per
+# normalised unit. No device in the study subtends 45 deg: the three tablets are
+# 226-237 mm wide, so at 500 mm they subtend 25-26 deg. The constant therefore
+# inflates every published angle, which is conservative but wrong, and it sits
+# directly under the comparison against WebGazer's 4.17 deg.
+#
+# The raw residuals are not stored, only the already-converted medians, so the
+# correction cannot be exact. It can be bounded: the same normalised miss
+# subtends most when it lies entirely along the wide axis and least along the
+# narrow one, and the truth is between. Viewing distance was never recorded in
+# Gate A -- a protocol gap now closed, since the app collects it -- so the
+# correction is reported across a plausible range instead of at one distance.
+LEGACY_DEGREES_PER_UNIT = 45.0
+CORRECTION_DISTANCES_MM = (400, 500, 600)
+
+
+def angle_convention_correction(passed: list[dict[str, Any]]) -> dict[str, Any]:
+    rows = [
+        (float(log["calibration"]["validationErrorDeg"]) / LEGACY_DEGREES_PER_UNIT,
+         float(log["device"]["screenWidthMm"]),
+         float(log["device"]["screenHeightMm"]))
+        for log in passed
+        if (log.get("calibration") or {}).get("validationErrorDeg") is not None
+    ]
+    if not rows:
+        return {"status": "no_validation_errors_recorded"}
+
+    def subtended(normalized: float, millimetres: float, distance: float) -> float:
+        return math.degrees(2 * math.atan(normalized * millimetres / 2 / distance))
+
+    return {
+        "why": "Gate A memakai 45 derajat per unit ternormalisasi; tidak ada perangkat di studi ini yang menyudut selebar itu.",
+        "legacyDegreesPerUnit": LEGACY_DEGREES_PER_UNIT,
+        "legacyMedianErrorDeg": round(float(median(r[0] for r in rows)) * LEGACY_DEGREES_PER_UNIT, 3),
+        "viewingDistanceRecorded": False,
+        "correctedMedianErrorDeg": {
+            str(distance): {
+                "lower_all_vertical": round(float(median(subtended(n, h, distance) for n, _, h in rows)), 3),
+                "upper_all_horizontal": round(float(median(subtended(n, w, distance) for n, w, _ in rows)), 3),
+            }
+            for distance in CORRECTION_DISTANCES_MM
+        },
+        "note": (
+            "Angka terbit melebih-lebihkan galat sekitar 1,7-2,7 kali, jadi instrumennya lebih teliti "
+            "daripada yang dilaporkan, bukan sebaliknya. Perbandingan terhadap WebGazer 4,17 derajat "
+            "tetap bukan uji tanding: angka itu diukur pada geometri perangkat yang berbeda lagi."
+        ),
+        "forward_fix": "app/src/capture/faceLandmarker.ts::visualAngleDeg memakai trigonometri sebenarnya; jarak pandang kini direkam per sesi.",
+    }
+
+
 def gate_a_summary(paths: list[Path]) -> dict[str, Any]:
     logs = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
     if any(log.get("schemaVersion") != 3 or log.get("purpose") != "gate_a_adult" for log in logs):
@@ -166,8 +218,16 @@ def gate_a_summary(paths: list[Path]) -> dict[str, Any]:
         for log in passed
         if (log.get("calibration") or {}).get("validationErrorDeg") is not None
     ]
+    # Quality means are taken over passing sessions, which is a favourable
+    # denominator: the six failures include the worst face rates in the set. The
+    # figure is still the right one to quote for "what a usable session looks
+    # like", but quoting it beside "100 sessions" without saying so reads as if
+    # it covered all of them. Both denominators are published so the flattering
+    # one cannot travel alone.
     face_rates = [float(log["quality"]["faceRate"]) for log in passed]
     dropouts = [float(log["quality"]["gazeDropout"]) for log in passed]
+    face_rates_all = [float(log["quality"]["faceRate"]) for log in logs]
+    dropouts_all = [float(log["quality"]["gazeDropout"]) for log in logs]
     extraction = [float(log["assessment"]["extractionP90Ms"]) for log in logs if (log.get("assessment") or {}).get("extractionP90Ms") is not None]
     warnings = Counter(
         warning
@@ -192,6 +252,15 @@ def gate_a_summary(paths: list[Path]) -> dict[str, Any]:
         },
         "meanValidFrameRate": float(mean(face_rates)),
         "meanGazeDropout": round(float(mean(dropouts)), 4),
+        "angleConventionCorrection": angle_convention_correction(passed),
+        "qualityDenominator": {
+            "definition": "meanValidFrameRate dan meanGazeDropout dihitung atas sesi yang LULUS mutu, bukan seluruh sesi.",
+            "passedSessions": len(passed),
+            "allSessions": len(logs),
+            "meanValidFrameRateAllSessions": round(float(mean(face_rates_all)), 4),
+            "meanGazeDropoutAllSessions": round(float(mean(dropouts_all)), 4),
+            "note": "Enam sesi gagal memuat laju wajah terburuk di set ini, jadi penyebut sesi-lulus lebih menguntungkan. Kutip berpasangan.",
+        },
         "extractionP90Ms": float(np.quantile(extraction, 0.9, method="higher")) if extraction else None,
         "failureWarnings": dict(warnings),
         "riskScoresEmitted": sum(bool((log.get("assessment") or {}).get("riskScoreEmitted")) for log in logs),
