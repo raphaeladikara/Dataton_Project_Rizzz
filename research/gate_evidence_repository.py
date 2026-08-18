@@ -158,6 +158,14 @@ def gate_a_summary(paths: list[Path]) -> dict[str, Any]:
     participants = {str((log.get("profile") or {}).get("participantId")) for log in logs}
     devices = {str((log.get("device") or {}).get("deviceId")) for log in logs}
     calibration = [float(log["quality"]["calibrationErrorDeg"]) for log in passed]
+    # Held-out targets the participant never trained on. This is the only figure
+    # in the repository that is an absolute accuracy; agreement against another
+    # estimator cannot produce one.
+    known_target = [
+        float(log["calibration"]["validationErrorDeg"])
+        for log in passed
+        if (log.get("calibration") or {}).get("validationErrorDeg") is not None
+    ]
     face_rates = [float(log["quality"]["faceRate"]) for log in passed]
     dropouts = [float(log["quality"]["gazeDropout"]) for log in passed]
     extraction = [float(log["assessment"]["extractionP90Ms"]) for log in logs if (log.get("assessment") or {}).get("extractionP90Ms") is not None]
@@ -175,6 +183,13 @@ def gate_a_summary(paths: list[Path]) -> dict[str, Any]:
         "passed": len(passed),
         "completionRate": len(passed) / len(logs),
         "medianCalibrationErrorDeg": float(median(calibration)),
+        "knownTargetValidation": {
+            "sessions": len(known_target),
+            "medianErrorDeg": round(float(median(known_target)), 3) if known_target else None,
+            "p90ErrorDeg": round(float(np.quantile(known_target, 0.9)), 3) if known_target else None,
+            "meanErrorDeg": round(float(mean(known_target)), 3) if known_target else None,
+            "definition": "calibration.validationErrorDeg: median angular error on held-out targets, adults only.",
+        },
         "meanValidFrameRate": float(mean(face_rates)),
         "meanGazeDropout": round(float(mean(dropouts)), 4),
         "extractionP90Ms": float(np.quantile(extraction, 0.9, method="higher")) if extraction else None,
