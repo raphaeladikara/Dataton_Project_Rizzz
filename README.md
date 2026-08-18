@@ -13,7 +13,7 @@ tired, socially primed child.
 
 | Layer | What it is | Can it trigger a referral? |
 |---|---|---|
-| **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–49 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
+| **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–48 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
 | **B — Behavioural profile** | Facing-forward, head movement, blink rate, response to name, cue following with a within-session sign test | No. Descriptive, read alongside SDIDTK/M-CHAT |
 | **B2 — Composite recommendation** | A readable rule over four signals that need no toddler norm: the published GeoPref cutoff plus three within-subject contrasts (cue following, blink differential, response to name) | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it |
 | **C — Combined weighted model** | Not built. Weights need labelled toddlers | Not yet |
@@ -64,11 +64,37 @@ rule-in, measured without rule-in, protocol abbreviated, or withheld. The report
 be printed as a one-page hand-off for the Puskesmas. The audit log stays in memory
 until the operator exports or deletes it.
 
-GeoPref currently runs on a 16.75-second CC BY clip rather than the full published
-stimulus, so `validatedProtocol` is false and the 69% cutoff is **held**: the session
-reports the measured percentage and says the protocol was abbreviated. The access
-request for the full stimulus is in
+### What the preferential-looking block actually plays
+
+The 69% cutoff has been applied to two different tests, and they do not share a
+precedent. Wen et al. 2022 (*Scientific Reports* 12:4253) validated it at scale on the
+**original 62.22-second GeoPref** — n=1863, ages 12–48 months, sensitivity 17%,
+specificity 98%. Moore et al. 2018 carried the same cutoff to the **90-second Complex
+Social GeoPref** for consistency rather than re-optimising it, reporting sensitivity
+18%, specificity 97%, AUC 0.74 on a much smaller sample. Each asset in
+[`app/src/geopref/stimulusMeta.ts`](app/src/geopref/stimulusMeta.ts) carries its own
+operating point so one test's evidence cannot be quoted on another test's measurement.
+
+What ships is neither: a **16.75-second excerpt** — one of five scenes — of the Complex
+Social example video published as Additional file 2 of Moore et al. 2018. So
+`validatedProtocol` is false, the cutoff is **held**, and the session reports the
+measured percentage while saying the protocol was abbreviated. The access request for a
+full stimulus is in
 [`docs/provenance/permintaan_stimulus_ucsd.md`](docs/provenance/permintaan_stimulus_ucsd.md).
+
+Two properties of the asset are deliberate, not defects:
+
+- **It is silent.** The Moore et al. methods state there was no audio; both GeoPref
+  variants are presented without sound. Do not add a soundtrack.
+- **It is letterboxed.** The panels occupy only 19.8% of the 640×360 frame, the rest is
+  black, because the file is a supplementary illustration rather than a presentation
+  master. Played whole, each panel subtended roughly 7.6° × 4.9° on a target tablet
+  against the 12.9° × 9.1° Moore et al. report, so the app crops the surround away.
+  `geoprefPanelDegrees()` makes that geometry checkable per device instead of asserted.
+
+Container facts are verifiable: one video track, **zero audio tracks**, avc1, 502
+frames, SHA-256 pinned in
+[`app/public/stimuli/geopref-social-geometric-ccby.json`](app/public/stimuli/geopref-social-geometric-ccby.json).
 
 The reasoning behind these decisions is recorded in
 [`docs/keputusan_ilmiah.md`](docs/keputusan_ilmiah.md).

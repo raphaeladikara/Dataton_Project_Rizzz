@@ -842,15 +842,37 @@
   place-items: center;
 }
 
-.geoprefVideo {
+/* Crop window over the source frame. Percentages are 384/122 of the crop for
+   size and -129/384, -120/122 for the offset — the same numbers as
+   GEOPREF_CONTENT_CROP, which is what the AOIs are measured against. */
+.geoprefCrop {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-height: 100%;
+  aspect-ratio: 384 / 122;
+}
+
+.geoprefVideo {
+  position: absolute;
+  width: 166.6667%;
+  height: 295.0820%;
+  /* The global media reset caps width at 100%, which clamped the oversized
+     crop layer back to the crop box and squashed the frame horizontally:
+     scale 1.25 across, 2.08 down. Both axes must scale together or the AOI
+     boxes no longer sit on the panels. */
+  max-width: none;
+  max-height: none;
+  left: -33.5938%;
+  top: -98.3607%;
+  object-fit: fill;
 }
 
 /* The shipped clip carries geometric on the right, so only the left assignment
-   needs mirroring. Counterbalancing the side without re-encoding the asset. */
-.geoprefStage[data-mirrored="true"] .geoprefVideo {
+   needs mirroring. Counterbalancing the side without re-encoding the asset.
+   Mirroring the crop rather than the video keeps the flip exactly symmetric
+   about the presentation centre instead of the source frame's. */
+.geoprefStage[data-mirrored="true"] .geoprefCrop {
   transform: scaleX(-1);
 }
 

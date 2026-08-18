@@ -62,7 +62,7 @@ Empat butir. Tiap butir memetakan ke tepat satu sinyal keputusan.
 
 | # | Yang dilakukan peserta | Sinyal yang disasar | Dasar arah |
 |---|---|---|---|
-| 1 | Selama blok pilihan tontonan, pandangan diarahkan ke panel geometrik | `geometric_preference` | Wen dkk. 2022, *Molecular Autism*, n=1.863, usia 12–49 bulan |
+| 1 | Selama blok pilihan tontonan, pandangan diarahkan ke panel geometrik | `geometric_preference` | Wen dkk. 2022, *Scientific Reports* 12:4253, n=1.863, usia 12–48 bulan |
 | 2 | Tidak mengikuti arah mata maupun tunjukan model; pandangan tetap di tengah | `cue_following` | Paradigma responding joint attention, Billeci dkk. 2019 |
 | 3 | Tidak menoleh saat nama dipanggil | `response_to_name` | Nadig dkk. 2007; Perochon dkk. 2023, *Nature Medicine* |
 | 4 | Laju kedip dipertahankan sama antara adegan aktor dan blok pilihan tontonan | `blink_differential` | Shultz dkk. 2011, *PNAS* |
@@ -94,7 +94,13 @@ tidak bisa masuk tanpa disadari.
 
 **Urutan penting:** protokol stimulus harus sudah final sebelum merekam. Rekaman
 pada versi stimulus lama tidak sebanding dan harus diulang. Versi yang berlaku
-tercatat di `STIMULUS_VERSION`.
+tercatat di `STIMULUS_VERSION`, dan geometri AOI di `GEOPREF_AOI_VERSION`.
+
+Perlu diketahui sebelum sesi pertama: blok pilihan tontonan **tidak bersuara**, dan itu
+memang protokolnya (Moore dkk. 2018 menyatakan stimulusnya tanpa audio). Peserta tidak
+perlu menunggu suara yang tidak akan datang. Sejak `neurogaze-geopref-aoi-v2.0.0`,
+bingkai hitam di sekeliling panel dipangkas sehingga panelnya tampak jauh lebih besar
+daripada tangkapan layar lama; itu perbaikan ukuran sudut, bukan aset yang berbeda.
 
 ---
 

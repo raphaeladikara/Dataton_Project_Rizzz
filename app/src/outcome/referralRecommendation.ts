@@ -81,7 +81,7 @@ export type ReferralRecommendation = {
 const percent = (value: number) => `${Math.round(value * 100)}%`;
 const rate = (value: number) => value.toFixed(1).replace(".", ",");
 
-const WEN = "Wen dkk. 2022, Molecular Autism, n=1.863, usia 12–49 bulan";
+const WEN = "Wen dkk. 2022, Scientific Reports, n=1.863, usia 12–48 bulan";
 const RJA = "Paradigma responding joint attention (Billeci dkk. 2019); uji tanda dalam-subjek";
 /**
  * The contrast is actor scenes against the preferential-looking block, which is

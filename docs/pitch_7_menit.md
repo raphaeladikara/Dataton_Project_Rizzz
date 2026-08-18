@@ -91,7 +91,7 @@ Itu bahan bicara.
 
 > Satu-satunya pemicu rujukan otomatis di sistem ini bukan ambang karangan kami. Namanya
 > GeoPref, dan ambangnya 69 persen waktu pada pola geometrik. Angkanya dari Wen dan
-> kolega 2022 di Molecular Autism: 1.863 anak, usia 12 sampai 49 bulan — persis rentang
+> kolega 2022 di Scientific Reports: 1.863 anak, usia 12 sampai 48 bulan — persis rentang
 > usia sasaran kami. Sensitivitas 17 persen, spesifisitas 98 persen, PPV 81 persen.
 >
 > Kami tidak melatih ambang ini. Kami tidak mengoptimasinya. Kami memakai angka terbit
@@ -249,7 +249,7 @@ atas kertas.
 | Angka | Sumber |
 |---|---|
 | 56 bulan, 32 bulan | Bagian Pendahuluan paper, sitiran di `paper/sumber/paper_final.tex` |
-| Ambang 69%, sens 17%, spec 98%, PPV 81%, NPV 65% | Wen dkk. 2022, *Molecular Autism*, n=1.863, usia 12–49 bulan |
+| Ambang 69%, sens 17%, spec 98%, PPV 81%, NPV 65% | Wen dkk. 2022, *Scientific Reports*, n=1.863, usia 12–48 bulan |
 | Sens 87,8% / spec 80,8%, AUC 0,90 | Perochon dkk. 2023, *Nature Medicine* (SenseToKnow), 475 balita |
 | Spec 53,6% vs 82,7% lintas ras | Perochon dkk. 2023 |
 | Attrition 42%, N=125, 16 lab | Steffan dkk. 2024, *Infancy*, usia 18–27 bulan |

@@ -5,8 +5,8 @@
 Three layers. Do not blur them.
 
 - **A — GeoPref.** The only automatic referral trigger. Percent geometric fixation
-  against the published 69% cutoff (Wen et al. 2022, *Molecular Autism*, n=1863,
-  ages 12–49 months, sensitivity 17%, specificity 98%, PPV 81%, NPV 65%).
+  against the published 69% cutoff (Wen et al. 2022, *Scientific Reports*, n=1863,
+  ages 12–48 months, sensitivity 17%, specificity 98%, PPV 81%, NPV 65%).
   Implemented in `app/src/geopref/`.
 - **B — Multi-index profile.** Descriptive only, no combined score. Facing-forward,
   head movement, blink rate, response to name, cue following. Modelled on the index
