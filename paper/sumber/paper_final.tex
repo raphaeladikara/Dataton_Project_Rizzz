@@ -473,6 +473,69 @@ perangkat karena itu memangkas kotak hitam agar sudut pandang yang disubtensi me
 angka terbit. Ketiga, integritas berkasnya dijaga SHA-256 yang tercatat pada manifes
 stimulus.
 
+\subsection{Stimulus blok isyarat: kenapa aktor vektor}
+\label{sec:aktor}
+
+Blok isyarat arah memakai aktor yang digambar sebagai SVG dan dianimasikan lewat CSS,
+bukan rekaman aktor manusia. Karena blok ini menempati separuh baterai dan memasok satu
+dari dua sinyal keputusan yang benar-benar dapat dinilai di lapangan, pilihan itu perlu
+dipertahankan dengan bukti.
+
+Yang memberatkan perlu dinyatakan lebih dulu. Tinjauan stimulus eye-tracking untuk joint
+attention melaporkan perbedaan antar-kelompok yang lebih tegas pada stimulus beragen
+manusia dibandingkan agen animasi. Untuk perbandingan antar-kelompok, agen animasi
+kemungkinan memperkecil efek yang hendak diukur. Yang membuat hal itu tidak membatalkan
+pilihan ini adalah bentuk sinyalnya: yang kami ambil dari blok ini bukan perbandingan
+antar-kelompok, melainkan kontras dalam-subjek---tatapan ke target sesudah isyarat
+dibanding sebelum isyarat, pada anak yang sama dan aktor yang sama, di dalam percobaan
+yang sama. Uji tanda satu sisi pada delapan percobaan tidak menuntut norma populasi.
+
+Wajah skematik memang memicu \emph{gaze following}. Bayi baru lahir membedakan tatapan
+langsung dari tatapan menyamping pada wajah skematik dan berpindah lebih cepat ke target
+periferal ketika gerak pupil terlihat~\cite{farroni2004}. Efek itu dibawa oleh sifat
+perseptual tertentu, bukan oleh keberadaan wajah secara umum, dan dua di antaranya
+merupakan syarat rancangan yang dapat diuji. Pertama, polaritas kontras mata: isyarat
+bergantung pada pola lazim pupil gelap di atas sklera terang, dan polaritas terbalik
+menghasilkan efek yang jauh lebih lemah~\cite{gredeback2018}. Kedua, gerak pupil harus
+terlihat; wajah yang sekadar digambar sudah menghadap ke samping bukan stimulus yang
+sama. Aset kami memenuhi keduanya---sklera \texttt{\#fffdf7} melawan pupil
+\texttt{\#16181b}, dan bola mata bergeser 16 piksel pada onset dengan transisi 240~ms
+berjeda 50~ms sehingga mata berangkat mendahului kepala dan tangan---dan keduanya dijaga
+uji kontrak, sehingga penataan ulang gaya visual tidak dapat mencabutnya diam-diam.
+Struktur percobaannya sendiri mengikuti paradigma \emph{responding joint attention} pada
+balita~\cite{billeci2019}, dengan epok ostensif yang memulihkan kontak mata sebelum ada
+informasi arah sama sekali.
+
+Alasan operasionalnya juga bukan sekadar kemudahan. Onset jatuh pada milidetik yang
+dideklarasikan protokol di semua tablet tanpa bergantung pada dekoder atau frame yang
+jatuh, dan analisis pra/pasca-isyarat bergantung persis pada ketepatan itu. Asetnya kecil
+dan berjalan luring penuh, stimulusnya berupa kode berversi yang dapat di-\emph{diff}
+alih-alih gumpalan biner, dan tidak ada anak yang perlu direkam sehingga tidak ada
+persoalan izin maupun privasi rekaman.
+
+Batasnya tetap harus dinyatakan: tidak ada satu pun bukti bahwa balita merespons aktor
+ini. Yang ada adalah paradigma terbit, sifat perseptual yang sesuai literatur, dan
+rancangan yang dijaga uji. Apakah balita benar-benar mengikuti isyaratnya adalah
+pertanyaan Gate~C.
+
+\subsection{Tidak ada pengukuran yang melintasi batas medium}
+
+Satu sesi menampilkan dua dunia visual: klip video terbit pada blok pilihan tontonan, dan
+aktor vektor pada sisanya. Perpindahan itu terlihat oleh peserta, dan pertanyaan yang
+tepat bukan apakah tampilannya menyambung melainkan apakah ada besaran yang dihitung
+melintasi sambungannya. Preferensi geometrik dihitung seluruhnya di dalam klip oleh
+modulnya sendiri; mengikuti isyarat membandingkan pasca-isyarat dengan pra-isyarat di
+dalam percobaan vektor yang sama; respons nama adalah deteksi peristiwa di dalam blok
+vektor. Tidak satu pun melintasi batas itu.
+
+Satu pengecualian sempat ada dan karena itu dicabut. Diferensial kedipan membandingkan
+fase aktor dengan blok video, sehingga kontras ``sosial lawan non-sosial'' tercampur
+penuh dengan ``vektor lawan video nyata'', dengan arah bias yang sistematis. Ditambah
+jendela 16,75 detik yang mengkuantisasi laju kedip pada kelipatan 3,6 per menit, selisih
+yang terukur didominasi derau pencacahan. Indeks itu tetap dilaporkan secara deskriptif
+tetapi tidak lagi menjadi sinyal keputusan.
+
+
 \subsection{Data}
 
 Pengembangan memakai dua dataset publik, satu dipakai dan satu ditolak lewat audit, serta
@@ -1118,6 +1181,21 @@ T.~H. Wen, A.~Cheng, C.~Andreason, J.~Zahiri, Y.~Xiao, R.~Xu, B.~Bao, E.~Courche
 C.~C. Barnes, S.~J. Arias, dan K.~Pierce. Large scale validation of an early-age
 eye-tracking biomarker of an autism spectrum disorder subtype. \emph{Scientific Reports},
 12(1):4253, 2022. doi:10.1038/s41598-022-08102-6.
+
+\bibitem{billeci2019}
+L.~Billeci, S.~Narzisi, A.~Tonacci, dkk. Disentangling the initiation from the response
+in joint attention: an eye-tracking study in toddlers with autism spectrum disorders.
+\emph{Frontiers in Psychology}, 10:2187, 2019. doi:10.3389/fpsyg.2019.02187.
+
+\bibitem{farroni2004}
+T.~Farroni, S.~Massaccesi, D.~Pividori, dan M.~H. Johnson. Gaze following in newborns.
+\emph{Infancy}, 5(1):39-60, 2004.
+
+\bibitem{gredeback2018}
+G.~Gredeb\"ack dkk. Schematic eye-gaze cues influence infants' object encoding dependent
+on their contrast polarity. \emph{Scientific Reports}, 7:9506, 2017.
+doi:10.1038/s41598-017-10108-4.
+
 
 \bibitem{fda2022}
 U.S. Food and Drug Administration. EarliPoint System, 510(k) K213882, 2022; EarliPoint,

@@ -1,6 +1,5 @@
 import { isDemonstrationOutcome, type GeoprefOutcome } from "../geopref/score";
 import type { JointAttentionVerdict } from "../inference/jointAttention";
-import type { BlinkIndex } from "../phenotype/blink";
 import type { ResponseToNameIndex } from "../phenotype/responseToName";
 
 /**
@@ -13,12 +12,22 @@ import type { ResponseToNameIndex } from "../phenotype/responseToName";
  * that can be read without a population norm:
  *
  *  - geometric preference has a published external cutoff;
- *  - cue following, blink differential, and response to name are all
- *    within-subject contrasts — the child is compared against itself.
+ *  - cue following and response to name are within-subject contrasts — the
+ *    child is compared against itself, inside a single stimulus medium.
  *
- * facingForward and headMovement are deliberately absent. Both carry precedent
- * AUCs but no transferable cutoff, so including them would mean making a number
- * up. They stay on the report as descriptive measures.
+ * Three indices are deliberately absent. facingForward and headMovement carry
+ * precedent AUCs but no transferable cutoff, so scoring them would mean making
+ * a number up. The blink differential is out for two independent reasons: the
+ * only non-actor block in the battery is the preferential-looking clip, so the
+ * social/non-social contrast is fully confounded with rendering medium (vector
+ * against real video), and a 16.75 s window quantises blink rate at 3.6 per
+ * minute, which is coarser than the effect being looked for. All three stay on
+ * the report as descriptive measures.
+ *
+ * What survives is a rule where no number is computed across the seam between
+ * the two stimulus media: geometric preference is scored entirely inside the
+ * video block, cue following and response to name entirely inside the vector
+ * block.
  *
  * This recommends a follow-up examination. It does not diagnose, and a rule
  * that does not fire is not a clean bill of health.
@@ -40,7 +49,6 @@ export type SignalStatus = "menyimpang" | "normal" | "tidak_dapat_dinilai";
 export type ReferralSignalId =
   | "geometric_preference"
   | "cue_following"
-  | "blink_differential"
   | "response_to_name";
 
 export type ReferralSignal = {
@@ -58,8 +66,6 @@ export type ReferralSignal = {
 export type ReferralInput = {
   geopref: { percentGeometric: number | null; threshold: number; outcome: GeoprefOutcome } | null;
   jointAttention: { verdict: JointAttentionVerdict; trialsScored: number; trialsFollowed: number; pValue: number | null } | null;
-  blinkSocial: BlinkIndex | null;
-  blinkNonsocial: BlinkIndex | null;
   responseToName: ResponseToNameIndex | null;
 };
 
@@ -79,17 +85,9 @@ export type ReferralRecommendation = {
 };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
-const rate = (value: number) => value.toFixed(1).replace(".", ",");
 
 const WEN = "Wen dkk. 2022, Scientific Reports, n=1.863, usia 12–48 bulan";
 const RJA = "Paradigma responding joint attention (Billeci dkk. 2019); uji tanda dalam-subjek";
-/**
- * The contrast is actor scenes against the preferential-looking block, which is
- * the only non-actor content in the battery. That block still carries a social
- * panel beside the geometric one, so this is not a clean social/non-social
- * split and the source line says so rather than implying one.
- */
-const SHULTZ = "Shultz dkk. 2011, PNAS: supresi kedip saat konten sosial. Pembanding di sini adalah blok pilihan tontonan, yang masih memuat satu panel sosial — kontrasnya tidak murni.";
 const NADIG = "Nadig dkk. 2007; Perochon dkk. 2023, Nature Medicine";
 
 function geometricSignal(geopref: ReferralInput["geopref"]): ReferralSignal {
@@ -152,23 +150,6 @@ function cueSignal(profile: ReferralInput["jointAttention"]): ReferralSignal {
   };
 }
 
-function blinkSignal(social: BlinkIndex | null, nonsocial: BlinkIndex | null): ReferralSignal {
-  const base = { id: "blink_differential" as const, label: "Kedipan saat adegan sosial", source: SHULTZ };
-  if (!social || !nonsocial || social.blinksPerMinute === null || nonsocial.blinksPerMinute === null) {
-    return { ...base, status: "tidak_dapat_dinilai", measured: "tidak terukur", reason: "Durasi salah satu blok terlalu pendek untuk menghitung laju kedip." };
-  }
-  const measured = `${rate(social.blinksPerMinute)} vs ${rate(nonsocial.blinksPerMinute)} kedip/menit`;
-  const deviant = social.blinksPerMinute >= nonsocial.blinksPerMinute;
-  return {
-    ...base,
-    status: deviant ? "menyimpang" : "normal",
-    measured,
-    reason: deviant
-      ? "Laju kedip tidak turun saat adegan sosial, padahal konten sosial yang menarik biasanya menekannya."
-      : "Laju kedip turun saat adegan sosial dibandingkan blok non-sosial pada anak yang sama.",
-  };
-}
-
 function nameSignal(index: ResponseToNameIndex | null): ReferralSignal {
   const base = { id: "response_to_name" as const, label: "Respons terhadap panggilan nama", source: NADIG };
   if (!index || index.callsDelivered === 0 || index.proportion === null) {
@@ -190,7 +171,6 @@ export function buildReferralRecommendation(input: ReferralInput): ReferralRecom
   const signals: ReferralSignal[] = [
     geometricSignal(input.geopref),
     cueSignal(input.jointAttention),
-    blinkSignal(input.blinkSocial, input.blinkNonsocial),
     nameSignal(input.responseToName),
   ];
   const assessableCount = signals.filter((item) => item.status !== "tidak_dapat_dinilai").length;

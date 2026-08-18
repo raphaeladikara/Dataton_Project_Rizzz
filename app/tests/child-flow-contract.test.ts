@@ -318,3 +318,41 @@ test("the child calibration target is a face that stays visible while active", (
   assert.match(page, /<CalibrationCharacter active=\{calibrationTarget === index\} \/>/);
   assert.doesNotMatch(page, /calibrationTarget === index \? <i \/> : useTechnicalCalibration \? index \+ 1 : <IconChild/);
 });
+
+test("the vector actor keeps the eye properties gaze cueing depends on", () => {
+  // Schematic faces do drive gaze following in infancy, but the effect is
+  // carried by specific perceptual properties rather than by "a face" in the
+  // abstract. Two of them are checkable here, so a restyle cannot quietly
+  // remove them:
+  //
+  //  1. Contrast polarity. Cueing relies on the ordinary pattern of a dark
+  //     pupil on a light sclera; reversed polarity elicits distinctly weaker
+  //     effects.
+  //  2. Visible pupil motion. The cue is the eyes moving, not a face drawn
+  //     already looking sideways.
+  const hex = (selector: string) => {
+    const at = sessionCss.indexOf(`${selector} {`);
+    if (at < 0) return undefined;
+    return sessionCss.slice(at, sessionCss.indexOf("}", at)).match(/fill:\s*(#[0-9a-fA-F]{6})/)?.[1];
+  };
+  const luminance = (value: string) => {
+    const n = parseInt(value.slice(1), 16);
+    return 0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255);
+  };
+  const sclera = hex(".sclera");
+  const pupil = hex(".pupil");
+  const iris = hex(".iris");
+  assert.ok(sclera && pupil && iris, "sclera, iris and pupil must all be explicitly filled");
+  assert.ok(
+    luminance(sclera!) - luminance(pupil!) > 150,
+    `pupil ${pupil} must stay far darker than sclera ${sclera}`,
+  );
+  assert.ok(luminance(iris!) < luminance(sclera!), "iris must be darker than the sclera");
+
+  // The eyes lead the cue and actually translate; a static sideways drawing
+  // would not be the same stimulus.
+  assert.match(sessionCss, /\.stimulusScene\.visual-gaze-left\.cue-active \.eyeball[\s\S]{0,120}?translate\(-\d+px/);
+  assert.match(sessionCss, /\.stimulusScene\.visual-gaze-right\.cue-active \.eyeball[\s\S]{0,120}?translate\(\d+px/);
+  // Eye contact is established in the ostensive epoch, before any direction.
+  assert.match(sessionCss, /\.stimulusScene\.ostensive \.eyeball\s*\{[^}]*translate\(0, 0\)/);
+});

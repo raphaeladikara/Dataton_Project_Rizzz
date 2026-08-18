@@ -18,7 +18,7 @@ periksa apakah ia merespons.
 
 ## Apa yang dibuktikan dan tidak dibuktikan
 
-**Dibuktikan:** empat sinyal keputusan di `app/src/outcome/referralRecommendation.ts`
+**Dibuktikan:** tiga sinyal keputusan di `app/src/outcome/referralRecommendation.ts`
 bergerak ke arah yang benar ketika pola yang dicari benar-benar diproduksi.
 
 **Tidak dibuktikan:** apa pun tentang autisme. Peserta adalah orang dewasa yang
@@ -58,25 +58,26 @@ Peserta menonton baterai tanpa instruksi apa pun selain melihat layar dengan waj
 
 ### Kondisi 2 — pola diproduksi
 
-Empat butir. Tiap butir memetakan ke tepat satu sinyal keputusan.
+Tiga butir. Tiap butir memetakan ke tepat satu sinyal keputusan.
 
 | # | Yang dilakukan peserta | Sinyal yang disasar | Dasar arah |
 |---|---|---|---|
 | 1 | Selama blok pilihan tontonan, pandangan diarahkan ke panel geometrik | `geometric_preference` | Wen dkk. 2022, *Scientific Reports* 12:4253, n=1.863, usia 12–48 bulan |
 | 2 | Tidak mengikuti arah mata maupun tunjukan model; pandangan tetap di tengah | `cue_following` | Paradigma responding joint attention, Billeci dkk. 2019 |
 | 3 | Tidak menoleh saat nama dipanggil | `response_to_name` | Nadig dkk. 2007; Perochon dkk. 2023, *Nature Medicine* |
-| 4 | Laju kedip dipertahankan sama antara adegan aktor dan blok pilihan tontonan | `blink_differential` | Shultz dkk. 2011, *PNAS* |
 
-Butir 4 adalah yang paling sulit dikendalikan secara sadar dan paling mungkin gagal.
-Kalau gagal, laporkan apa adanya — sinyal yang tidak bergerak adalah hasil, bukan
-kesalahan pelaksanaan.
+Di lapangan sinyal 1 selalu berstatus *tidak dapat dinilai*, karena ambang 69% ditahan
+selama stimulus terbit belum tersedia. Jadi yang benar-benar dapat dinilai pada sesi
+biasa hanya dua, dan aturan menuntut keduanya menyimpang. Itu memang konservatif, dan
+lebih baik daripada menambah sinyal keempat yang tidak dapat ditafsirkan.
 
-### Catatan tentang butir 4
-
-Pembanding non-sosial satu-satunya di baterai ini adalah blok pilihan tontonan, dan
-blok itu masih memuat satu panel sosial di samping panel geometrik. Kontrasnya
-karena itu tidak murni. Keterbatasan ini sudah tercetak di sumber sinyalnya di
-laporan, bukan hanya di catatan ini.
+**Kedipan sengaja tidak ikut.** Versi sebelumnya memasukkan diferensial kedipan sosial
+vs non-sosial sebagai butir keempat. Itu dicabut karena dua alasan yang berdiri
+sendiri-sendiri: satu-satunya blok non-aktor di baterai ini adalah klip pilihan
+tontonan, sehingga kontrasnya tercampur penuh dengan medium penyajian (vektor gambar
+tangan lawan video nyata); dan jendela 16,75 detik mengkuantisasi laju kedip pada
+kelipatan 3,6 per menit, sehingga selisihnya didominasi derau pencacahan sebelum isi
+adegan sempat berpengaruh. Kedipan tetap dilaporkan sebagai angka deskriptif.
 
 ---
 
@@ -106,7 +107,7 @@ daripada tangkapan layar lama; itu perbaikan ukuran sudut, bukan aset yang berbe
 
 ## Yang dilaporkan
 
-Untuk tiap sesi: kondisi, status keempat sinyal, dan apakah aturan komposit menyala.
+Untuk tiap sesi: kondisi, status ketiga sinyal, dan apakah aturan komposit menyala.
 Ditambah pernyataan lingkup di setiap tempat angka itu muncul:
 
 - jumlah peserta dan jumlah sesi, apa adanya;
@@ -115,6 +116,6 @@ Ditambah pernyataan lingkup di setiap tempat angka itu muncul:
 - hasilnya responsivitas instrumen, bukan akurasi skrining.
 
 Kalau peserta yang terkumpul mencapai delapan orang atau lebih, regresi logistik pada
-keempat sinyal dengan GroupKFold per orang boleh dilatih dan dilaporkan berdampingan
+ketiga sinyal dengan GroupKFold per orang boleh dilatih dan dilaporkan berdampingan
 sebagai analisis sensitivitas. Di bawah itu, jangan dilatih — laporkan kontrol
 positifnya saja. Aturan transparan tetap menjadi jalur keputusan apa pun hasilnya.
