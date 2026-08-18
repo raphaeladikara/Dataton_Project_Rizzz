@@ -147,6 +147,18 @@ Porsi terbesar setelah demo, dan aset terkuat proyek ini. Tiga cerita pendek.
 > shortcut kami menunjukkan statistik piksel saja sudah mencapai 0,751 dengan
 > permutasi p = 0,005. Bobotnya tidak ada di repositori.
 
+**Keempat, batas yang kami pasang sebelum datanya menggoda.** Sebutkan hanya kalau
+waktunya cukup; kalau tidak, simpan untuk tanya jawab.
+
+> Tidak ada satu pun balita dan tidak ada satu pun anak autistik yang kami rekam.
+> Bukan karena sulit — karena balita tidak bisa memberi persetujuan, dan yang
+> menggantikannya adalah keputusan orang lain yang seharusnya diawasi kaji etik. Lima
+> lembaga kami hubungi dan semuanya menolak, dan pada tahap bukti kami itu benar. Jadi
+> bobot model kami dipasang pada 59 anak berlabel dari data yang peneliti lain sudah
+> terbitkan dengan izin yang mereka punya, lisensi terbuka, ID partisipan lengkap.
+> Perekaman yang tidak boleh kami ulang sudah dilakukan sekali oleh orang yang berhak,
+> dan dibagikan justru supaya tidak perlu diulang.
+
 Satu kalimat penutup bagian ini:
 
 > Tim yang mengoreksi angkanya sendiri lebih layak dipercaya daripada tim yang

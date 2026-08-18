@@ -156,7 +156,9 @@ belum ada:
 
 1. **Persetujuan etik.** Lima lembaga sudah dihubungi dan seluruhnya menolak. Itu
    keputusan yang benar dari pihak mereka pada tahap bukti saat ini, dan kontrol
-   positif adalah salah satu hal yang mengubah tahap itu.
+   positif adalah salah satu hal yang mengubah tahap itu. Sampai izin itu ada, tidak
+   ada balita dan tidak ada anak ASD yang direkam tim ini — bukan untuk demo, bukan
+   untuk melatih apa pun. Batasnya di [`etika_perekaman.md`](etika_perekaman.md).
 2. **Tautan hasil.** Mekanisme yang menghubungkan sesi dengan diagnosis yang keluar
    berbulan-bulan kemudian, tanpa menyimpan identitas anak di perangkat. Ini masalah
    desain privasi, bukan masalah teknis, dan belum dipecahkan.
@@ -173,16 +175,24 @@ daripada menyebutnya sebagai kemampuan.
 
 | Tahap | Yang dikerjakan | Prasyarat |
 |---|---|---|
+| Sekarang | Cabut kekeliruan absence-of-evidence pada `cueSignal` | Tidak ada |
 | Sekarang | Kontrol positif, 8–10 dewasa | Tidak ada |
-| Sekarang | Lajur komposit dipromosikan jadi lajur rujukan | Kontrol positif lolos kriteria |
+| Sekarang | Kalibrasi likelihood-ratio menggantikan ambang `= 2` | Ekstraksi titik operasi dari makalah |
+| Sekarang | Unduh dan audit data terbit Cilia dkk., pasang bobot antar indeks | Tidak ada — CC BY 4.0 |
 | Sekarang | Uji kegunaan dengan 3 kader sungguhan | Akses ke satu Posyandu |
+| Berikutnya | Lajur komposit dipromosikan jadi lajur rujukan | Kontrol positif lolos kriteria |
 | Berikutnya | Permintaan stimulus GeoPref penuh ke UCSD | Surat sudah didraf |
 | Berikutnya | Antrean sinkronisasi luring untuk log audit | Keputusan desain privasi |
-| Gate C | Studi prospektif dengan hasil klinis | Persetujuan etik, mitra klinis |
+| Gate C | Pita normatif balita + studi prospektif dengan hasil klinis | Persetujuan etik, mitra klinis |
 | Gate D | Implementasi lapangan dengan kader | Gate C lolos |
 
-Tiga baris pertama tidak menunggu siapa pun dan bisa selesai dalam hitungan hari.
+Lima baris pertama tidak menunggu siapa pun dan bisa selesai dalam hitungan hari.
 Itu yang membedakan rencana dari harapan.
+
+Perhatikan di mana pita normatif duduk: ia turun ke Gate C, bukan karena sulit
+dibangun, melainkan karena membangunnya menuntut merekam balita dan itu menuntut kaji
+etik yang belum ada. Detail batas itu di [`etika_perekaman.md`](etika_perekaman.md);
+rancangan yang menggantikannya di [`model_rujukan.md`](model_rujukan.md).
 
 ---
 

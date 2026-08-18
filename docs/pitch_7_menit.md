@@ -194,6 +194,11 @@ Dua cerita, keduanya pendek.
 > Yang kami butuhkan bukan pekerjaan teknis tambahan. Yang kami butuhkan mitra klinis
 > berizin etik. Kami sudah menghubungi lima lembaga dan semuanya menolak — dan itu
 > keputusan yang benar dari pihak mereka.
+>
+> Sampai izin itu ada, tidak ada satu pun balita dan tidak ada satu pun anak autistik
+> yang kami rekam. Bukan untuk melatih model, bukan untuk demo hari ini. Yang berlabel
+> di jalur kami seluruhnya datang dari data yang peneliti lain sudah terbitkan dengan
+> izin yang mereka punya.
 
 Berhenti di sini. Jangan menambahkan kalimat penutup yang menjual.
 
@@ -218,6 +223,31 @@ Kami tidak yakin, dan tidak mengklaim yakin. Yang kami buktikan tiga hal: alat u
 teliti (Gate A), aliran pengukurannya sejalan dengan metode yang divalidasi untuk balita
 (Gate B), dan ambang keputusannya diambil dari studi 1.863 balita, bukan dari data kami.
 Yang belum terbukti adalah performa skrining pada balita Indonesia. Itu Gate C.
+
+**"Kenapa tidak rekam anak-anak di sekitar kalian saja buat data? Cuma 80 detik."**
+Durasi bukan yang menentukan. Balita tidak bisa memberi persetujuan, jadi yang
+menggantikannya adalah keputusan orang lain, dan struktur yang mengawasi keputusan itu
+namanya kaji etik. Melewatinya bukan mempercepat penelitian — itu menghapus satu-satunya
+pihak yang mewakili kepentingan anaknya. Kami menghubungi lima lembaga dan semuanya
+menolak, dan pada tahap bukti kami hari ini itu keputusan yang benar. Kalau kami
+bersedia melewatinya demi lomba, tidak ada alasan percaya kami tidak akan melewatinya
+untuk hal lain.
+
+**"Kalau tidak ada balita, model kalian dilatih pakai apa?"**
+Data eye-tracking anak ASD dan TD yang sudah diterbitkan terbuka — Cilia dkk. 2022, CC
+BY 4.0, 59 anak, koordinat mentah, ID partisipan ada. Consent-nya diambil pihak yang
+punya izinnya. Kami tidak merekam satu anak pun. Yang kami pindahkan dari sana adalah
+bobot relatif antar indeks, bukan titik operasinya, dan pernyataan lingkupnya ikut ke
+laporan: anak 3–12 tahun dengan eye-tracker lab bukan balita 12–48 bulan dengan kamera
+tablet. Ambang keputusannya sendiri kami cabut dan ganti dengan penjumlahan likelihood
+ratio yang tiap sukunya punya kutipan — sinyal tanpa titik operasi terbit dapat LR satu
+dan tidak menggerakkan apa pun.
+
+**"Angkanya jadi berapa?"**
+Pada prevalensi satu persen, hasil GeoPref positif menggerakkan probabilitas ke sekitar
+delapan persen. Delapan persen itu yang membenarkan kalimat "disarankan pemeriksaan
+lanjutan", dan sekaligus yang membantah kalau ada yang membacanya sebagai diagnosis.
+Kami lebih suka menyebut angka yang rendah hati daripada tidak menyebut angka.
 
 **"Bagaimana dengan bias?"**
 Harus disebut di muka: pada studi aslinya, spesifisitas SenseToKnow 53,6 persen pada anak

@@ -18,6 +18,12 @@ Jalur dari kontrol positif menuju produk yang mengeluarkan rujukan ada di
 [`jalur_rujukan.md`](jalur_rujukan.md). Baca itu dulu kalau yang ingin diketahui
 adalah *kenapa ini penting*; catatan ini menjawab *bagaimana menjalankannya*.
 
+**Kontrol positif adalah fondasi, bukan puncak.** Ia uji validitas, bukan prosedur
+pelatihan, dan tidak ada jalur dari sepuluh orang dewasa yang memperagakan pola menuju
+bobot yang bisa dipelajari. Modelnya datang dari tempat lain —
+[`model_rujukan.md`](model_rujukan.md) — dan kontrol positif adalah yang menentukan
+apakah model itu pantas dihubungkan ke keluaran sesi sama sekali.
+
 ---
 
 ## Apa yang dibuktikan dan tidak dibuktikan
@@ -29,6 +35,12 @@ bergerak ke arah yang benar ketika pola yang dicari benar-benar diproduksi.
 memproduksi pola secara sengaja. Ini bukan sensitivitas, bukan spesifisitas, dan
 bukan akurasi. Angka-angka itu baru ada di Gate C.
 
+**Juga tidak dihasilkan:** model. Sepuluh peserta yang mengikuti naskah tidak
+menghasilkan bobot yang bisa dipelajari, dan melatih apa pun pada data akting akan
+menghasilkan model yang mempelajari naskahnya. Kalau kontrol positif adalah
+satu-satunya yang dikerjakan, produknya berhenti sebagai alat dokumentasi — persis
+keadaan yang ingin dikeluarkan darinya.
+
 Ini juga bukan validasi ambang. Batas "dua sinyal menyimpang" tetap pilihan desain
 sampai ada balita berlabel.
 
@@ -36,6 +48,29 @@ Yang dihasilkan adalah satu kalimat yang sekarang belum bisa diucapkan sama seka
 *"aturan komposit menyala pada N dari M sesi pola-diproduksi dan pada K dari M sesi
 menonton-biasa."* Itu bukan akurasi klinis, tapi itu bukti responsivitas — dan
 responsivitas adalah prasyarat yang belum dipenuhi proyek ini.
+
+---
+
+## Kenapa peserta harus dewasa
+
+Pertanyaan yang wajar: kalau yang diukur adalah pola perhatian balita, kenapa yang
+direkam orang dewasa?
+
+Jawabannya bukan kepraktisan. Merekam balita menuntut kaji etik yang menyahkan
+persetujuan orang tua, dan lima lembaga yang dihubungi untuk itu seluruhnya menolak.
+Pada tahap bukti hari ini, penolakan itu keputusan yang benar dari pihak mereka.
+Merekam anak dengan ASD menuntut lebih dari itu lagi — kelompok rentan, perekrutan yang
+diawasi, dan alasan yang berdiri sendiri kenapa anak itu yang harus menanggung beban
+penelitiannya.
+
+Orang dewasa memberi persetujuan untuk dirinya sendiri, mengerti apa yang direkam, dan
+boleh mencabutnya. Itu satu-satunya konfigurasi yang sah yang tersedia bagi proyek ini
+hari ini, dan kontrol positif dirancang untuk muat di dalamnya alih-alih meminta
+perkecualian.
+
+Batas lengkapnya, apa yang sudah dicoba, dan apa yang harus ada sebelum batas itu
+bergeser: [`etika_perekaman.md`](etika_perekaman.md). Baca sebelum sesi pertama, karena
+di situlah jawaban untuk pertanyaan juri yang hampir pasti datang.
 
 ---
 
@@ -326,7 +361,22 @@ positifnya saja. Aturan transparan tetap menjadi jalur keputusan apa pun hasilny
 
 ## Sesudah kontrol positif
 
-Kontrol positif tidak membuka ambang GeoPref dan tidak menghasilkan sensitivitas.
-Yang dibukanya adalah hak aturan komposit untuk berhenti menjadi panel deskriptif dan
-menjadi lajur rujukan yang sebenarnya. Kriteria promosinya, dan apa yang harus
-dikerjakan sesudahnya, ada di [`jalur_rujukan.md`](jalur_rujukan.md).
+Kontrol positif tidak membuka ambang GeoPref, tidak menghasilkan sensitivitas, dan
+tidak menghasilkan model. Yang dibukanya adalah **hak** aturan komposit untuk berhenti
+menjadi panel deskriptif dan menjadi lajur rujukan yang sebenarnya.
+
+Hak itu berbeda dari isinya. Isi lajur rujukan datang dari dua lapis yang dikerjakan
+secara paralel dan tidak menuntut satu rekaman anak pun:
+
+| Lapis | Menggantikan | Sumbernya |
+|---|---|---|
+| Kalibrasi likelihood-ratio | `REFERRAL_DEVIANT_THRESHOLD = 2` | Titik operasi terbit; sinyal tanpa titik operasi ber-LR = 1 |
+| Bobot antar sinyal | Pencacahan setara antar sinyal | 59 anak berlabel dari data terbit CC BY 4.0 (Cilia dkk. 2022) |
+
+Rancangan lengkapnya di [`model_rujukan.md`](model_rujukan.md); urutan pengerjaan dan
+kriteria promosinya di [`jalur_rujukan.md`](jalur_rujukan.md).
+
+Urutannya penting dan tidak boleh dibalik: **instrumen yang tidak merespons tidak
+pantas mengeluarkan rujukan, seberapa pun rapi kalibrasinya.** Kalau kontrol positif
+gagal memenuhi kriteria promosi, lajur komposit tetap deskriptif meskipun bobotnya
+sudah terpasang dengan baik.
