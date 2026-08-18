@@ -17,6 +17,8 @@ from typing import Any
 
 import numpy as np
 
+from recompute_gate_b import recomputation_report, verify_pair_metrics
+
 
 WEBGAZER_SCHEMA = "neurogaze-webgazer-comparison-v3"
 
@@ -127,6 +129,10 @@ def _webgazer_input_digest(pairs: list[dict[str, Any]]) -> str:
 
 def summarize_webgazer(pairs: list[dict[str, Any]]) -> dict[str, Any]:
     ready = [pair for pair in pairs if pair.get("status") == "comparison_ready" and pair.get("contractVerified") is True]
+    # Every distance below is rederived from the matched coordinates before it is
+    # aggregated, so the summary reports checked numbers rather than trusted ones.
+    verify_pair_metrics(ready)
+    recomputation = recomputation_report(ready)
     valid_pair_rate = len(ready) / len(pairs)
     median_error_px = _rounded(np.median([pair["medianErrorPx"] for pair in ready])) if ready else None
     median_error_norm = _rounded(np.median([pair["medianErrorNorm"] for pair in ready])) if ready else None
@@ -173,6 +179,7 @@ def summarize_webgazer(pairs: list[dict[str, Any]]) -> dict[str, Any]:
             "webgazer": _mean_aoi_distribution(ready, "webgazer") if ready else {},
             "tabletNeurogaze": _mean_aoi_distribution(ready, "tabletNeurogaze") if ready else {},
         },
+        "recomputation": recomputation,
         "meanFeatureIccA1": _rounded(np.mean(icc_values)) if icc_values else None,
         "featureAgreement": agreements,
         "referenceRuntime": reference_runtime,

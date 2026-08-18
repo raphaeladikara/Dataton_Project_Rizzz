@@ -27,6 +27,107 @@
       "background": 0.168152
     }
   },
+  "recomputation": {
+    "module": "research/recompute_gate_b.py",
+    "scope": "Published pair metrics rederived from sampleMatches coordinates.",
+    "aoiVersion": "neurogaze-aoi-v3.1.0",
+    "pairsVerified": 27,
+    "pairsWithoutRawSamples": 0,
+    "geometryTolerance": {
+      "medianErrorPx": 0.01,
+      "medianErrorNorm": 0.0001
+    },
+    "geometryReproduced": true,
+    "meanAoiAgreementRecomputed": 0.997118,
+    "pairsWithAoiClassificationDelta": 4,
+    "aoiClassificationDeltas": [
+      {
+        "pairId": "GBC-G3NSM8TK",
+        "storedAoiAgreement": 0.9969,
+        "recomputedAoiAgreement": 0.993769,
+        "difference": -0.003131,
+        "matchedSamples": 321,
+        "samplesInDifferentAoi": [
+          {
+            "webgazerSequence": 169,
+            "phase": "gaze_left",
+            "webgazerAoi": "left_target",
+            "tabletAoi": "background"
+          },
+          {
+            "webgazerSequence": 404,
+            "phase": "gaze_right",
+            "webgazerAoi": "left_target",
+            "tabletAoi": "right_target"
+          }
+        ]
+      },
+      {
+        "pairId": "GBC-HLEYMCXB",
+        "storedAoiAgreement": 0.9968,
+        "recomputedAoiAgreement": 0.993691,
+        "difference": -0.003109,
+        "matchedSamples": 317,
+        "samplesInDifferentAoi": [
+          {
+            "webgazerSequence": 597,
+            "phase": "pointing_right",
+            "webgazerAoi": "right_target",
+            "tabletAoi": "background"
+          },
+          {
+            "webgazerSequence": 681,
+            "phase": "pointing_right",
+            "webgazerAoi": "background",
+            "tabletAoi": "right_target"
+          }
+        ]
+      },
+      {
+        "pairId": "GBC-LXYZAAGA",
+        "storedAoiAgreement": 1,
+        "recomputedAoiAgreement": 0.997015,
+        "difference": -0.002985,
+        "matchedSamples": 335,
+        "samplesInDifferentAoi": [
+          {
+            "webgazerSequence": 298,
+            "phase": "gaze_right",
+            "webgazerAoi": "background",
+            "tabletAoi": "right_target"
+          }
+        ]
+      },
+      {
+        "pairId": "GBC-WL57Z48S",
+        "storedAoiAgreement": 0.9941,
+        "recomputedAoiAgreement": 0.991124,
+        "difference": -0.002976,
+        "matchedSamples": 338,
+        "samplesInDifferentAoi": [
+          {
+            "webgazerSequence": 296,
+            "phase": "gaze_right",
+            "webgazerAoi": "background",
+            "tabletAoi": "right_target"
+          },
+          {
+            "webgazerSequence": 417,
+            "phase": "pointing_left",
+            "webgazerAoi": "right_target",
+            "tabletAoi": "left_target"
+          },
+          {
+            "webgazerSequence": 553,
+            "phase": "pointing_right",
+            "webgazerAoi": "left_target",
+            "tabletAoi": "right_target"
+          }
+        ]
+      }
+    ],
+    "note": "Distances rederive to within 0.001 px. AOI agreement is lower on 4 pairs because single matched samples sit just outside an AOI box under neurogaze-aoi-v3.1.0 yet were counted as agreeing at capture time. The capture harness is not in this repository, so the recomputed value is the one to quote."
+  },
   "meanFeatureIccA1": 0.505043,
   "featureAgreement": {
     "aspect_ratio": {
