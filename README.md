@@ -29,7 +29,7 @@ transfer. It runs only behind an out-of-distribution guard in the research panel
 | Gate | Status | Canonical result |
 |---|---|---|
 | A | **Passed** | 100 sessions, 25 participants, 3 devices; 94% completion, 2.207° median calibration error, 96.4% mean valid-frame rate, 3.6% mean dropout |
-| B | **Passed** | 30 simultaneous browser comparisons against WebGazer.js 3.5.3; 27 ready, 3 withheld, 0.040997 median normalized error, 99.7574% mean AOI agreement |
+| B | **Passed** | 30 simultaneous browser comparisons against WebGazer.js 3.5.3; 27 ready, 3 withheld, 0.040997 median normalized error, 99.7118% mean AOI agreement recomputed from raw coordinates |
 | C | Open | Prospective clinical validation in the target population has not been completed. Target: sensitivity 88% / specificity 81%, from Perochon et al. 2023 |
 | D | Open | Field implementation with Posyandu operators has not been completed |
 
@@ -40,14 +40,36 @@ sessions, against WebGazer's published 4.17° (Papoutsaki et al. 2016).
 
 The raw Gate A/B exports, derived summaries, and SHA-256 manifest are stored in [`research/hasil`](research/hasil). The complete interpretation and acceptance criteria are in [`docs/bukti_gate_a_b.md`](docs/bukti_gate_a_b.md).
 
+Every published pair metric is rederived from the raw coordinates by
+[`research/recompute_gate_b.py`](research/recompute_gate_b.py). Distances reproduce to
+0.001 px; AOI agreement does not, on 4 of 27 pairs, and the difference is published in
+`gate_b_summary.json` rather than reconciled away.
+
+### What a live session outputs
+
+A completed camera session produces a per-child report: the GeoPref percentage, the
+five behavioural indices with their precedent AUCs, and an explicit outcome —
+rule-in, measured without rule-in, protocol abbreviated, or withheld. The report can
+be printed as a one-page hand-off for the Puskesmas. The audit log stays in memory
+until the operator exports or deletes it.
+
+GeoPref currently runs on a 16.75-second CC BY clip rather than the full published
+stimulus, so `validatedProtocol` is false and the 69% cutoff is **held**: the session
+reports the measured percentage and says the protocol was abbreviated. The access
+request for the full stimulus is in
+[`docs/provenance/permintaan_stimulus_ucsd.md`](docs/provenance/permintaan_stimulus_ucsd.md).
+
+The reasoning behind these decisions is recorded in
+[`docs/keputusan_ilmiah.md`](docs/keputusan_ilmiah.md).
+
 ### Known gaps
 
-- Replay still plays synthetic points, so the behavioural indices are empty there.
-  Recording adult sessions into `app/public/replay/` replaces it.
-- `research/hasil/gate_c_simulation.json` still assumes CNN performance for a model
-  that cannot run on the target device.
-- `research/hasil/model.json` ships only the sensitivity-0.9 operating point; the
-  Youden point exists in the paper but not yet in the artifact.
+- Replay still plays synthetic points unless a recorded session is dropped into
+  `app/public/replay/`, so the behavioural indices are empty on the fallback path
+  and the demo report is withheld. The loader and the export both exist.
+- The Gate B known-target block (nine targets, absolute accuracy for both streams)
+  is implemented on the analysis side but no session has recorded one yet.
+- No toddler appears in any evidence in this repository.
 
 ## Run the application
 
