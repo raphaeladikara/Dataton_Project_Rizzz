@@ -68,7 +68,7 @@
         "sensitivity": 0.17,
         "specificity": 0.98,
         "threshold": 0.69,
-        "source": "Wen et al. 2022, Molecular Autism, n=1.863, usia 12-49 bulan"
+        "source": "Wen et al. 2022, Scientific Reports, n=1.863, usia 12-48 bulan"
       },
       "note": "Satu-satunya pemicu rujukan otomatis di produk. Sensitivitas rendah adalah sifat alat rule-in, bukan cacat implementasi.",
       "expected_counts": {

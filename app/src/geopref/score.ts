@@ -1,7 +1,7 @@
 import type { Point } from "../domain/types";
 import { classifyGeoprefAoi, projectGeoprefAoi, type GeoprefSide } from "./protocol";
 
-/** Wen et al. 2022, Molecular Autism: >=69% geometric fixation, n=1863, 12-49 months. */
+/** Wen et al. 2022, Scientific Reports: >=69% geometric fixation, n=1863, 12-48 months. */
 export const GEOPREF_THRESHOLD = 0.69;
 export const MIN_AOI_COVERAGE = 0.5;
 export const MIN_VALID_SAMPLES = 60;

@@ -101,7 +101,7 @@ di fasilitas mahal. Makalah ini memperkenalkan Neurogaze, PWA luring untuk trias
 sampai 30 bulan pada tablet Android biasa yang dioperasikan kader Posyandu. Kamera
 mengestimasi pola pandangan selama stimulus sosial dan menahan sesi yang gagal memenuhi
 syarat kualitas. Keputusannya berlapis tiga. Satu-satunya pemicu rujukan otomatis adalah
-ambang GeoPref 69 persen yang kami pakai apa adanya dari kohort terbit 1.863 anak usia 12-49
+ambang GeoPref 69 persen yang kami pakai apa adanya dari kohort terbit 1.863 anak usia 12-48
 bulan dengan spesifisitas 98 persen dan sensitivitas 17 persen; enam indeks perilaku
 dilaporkan deskriptif tanpa skor gabungan; dan lapis gabungan belum dibangun karena bobotnya
 menuntut balita berlabel. Regresi logistik terkalibrasi yang dievaluasi di makalah ini tidak
@@ -259,7 +259,7 @@ dapat diukur pada usia ketika instrumen berbasis wawancara belum dapat diterapka
 
 Preferensi geometrik itulah yang kemudian divalidasi pada skala yang cukup besar untuk
 melahirkan ambang. Wen dkk.~\cite{wen2022} menguji ambang 69 persen waktu fiksasi pada pola
-geometrik terhadap 1.863 anak usia 12-49 bulan dan melaporkan sensitivitas 17 persen,
+geometrik terhadap 1.863 anak usia 12-48 bulan dan melaporkan sensitivitas 17 persen,
 spesifisitas 98 persen, PPV 81 persen, dan NPV 65 persen. Bentuk angka itu penting dan
 menentukan seluruh rancangan produk kami: ia menandai subtipe, bukan populasi ASD secara
 keseluruhan, sehingga alat yang dibangun di atasnya hanya sah dipakai untuk menegakkan
@@ -388,7 +388,7 @@ Sistem ini punya tiga lapis dengan kewenangan berbeda.
 \textbf{Lapis~A, GeoPref.} Satu-satunya pemicu rujukan otomatis. Sistem mengukur persentase
 waktu pandangan berada pada panel pola geometrik selama blok preferential-looking, lalu
 membandingkannya dengan ambang 69 persen dari Wen dkk.~\cite{wen2022}: 1.863 anak usia
-12-49 bulan, sensitivitas 17 persen, spesifisitas 98 persen, PPV 81 persen, NPV 65 persen.
+12-48 bulan, sensitivitas 17 persen, spesifisitas 98 persen, PPV 81 persen, NPV 65 persen.
 Ambangnya tidak kami latih, tidak kami optimasi, dan tidak kami geser. Konsekuensinya harus
 dinyatakan sekeras klaimnya: pada sensitivitas 17 persen, alat ini melewatkan sebagian besar
 anak autistik, dan pada NPV 65 persen hasil di bawah ambang hampir tidak mengubah keyakinan.
@@ -422,7 +422,7 @@ pada populasi dan kelas perangkat yang benar, bukan dari data pengembangan kami 
 \textbf{Preseden} & \textbf{Populasi dan perangkat} & \textbf{Performa terbit} &
 \textbf{Peran di Neurogaze} \\
 \midrule
-GeoPref \newline (Wen dkk. 2022) & 1.863 anak, 12-49 bulan; eye-tracker & Sens 17\%,
+GeoPref \newline (Wen dkk. 2022) & 1.863 anak, 12-48 bulan; eye-tracker & Sens 17\%,
 spec 98\%, PPV 81\%, NPV 65\%, ambang 69\% & Lapis~A. Satu-satunya pemicu rujukan otomatis;
 ambang dipakai apa adanya \\
 \addlinespace
@@ -445,13 +445,33 @@ target Gate~C diambil dari performa terbit SenseToKnow alih-alih dikarang.}
 \label{tab:preseden}
 \end{table}
 
-Satu batasan protokol berlaku pada Lapis~A dan harus dibaca bersama ambangnya. Blok
-preferential-looking yang berjalan memakai klip CC~BY 16,75 detik, bukan stimulus terbit
-60-90 detik, sehingga stimulusnya bukan stimulus yang ambang 69 persen divalidasi di atasnya.
-Aplikasi karena itu menyetel \texttt{validatedProtocol} bernilai \texttt{false} dan
-\emph{menahan} ambangnya: sesi melaporkan persentase terukur dan menyatakan protokolnya
-dipersingkat, tanpa memicu rujukan. Permintaan akses stimulus penuh sudah disiapkan; bila
-tiba, ambangnya aktif tanpa perubahan kode lain.
+Satu batasan protokol berlaku pada Lapis~A dan harus dibaca bersama ambangnya. Ambang 69
+persen sudah diterapkan pada dua tes yang berbeda, dan keduanya tidak berbagi preseden.
+Wen dkk.~\cite{wen2022} memvalidasinya pada \emph{GeoPref asli} berdurasi 62,22 detik
+(Tobii T120, $1280 \times 1024$, dua AOI $525 \times 363$ piksel) dan melaporkan
+sensitivitas 17 persen serta spesifisitas 98 persen pada 1.863 anak usia 12-48 bulan. Moore
+dkk.~\cite{moore2018} membawa ambang yang sama ke \emph{Complex Social GeoPref} berdurasi
+90 detik---sebagai pilihan konsistensi, bukan hasil optimasi ulang---dan melaporkan
+sensitivitas 18 persen, spesifisitas 97 persen, serta AUC 0,74 pada sampel yang jauh lebih
+kecil.
+
+Yang berjalan pada aplikasi ini bukan salah satu dari keduanya, melainkan cuplikan 16,75
+detik dari video contoh Complex Social yang diterbitkan sebagai Additional file~2 milik
+Moore dkk. Cuplikan itu memuat satu dari lima adegan dan berdurasi seperlima protokol
+terbitnya. Aplikasi karena itu menyetel \texttt{validatedProtocol} bernilai \texttt{false}
+dan \emph{menahan} ambangnya: sesi melaporkan persentase terukur, menyatakan protokolnya
+dipersingkat, dan tidak memicu rujukan. Tiap aset stimulus pada
+\texttt{app/src/geopref/stimulusMeta.ts} membawa preseden operasionalnya sendiri, sehingga
+angka Wen dkk. tidak dapat menempel pada sesi Complex Social maupun sebaliknya.
+
+Tiga sifat aset itu perlu dinyatakan agar tidak terbaca sebagai cacat implementasi.
+Pertama, klipnya \emph{tidak bersuara}, dan itu memang protokolnya: metode Moore dkk.
+menyatakan bahwa stimulusnya tidak memuat audio. Kedua, panel sosial dan geometriknya
+duduk di dalam bingkai hitam $640 \times 360$ dan hanya menempati 19,8 persen luas
+bingkai, sedangkan dua AOI pada Wen dkk. menempati 29,1 persen luas layar; presentasi di
+perangkat karena itu memangkas kotak hitam agar sudut pandang yang disubtensi mendekati
+angka terbit. Ketiga, integritas berkasnya dijaga SHA-256 yang tercatat pada manifes
+stimulus.
 
 \subsection{Data}
 
@@ -1087,11 +1107,17 @@ K.~Pierce, D.~Conant, R.~Hazin, R.~Stoner, dan J.~Desmond. Preference for geomet
 early in life as a risk factor for autism. \emph{Archives of General Psychiatry},
 68(1):101-109, 2011.
 
+\bibitem{moore2018}
+A.~Moore, M.~Wozniak, A.~Yousef, C.~C. Barnes, D.~Cha, E.~Courchesne, dan K.~Pierce.
+The geometric preference subtype in ASD: identifying a consistent, early-emerging
+phenomenon through eye tracking. \emph{Molecular Autism}, 9:19, 2018.
+doi:10.1186/s13229-018-0202-z.
+
 \bibitem{wen2022}
 T.~H. Wen, A.~Cheng, C.~Andreason, J.~Zahiri, Y.~Xiao, R.~Xu, B.~Bao, E.~Courchesne,
 C.~C. Barnes, S.~J. Arias, dan K.~Pierce. Large scale validation of an early-age
-eye-tracking biomarker of an autism spectrum disorder subtype. \emph{Molecular Autism},
-13:32, 2022. doi:10.1186/s13229-022-00514-5.
+eye-tracking biomarker of an autism spectrum disorder subtype. \emph{Scientific Reports},
+12(1):4253, 2022. doi:10.1038/s41598-022-08102-6.
 
 \bibitem{fda2022}
 U.S. Food and Drug Administration. EarliPoint System, 510(k) K213882, 2022; EarliPoint,

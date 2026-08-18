@@ -29,7 +29,7 @@ landmarks are never stored.
 It is not a diagnostic device. Two lanes reach the report and they are never merged.
 
 The first is the published GeoPref threshold of 69% geometric fixation (Wen et al.
-2022, n=1863, 12–49 months, 98% specificity) — the only cutoff in the system we did
+2022, n=1863, 12–48 months, 98% specificity) — the only cutoff in the system we did
 not choose ourselves, which is exactly why it stays separable.
 
 The second is a composite recommendation: a readable rule over four signals that need

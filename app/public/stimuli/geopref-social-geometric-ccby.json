@@ -1,9 +1,11 @@
 {
-  "schema_version": "neurogaze-stimulus-attribution-v1",
-  "title": "GeoPref Stimulus Video Example",
+  "schema_version": "neurogaze-stimulus-attribution-v2",
+  "title": "Complex Social GeoPref — Stimulus Video Example (Additional file 2)",
   "source_article": "The geometric preference subtype in ASD: identifying a consistent, early-emerging phenomenon through eye tracking",
-  "authors": "Moore et al.",
+  "authors": "Moore, Wozniak, Yousef, Barnes, Cha, Courchesne, Pierce",
   "year": 2018,
+  "journal": "Molecular Autism",
+  "volume": "9:19",
   "doi": "10.1186/s13229-018-0202-z",
   "pmcid": "PMC5861622",
   "license": "CC BY 4.0",
@@ -11,5 +13,27 @@
   "local_file": "/stimuli/geopref-social-geometric-ccby.mp4",
   "duration_seconds": 16.75,
   "sha256": "38576193099bec758837036582b7814a2728c431829e22f9d0e92ffe91fedf2f",
-  "scope_note": "Hanya contoh stimulus publik. Aset ini bukan rangkaian GeoPref lengkap berdurasi 90 detik dan tidak dapat mereplikasi protokol asli dengan sendirinya."
+  "container": {
+    "video_streams": 1,
+    "audio_streams": 0,
+    "codec": "avc1",
+    "frame_size": "640x360",
+    "frames": 502,
+    "encoder_tag": "Lavf57.2.100"
+  },
+  "silent_by_design": "Bukan audio yang hilang. Metode Moore dkk. 2018 menyatakan stimulusnya tidak memuat audio, dan GeoPref asli maupun Complex Social sama-sama disajikan tanpa suara. Jangan menambahkan trek audio.",
+  "content_region": {
+    "x0": 129,
+    "x1": 513,
+    "y0": 120,
+    "y1": 242,
+    "note": "Panel sosial dan geometrik hanya menempati 19,8 persen luas bingkai; sisanya hitam. Aplikasi memangkas kotak hitam ini agar tiap panel mendekati 12,9 x 9,1 derajat seperti yang dilaporkan Moore dkk., bukan sekitar 7,6 x 4,9 derajat bila bingkai ditampilkan utuh.",
+    "geometric_side": "right"
+  },
+  "scope_note": "Cuplikan ini memuat satu dari lima adegan video contoh Complex Social GeoPref dan berdurasi seperlima protokol terbitnya (90 detik). Ia bukan GeoPref asli 62,22 detik yang divalidasi Wen dkk. 2022 pada 1.863 anak, dan bukan pula rangkaian Complex Social lengkap. Karena itu validatedProtocol bernilai false dan ambang 69 persen ditahan.",
+  "threshold_provenance": {
+    "original_geopref_62_22s": "Wen dkk. 2022, Scientific Reports 12:4253, doi:10.1038/s41598-022-08102-6, n=1.863, usia 12-48 bulan, sensitivitas 17 persen, spesifisitas 98 persen",
+    "complex_social_90s": "Moore dkk. 2018, ambang 69 persen dibawa apa adanya demi konsistensi, sensitivitas 18 persen, spesifisitas 97 persen, AUC 0,74, sampel jauh lebih kecil",
+    "this_excerpt": "tidak ada preseden operasional"
+  }
 }

@@ -25,7 +25,7 @@ eye-tracker laboratorium tidak terjangkau. Pekerjaan ini disiapkan untuk sebuah
 kompetisi datathon dan bersifat penelitian, bukan produk komersial.
 
 Alasan kami meminta stimulus asli, dan bukan membuat sendiri: ambang 69% fiksasi
-geometrik yang Anda laporkan (Wen dkk., 2022, *Molecular Autism*, n=1.863) hanya
+geometrik yang Anda laporkan (Wen dkk., 2022, *Scientific Reports* 12:4253, n=1.863) hanya
 sah untuk stimulus yang menghasilkannya. Saat ini kami menjalankan klip CC BY 4.0
 berdurasi 16,75 detik dari Moore dkk. (2018) dan secara sengaja **menahan** ambang
 69% karena protokolnya lebih pendek daripada protokol terbit; aplikasi hanya

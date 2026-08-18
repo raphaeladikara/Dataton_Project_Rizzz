@@ -5,6 +5,8 @@ import {
   GEOPREF_FRAME_AOI,
   GEOPREF_SOURCE_GEOMETRIC_SIDE,
   GEOPREF_VIDEO_ASPECT,
+  GEOPREF_CONTENT_CROP,
+  geoprefPanelDegrees,
   classifyGeoprefAoi,
   geoprefLayout,
   geoprefNeedsMirror,
@@ -30,37 +32,31 @@ test("active asset defaults to the excerpt until the full protocol is present", 
   assert.equal(activeGeoprefAsset().id, "ccbyExcerpt");
 });
 
-test("AOI boxes match the panel bounds measured from the shipped clip", () => {
-  // x 129-316 and 324-513, y 120-242 on a 640x360 frame, stable at every
-  // timestamp sampled from the asset.
-  assert.ok(Math.abs(GEOPREF_FRAME_AOI.left.x0 - 129 / 640) < 1e-9);
-  assert.ok(Math.abs(GEOPREF_FRAME_AOI.right.x1 - 513 / 640) < 1e-9);
-  assert.ok(GEOPREF_FRAME_AOI.left.x1 < GEOPREF_FRAME_AOI.right.x0, "panels must not overlap");
-  // Each panel is ~29% of the frame width, not a whole screen half.
-  const width = GEOPREF_FRAME_AOI.left.x1 - GEOPREF_FRAME_AOI.left.x0;
-  assert.ok(width > 0.25 && width < 0.33, `panel width ${width}`);
-});
-
 test("gaze inside a panel is classified, gaze in the gap or margin is not", () => {
-  assert.equal(classifyGeoprefAoi({ x: 0.35, y: 0.5 }, NATIVE_AOI), "left");
-  assert.equal(classifyGeoprefAoi({ x: 0.65, y: 0.5 }, NATIVE_AOI), "right");
+  // Crop coordinates: left panel 0 to 0.487, gap, right panel 0.508 to 1.
+  assert.equal(classifyGeoprefAoi({ x: 0.25, y: 0.5 }, NATIVE_AOI), "left");
+  assert.equal(classifyGeoprefAoi({ x: 0.75, y: 0.5 }, NATIVE_AOI), "right");
   // The gap between panels must not count for either side.
-  assert.equal(classifyGeoprefAoi({ x: 0.5, y: 0.5 }, NATIVE_AOI), "outside");
-  // Black margin above the panels is not a look at anything.
-  assert.equal(classifyGeoprefAoi({ x: 0.35, y: 0.05 }, NATIVE_AOI), "outside");
-  assert.equal(classifyGeoprefAoi({ x: 0.1, y: 0.5 }, NATIVE_AOI), "outside");
+  assert.equal(classifyGeoprefAoi({ x: 0.4975, y: 0.5 }, NATIVE_AOI), "outside");
+  // Once the surround is cropped away the panels reach the presentation edges,
+  // so the only dead space left is the stage letterbox around the crop.
+  const onSixteenNine = projectGeoprefAoi(16 / 9);
+  assert.equal(classifyGeoprefAoi({ x: 0.25, y: 0.05 }, onSixteenNine), "outside");
+  assert.equal(classifyGeoprefAoi({ x: 0.25, y: 0.5 }, onSixteenNine), "left");
 });
 
 test("letterboxing moves the AOIs with the rendered clip", () => {
-  const wide = projectGeoprefAoi(2.4);
-  const tall = projectGeoprefAoi(1.0);
-  // A wider stage pillarboxes the clip, pushing both panels inward.
-  assert.ok(wide.left.x0 > NATIVE_AOI.left.x0);
-  assert.ok(wide.right.x1 < NATIVE_AOI.right.x1);
-  assert.ok(Math.abs(wide.left.y0 - NATIVE_AOI.left.y0) < 1e-9, "height is unchanged when pillarboxed");
-  // A taller stage letterboxes it, pushing the panels down from the top.
-  assert.ok(tall.left.y0 > NATIVE_AOI.left.y0);
-  assert.ok(Math.abs(tall.left.x0 - NATIVE_AOI.left.x0) < 1e-9, "width is unchanged when letterboxed");
+  // The crop is 3.15:1, wider than any tablet stage, so a 16:9 stage fits it to
+  // width and letterboxes vertically.
+  const tabletish = projectGeoprefAoi(16 / 9);
+  assert.ok(Math.abs(tabletish.left.x0 - NATIVE_AOI.left.x0) < 1e-9, "width is unchanged when letterboxed");
+  assert.ok(tabletish.left.y0 > NATIVE_AOI.left.y0);
+  assert.ok(tabletish.left.y1 < NATIVE_AOI.left.y1);
+  // A stage wider than the crop pillarboxes instead, pushing panels inward.
+  const veryWide = projectGeoprefAoi(4.0);
+  assert.ok(veryWide.left.x0 > NATIVE_AOI.left.x0);
+  assert.ok(veryWide.right.x1 < NATIVE_AOI.right.x1);
+  assert.ok(Math.abs(veryWide.left.y0 - NATIVE_AOI.left.y0) < 1e-9, "height is unchanged when pillarboxed");
 });
 
 test("mirroring is required exactly when the wanted side differs from the source", () => {
@@ -157,4 +153,42 @@ test("demonstration mode cannot rescue a session with too little looking", () =>
   const points = Array.from({ length: 120 }, (_, index) => ({ t: index * 50, x: 0.02, y: 0.02 }));
   const result = scoreGeopref(points, { geometricSide: "right", socialSide: "left", validatedProtocol: false, demonstrationMode: true });
   assert.equal(result.outcome, "WITHHELD_INSUFFICIENT_LOOKING");
+});
+
+test("the black surround is cropped away so the panels are the presentation", () => {
+  // The asset is a supplementary illustration: the two panels occupy only
+  // x 129-513, y 120-242 of a 640x360 frame and the rest is black. Rendering it
+  // whole put the panels at little over half the published visual angle.
+  assert.ok(Math.abs(GEOPREF_CONTENT_CROP.x0 - 129 / 640) < 1e-9);
+  assert.ok(Math.abs(GEOPREF_CONTENT_CROP.x1 - 513 / 640) < 1e-9);
+  assert.ok(Math.abs(GEOPREF_CONTENT_CROP.y0 - 120 / 360) < 1e-9);
+  assert.ok(Math.abs(GEOPREF_CONTENT_CROP.y1 - 242 / 360) < 1e-9);
+  // Aspect is now the crop's, not the source frame's.
+  assert.ok(Math.abs(GEOPREF_VIDEO_ASPECT - 384 / 122) < 1e-9);
+});
+
+test("AOI boxes are expressed against the cropped presentation", () => {
+  // Left panel starts at the crop edge; right panel ends at it.
+  assert.ok(Math.abs(GEOPREF_FRAME_AOI.left.x0) < 1e-9);
+  assert.ok(Math.abs(GEOPREF_FRAME_AOI.right.x1 - 1) < 1e-9);
+  assert.ok(Math.abs(GEOPREF_FRAME_AOI.left.y0) < 1e-9);
+  assert.ok(Math.abs(GEOPREF_FRAME_AOI.left.y1 - 1) < 1e-9);
+  assert.ok(GEOPREF_FRAME_AOI.left.x1 < GEOPREF_FRAME_AOI.right.x0, "panels must not overlap");
+  // Each panel is now roughly half the presentation width, not 29% of a frame
+  // that was mostly black.
+  const width = GEOPREF_FRAME_AOI.left.x1 - GEOPREF_FRAME_AOI.left.x0;
+  assert.ok(width > 0.45 && width < 0.5, `panel width ${width}`);
+});
+
+test("panels subtend close to the published visual angle on a target tablet", () => {
+  // Moore et al. 2018: each AOI subtended 12.9 deg horizontally and 9.1 deg
+  // vertically at 60 cm. This is the claim that decides whether the stimulus is
+  // presented at the size its threshold was derived on, so it is measured here
+  // rather than asserted in a comment.
+  const tabA8 = geoprefPanelDegrees({ stageWidthMm: 226, stageHeightMm: 141, viewingDistanceMm: 500 });
+  assert.ok(Math.abs(tabA8.horizontal - 12.9) < 1.5, `horizontal ${tabA8.horizontal}`);
+  assert.ok(Math.abs(tabA8.vertical - 9.1) < 1.5, `vertical ${tabA8.vertical}`);
+  // Sitting further back shrinks it, and the helper has to show that.
+  const further = geoprefPanelDegrees({ stageWidthMm: 226, stageHeightMm: 141, viewingDistanceMm: 700 });
+  assert.ok(further.horizontal < tabA8.horizontal);
 });

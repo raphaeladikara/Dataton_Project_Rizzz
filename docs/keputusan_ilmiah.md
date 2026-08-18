@@ -35,8 +35,8 @@ menjaga kesetaraan numerik lintas bahasa.
 
 ## 2. Kenapa GeoPref boleh menjadi satu-satunya pemicu rujukan
 
-Ambang 69% fiksasi geometrik berasal dari Wen dkk. 2022 (*Molecular Autism*,
-n=1.863, usia 12–49 bulan, sensitivitas 17%, spesifisitas 98%, PPV 81%, NPV 65%).
+Ambang 69% fiksasi geometrik berasal dari Wen dkk. 2022 (*Scientific Reports*,
+n=1.863, usia 12–48 bulan, sensitivitas 17%, spesifisitas 98%, PPV 81%, NPV 65%).
 Empat hal membuatnya bisa dipindahkan ke sini, dan ketiganya harus benar sekaligus:
 
 - **Usia sasarannya persis sama.** Bukan ekstrapolasi dari anak usia sekolah.
@@ -82,15 +82,43 @@ titik berdampingan; lihat `research/hasil/gate_c_simulation.json`.
 
 ## 6. Status protokol GeoPref hari ini
 
-Stimulus UCSD penuh (60–90 detik) belum tersedia. Yang berjalan adalah klip CC BY
-4.0 16,75 detik dari Moore dkk. 2018, dengan batas panel diukur langsung dari aset
-(x 129–316 sosial, x 324–513 geometrik, y 120–242 pada bingkai 640×360).
+Ambang 69% sudah diterapkan pada **dua tes yang berbeda**, dan keduanya tidak berbagi
+preseden. Ini harus dipisah, karena mencampurnya berarti menempelkan bukti satu tes ke
+pengukuran tes lain:
 
-Karena durasinya di bawah protokol terbit, `validatedProtocol` bernilai `false` dan
-ambang 69% **tidak** diberlakukan: aplikasi melaporkan persentase yang terukur dan
-menyatakan bahwa protokolnya dipersingkat (`MEASURED_PROTOCOL_ABBREVIATED`). Bila
-stimulus penuh datang, flag itu berubah dan ambangnya aktif tanpa perubahan kode
-lain. Permintaan aksesnya ada di `docs/provenance/permintaan_stimulus_ucsd.md`.
+| Tes | Durasi | Preseden |
+|---|---|---|
+| GeoPref asli | 62,22 detik | Wen dkk. 2022, *Scientific Reports* 12:4253, n=1.863, usia 12–48 bulan, sens 17%, spec 98% |
+| Complex Social GeoPref | 90 detik | Moore dkk. 2018, ambang dibawa apa adanya demi konsistensi, sens 18%, spec 97%, AUC 0,74, sampel jauh lebih kecil |
+| Cuplikan yang berjalan | 16,75 detik | tidak ada |
+
+Yang berjalan bukan salah satu dari dua tes itu, melainkan **cuplikan satu dari lima
+adegan** video contoh Complex Social yang terbit sebagai Additional file 2 milik Moore
+dkk. Karena itu `validatedProtocol` bernilai `false` dan ambangnya **ditahan**: sesi
+melaporkan persentase terukur dan menyatakan protokolnya dipersingkat. Tiap aset di
+`app/src/geopref/stimulusMeta.ts` membawa `precedent`-nya sendiri, sehingga angka Wen
+dkk. tidak dapat menempel pada sesi Complex Social maupun sebaliknya.
+
+Dua sifat aset yang sering disalahartikan sebagai cacat, dan keduanya disengaja:
+
+**Klipnya bisu.** Metode Moore dkk. menyatakan stimulusnya tidak memuat audio, dan
+kedua varian GeoPref disajikan tanpa suara. Pemeriksaan kontainer mengonfirmasi berkas
+ini memang tidak punya trek audio sama sekali — bukan trek yang di-*mute*. Menambahkan
+suara berarti menyimpang dari protokol.
+
+**Klipnya berbingkai hitam.** Panel sosial dan geometrik hanya menempati 19,8 persen
+luas bingkai 640×360; sisanya hitam, karena berkas ini ilustrasi suplemen, bukan master
+presentasi. Ditampilkan utuh, tiap panel menyubtensi sekitar 7,6° × 4,9° pada tablet
+sasaran, berbanding 12,9° × 9,1° yang dilaporkan Moore dkk. Aplikasi karena itu
+memangkas kotak hitamnya. Pemangkasan tidak mengubah satu piksel konten dan
+mengembalikan ukuran sudut ke sekitar 12,6° × 8,2°. `geoprefPanelDegrees()` membuat
+klaim itu dapat diperiksa per perangkat, bukan menjadi komentar yang tidak pernah
+diuji ulang.
+
+Sebelum ini, komentar di kode menyatakan panelnya "cocok dengan persegi 525×363 pada
+1920×1080 yang dipakai Wen dkk." Layar yang dipakai Wen dkk. adalah Tobii T120
+beresolusi **1280×1024**, bukan 1920×1080, sehingga dua AOI-nya menempati 29,1 persen
+luas layar, bukan 27,3 persen. Angka itu sudah dikoreksi.
 
 ## 7. Kenapa Gate B dibandingkan dengan WebGazer, dan apa artinya
 

@@ -76,16 +76,25 @@ export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, p
   if (visualCue === "geopref" && geoprefSource) {
     return (
       <div className={`${state} geoprefStage`} data-mirrored={String(geoprefNeedsMirror(geometricSide))} aria-hidden="true">
-        {/* No loop. The phase is exactly as long as the clip, and a loop would
-            replay the opening frames into the dwell score. */}
-        <video
-          className="geoprefVideo"
-          src={geoprefSource}
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-        />
+        {/* The asset is a supplementary illustration: two panels inside a wide
+            black surround. Shown whole, each panel subtends about 7.6 x 4.9
+            degrees on a target tablet against the 12.9 x 9.1 the threshold was
+            derived at, so the surround is cropped away here. Coordinates come
+            from GEOPREF_CONTENT_CROP; changing one without the other silently
+            moves the AOIs off the panels. */}
+        <div className="geoprefCrop">
+          {/* No loop. The phase is exactly as long as the clip, and a loop would
+              replay the opening frames into the dwell score. Muted because the
+              published protocol has no audio, not because we removed it. */}
+          <video
+            className="geoprefVideo"
+            src={geoprefSource}
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+          />
+        </div>
       </div>
     );
   }
