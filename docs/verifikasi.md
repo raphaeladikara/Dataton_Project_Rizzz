@@ -27,6 +27,25 @@ npm audit
 
 `npm test` membangun aplikasi produksi dan menjalankan test kontrak, parity, kalibrasi, pipeline gaze, privasi, replay, serta bukti publik Gate B.
 
+## Artefak yang harus tetap sinkron
+
+```powershell
+.\.venv\Scripts\python.exe research\export_operating_points.py --check
+.\.venv\Scripts\python.exe research\export_public_evidence.py --check
+.\.venv\Scripts\python.exe research\prospective_evaluation.py
+```
+
+Perintah pertama gagal bila `model.json` tidak memuat kedua titik kerja, kedua bila
+halaman validasi publik tertinggal dari ringkasan Gate A/B, dan ketiga menulis ulang
+simulasi Gate C empat lengan dari `model.json`.
+
+```powershell
+.\.venv\Scripts\python.exe -c "import json; m=json.load(open('research/hasil/model.json')); s=json.load(open('research/hasil/gate_c_simulation.json')); print(m['decision']['default_operating_point']); print([a['id'] for a in s['arms']])"
+```
+
+Hasil yang diharapkan: `youden`, lalu
+`['lr_target_sensitivity', 'lr_youden', 'geopref_published', 'gate_c_target']`.
+
 ## Pemeriksaan konsistensi
 
 - Tidak ada dokumen yang menyebut Gate B sebagai perbandingan hardware eye-tracker.
@@ -34,3 +53,6 @@ npm audit
 - Manifest SHA-256 lulus.
 - Paper dan halaman `/validation` memakai WebGazer.js serta batas klaim yang sama.
 - Gate C dan D tidak ditulis sebagai hasil yang sudah lulus.
+- Kesepakatan AOI tidak pernah menjadi headline; akurasi absolut hanya dikutip dari
+  blok target diketahui Gate A.
+- Tidak ada lengan simulasi Gate C yang memakai angka CNN.

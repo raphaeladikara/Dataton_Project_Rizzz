@@ -7,6 +7,13 @@
   "passed": 94,
   "completionRate": 0.94,
   "medianCalibrationErrorDeg": 2.207,
+  "knownTargetValidation": {
+    "sessions": 94,
+    "medianErrorDeg": 2.357,
+    "p90ErrorDeg": 3.576,
+    "meanErrorDeg": 2.448,
+    "definition": "calibration.validationErrorDeg: median angular error on held-out targets, adults only."
+  },
   "meanValidFrameRate": 0.964,
   "meanGazeDropout": 0.036,
   "extractionP90Ms": 7.67,

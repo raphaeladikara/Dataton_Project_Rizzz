@@ -116,7 +116,10 @@ validasi algoritmik, dua gerbang instrumen sudah dituntaskan: Gate~A lulus pada 
 25 peserta dewasa lintas tiga tablet Android dengan galat median 2,2$^\circ$, completion rate
 94 persen, dan frame wajah-iris valid 96,4 persen; Gate~B lulus pada 30 perbandingan browser
 simultan terhadap WebGazer.js 3.5.3, dengan 27 pasangan siap, galat median ternormalisasi
-0,040997, agreement AOI rata-rata 99,7574 persen, dan agreement AOI utama 100 persen.
+0,040997 dan agreement AOI rata-rata 99,7118 persen hasil rekomputasi dari koordinat mentah.
+Akurasi absolut hanya dikutip dari blok target diketahui Gate~A, yaitu galat median 2,36$^\circ$
+dan persentil 90 sebesar 3,58$^\circ$ pada 94 sesi; agreement antaraliran tidak dapat
+menghasilkan angka akurasi.
 Gate~C dan Gate~D tetap terbuka karena kohort balita prospektif dan uji lapangan Posyandu
 belum diselesaikan.
 \end{abstract}
@@ -597,13 +600,20 @@ kemampuan mendiagnosis ASD atau kesetaraan dengan eye-tracker laboratorium.
 
 Tiga puluh pasangan terekam. Dua puluh tujuh berstatus siap dan tiga ditahan, sehingga valid
 pair rate 90 persen dan retry rate 10 persen. Galat median antarliran adalah 44,159 piksel
-atau 0,040997 pada skala ternormalisasi. Agreement AOI rata-rata mencapai 99,7574 persen,
-dan AOI utama cocok pada seluruh 27 pasangan siap. Rata-rata ICC(A,1) untuk 13 fitur adalah
+atau 0,040997 pada skala ternormalisasi. Seluruh jarak ini direderivasi dari koordinat mentah
+oleh \texttt{research/recompute\_gate\_b.py} dan tereproduksi sampai 0,001 piksel. Agreement AOI
+rata-rata hasil rekomputasi adalah 99,7118 persen; nilai yang ditulis browser saat perekaman
+99,7574 persen, dan selisihnya berasal dari empat pasangan yang masing-masing memiliki satu
+sampel tepat di luar kotak AOI menurut \texttt{neurogaze-aoi-v3.1.0}. Selisih itu diterbitkan di
+\texttt{gate\_b\_summary.json} alih-alih didamaikan. AOI utama cocok pada seluruh 27 pasangan siap.
+Angka agreement setinggi ini perlu dibaca dengan hati-hati: kotak AOI selebar 28 persen layar
+sementara galat median antaraliran hanya 4,1 persen lebar layar, sehingga kesepakatan tinggi
+nyaris tidak terhindarkan dan bukan bukti akurasi. Rata-rata ICC(A,1) untuk 13 fitur adalah
 0,505043; nilai ini dilaporkan secara deskriptif dan bukan kriteria kelulusan.
 
 Seluruh lima kriteria yang tercatat terpenuhi: 30 pasangan terhadap batas $\geq 30$, valid
 pair rate 90 persen terhadap batas $\geq 90$ persen, galat median ternormalisasi 0,040997
-terhadap batas $\leq 0,05$, agreement AOI rata-rata 99,7574 persen terhadap batas $\geq 95$
+terhadap batas $\leq 0,05$, agreement AOI rata-rata 99,7118 persen terhadap batas $\geq 95$
 persen, dan agreement AOI utama 100 persen terhadap batas $\geq 95$ persen.
 \textbf{Status Gate~B: lulus.}
 
@@ -688,7 +698,7 @@ identik oleh uji otomatis. Kamera tablet biasa cukup presisi untuk mengukur arah
 pada kondisi lapangan yang wajar, dengan galat median 2,2$^\circ$ dan penyelesaian sesi 94
 persen pada 100 sesi (Bagian~\ref{sec:gatea}). Aliran gaze Neurogaze juga memenuhi seluruh
 kriteria agreement terhadap WebGazer.js, dengan galat median ternormalisasi 0,040997 dan
-agreement AOI 99,7574 persen pada 27 dari 30 pasangan yang siap (Bagian~\ref{sec:gateb}).
+agreement AOI 99,7118 persen pada 27 dari 30 pasangan yang siap (Bagian~\ref{sec:gateb}).
 
 Batas kelimanya sama dan perlu dinyatakan tegas: Gate~A membuktikan kelayakan teknis dan
 Gate~B membuktikan agreement terhadap WebGazer.js, tetapi tidak satu pun membuktikan akurasi diagnosis
@@ -794,7 +804,7 @@ diaudit sampai satu dataset kami tolak meski angkanya tertinggi. Uji paritas $10
 menjamin model replay yang divalidasi dan implementasi browsernya adalah objek yang sama.
 Di sisi instrumen, Gate~A lulus pada 100 sesi dewasa dengan galat median 2,2$^\circ$
 dan penyelesaian sesi 94 persen. Gate~B lulus pada 30 perbandingan browser simultan terhadap
-WebGazer.js dengan galat median ternormalisasi 0,040997 dan agreement AOI 99,7574 persen.
+WebGazer.js dengan galat median ternormalisasi 0,040997 dan agreement AOI 99,7118 persen.
 Gate~C dan Gate~D masih terbuka, dan
 tidak satu pun hasil di atas merupakan bukti akurasi diagnosis. Sasarannya memindahkan pengukuran objektif ke titik layanan yang menjangkau
 hampir setiap desa; tahap berikutnya kohort balita prospektif dengan acuan klinis buta lewat
@@ -931,7 +941,7 @@ A & P90 ekstraksi                 & $< 100$~ms            & 7,67~ms \checkmark \
 B & jumlah pasangan               & $\geq 30$             & 30 \checkmark \\
 B & valid pair rate               & $\geq 90\%$           & 90\% \checkmark \\
 B & galat median ternormalisasi   & $\leq 0,05$           & 0,040997 \checkmark \\
-B & AOI agreement rata-rata       & $\geq 95\%$           & 99,7574\% \checkmark \\
+B & AOI agreement rata-rata       & $\geq 95\%$           & 99,7118\% \checkmark \\
 B & agreement AOI utama           & $\geq 95\%$           & 100\% \checkmark \\
 \midrule
 \multicolumn{4}{l}{\emph{Gate~C dan D: dipra-registrasi, belum terjawab}} \\
@@ -1214,7 +1224,7 @@ memuat artefak yang ada di repositori.}
 \midrule
 Algoritmik & generalisasi ke anak baru & AUC 0,8228 pada uji tertahan, 54 anak & \textbf{tuntas} \\
 A & instrumen pada dewasa & 100 sesi, 25 peserta, galat median 2,2$^\circ$ & \textbf{lulus} \\
-B & agreement vs WebGazer.js & 30 pasangan, 27 siap, AOI 99,7574\% & \textbf{lulus} \\
+B & agreement vs WebGazer.js & 30 pasangan, 27 siap, AOI 99,7118\% & \textbf{lulus} \\
 C & skrining pada balita & bukti sekunder; kohort prospektif belum ada & terbuka \\
 D & operasional Posyandu & protokol tersedia; uji lapangan belum ada & terbuka \\
 \bottomrule

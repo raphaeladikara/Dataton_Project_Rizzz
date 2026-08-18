@@ -1,33 +1,124 @@
 {
   "status": "simulation_only_not_clinical_validation",
-  "generated_at": "2026-08-09",
-  "model_source": "notebook/eyetracking_scanpath.ipynb pooled participant-level OOF",
-  "threshold": 0.476,
+  "purpose": "Membandingkan biaya operasional tiap titik kerja pada antrean Posyandu 1.000 anak.",
   "assumptions": {
     "cohort_size": 1000,
     "target_prevalence": 0.01,
     "technical_coverage": 0.9,
-    "sensitivity": 0.8462,
-    "specificity": 0.75
+    "coverage_source": "Steffan et al. 2024, Infancy: attrition webcam balita 42%; 0,90 adalah asumsi perencanaan yang lebih longgar dan harus diuji di lapangan."
   },
-  "expected_counts": {
-    "assessable": 900,
-    "withheld": 100,
-    "true_positive": 7.6158,
-    "false_negative": 1.3842,
-    "true_negative": 668.25,
-    "false_positive": 222.75
-  },
-  "operational_projection": {
-    "referral_rate": 0.255962,
-    "positive_predictive_value": 0.0330595,
-    "negative_predictive_value": 0.997933,
-    "referrals_per_true_positive": 30.2484
-  },
+  "arms": [
+    {
+      "id": "lr_target_sensitivity",
+      "label": "Regresi logistik, titik sensitivitas 0,9",
+      "status": "shipped_not_recommended",
+      "assumptions": {
+        "sensitivity": 0.9231,
+        "specificity": 0.1786,
+        "threshold": 0.22425,
+        "source": "research/hasil/model.json, titik sensitivitas 0,9 pada OOF tingkat partisipan Carette (n=54, usia sekolah, 250 Hz)"
+      },
+      "note": "Spesifisitas 0,179 merujuk sebagian besar antrean; dilaporkan agar biayanya terlihat.",
+      "expected_counts": {
+        "assessable": 900.0,
+        "withheld": 100.0,
+        "true_positive": 8.3079,
+        "false_negative": 0.6921,
+        "true_negative": 159.1326,
+        "false_positive": 731.8674
+      },
+      "operational_projection": {
+        "referral_rate": 0.822417,
+        "positive_predictive_value": 0.011224,
+        "negative_predictive_value": 0.99567,
+        "referrals_per_true_positive": 89.0929
+      }
+    },
+    {
+      "id": "lr_youden",
+      "label": "Regresi logistik, titik Youden",
+      "status": "shipped_research_only",
+      "assumptions": {
+        "sensitivity": 0.7308,
+        "specificity": 0.8214,
+        "threshold": 0.498495,
+        "source": "research/hasil/model.json, titik Youden pada OOF tingkat partisipan Carette (n=54, usia sekolah, 250 Hz)"
+      },
+      "note": "Titik default ekspor model. Tetap di luar jalur keputusan produk karena penjaga OOD menolaknya pada balita.",
+      "expected_counts": {
+        "assessable": 900.0,
+        "withheld": 100.0,
+        "true_positive": 6.5772,
+        "false_negative": 2.4228,
+        "true_negative": 731.8674,
+        "false_positive": 159.1326
+      },
+      "operational_projection": {
+        "referral_rate": 0.184122,
+        "positive_predictive_value": 0.039691,
+        "negative_predictive_value": 0.9967,
+        "referrals_per_true_positive": 25.1946
+      }
+    },
+    {
+      "id": "geopref_published",
+      "label": "GeoPref, ambang 69% terbit",
+      "status": "active_rule_in",
+      "assumptions": {
+        "sensitivity": 0.17,
+        "specificity": 0.98,
+        "threshold": 0.69,
+        "source": "Wen et al. 2022, Molecular Autism, n=1.863, usia 12-49 bulan"
+      },
+      "note": "Satu-satunya pemicu rujukan otomatis di produk. Sensitivitas rendah adalah sifat alat rule-in, bukan cacat implementasi.",
+      "expected_counts": {
+        "assessable": 900.0,
+        "withheld": 100.0,
+        "true_positive": 1.53,
+        "false_negative": 7.47,
+        "true_negative": 873.18,
+        "false_positive": 17.82
+      },
+      "operational_projection": {
+        "referral_rate": 0.0215,
+        "positive_predictive_value": 0.07907,
+        "negative_predictive_value": 0.991518,
+        "referrals_per_true_positive": 12.6471
+      }
+    },
+    {
+      "id": "gate_c_target",
+      "label": "Target Gate C (preseden tablet)",
+      "status": "target_not_achieved",
+      "assumptions": {
+        "sensitivity": 0.878,
+        "specificity": 0.808,
+        "threshold": null,
+        "source": "Perochon et al. 2023, Nature Medicine (SenseToKnow), kamera depan tablet, usia 17-36 bulan"
+      },
+      "note": "Bukan performa NeuroGaze. Ini angka yang harus dikejar Gate C, diambil dari literatur alih-alih dikarang.",
+      "expected_counts": {
+        "assessable": 900.0,
+        "withheld": 100.0,
+        "true_positive": 7.902,
+        "false_negative": 1.098,
+        "true_negative": 719.928,
+        "false_positive": 171.072
+      },
+      "operational_projection": {
+        "referral_rate": 0.19886,
+        "positive_predictive_value": 0.044152,
+        "negative_predictive_value": 0.998477,
+        "referrals_per_true_positive": 22.6492
+      }
+    }
+  ],
   "limitations": [
-    "No prospective toddlers were enrolled; every count is an expectation, not an observation.",
-    "Sensitivity and specificity come from 54 school-age Carette participants measured at 250 Hz.",
-    "Technical coverage and target prevalence are explicit planning assumptions.",
-    "This simulation cannot pass Gate C or select a clinical operating threshold."
+    "Tidak ada balita prospektif yang direkrut; setiap angka adalah ekspektasi, bukan observasi.",
+    "Lengan regresi logistik berasal dari 54 partisipan Carette usia sekolah pada 250 Hz dan tidak berlaku untuk balita.",
+    "Lengan GeoPref memakai performa terbit pada stimulus UCSD penuh; klip CC BY 16,75 detik belum tentu mereproduksinya.",
+    "Lengan target Gate C adalah performa instrumen lain, bukan milik NeuroGaze.",
+    "Prevalensi dan coverage teknis adalah asumsi perencanaan yang dinyatakan, bukan hasil pengukuran lokal.",
+    "Simulasi ini tidak bisa meluluskan Gate C atau memilih ambang klinis."
   ]
 }
