@@ -207,6 +207,36 @@ function cueSignal(profile: ReferralInput["jointAttention"]): ReferralSignal {
   };
 }
 
+/**
+ * What the lane says when it cannot reach a recommendation.
+ *
+ * It used to say one thing — "sinyal yang dapat dinilai terlalu sedikit" —
+ * whenever fewer than two signals were assessable, which is every field session
+ * while the licensed clip is short. So a child who followed none of the eight
+ * cues and a child who followed all eight produced the same sentence, and the
+ * one measurement the session did make was thrown away at the headline.
+ *
+ * The rule is unchanged: two deviant signals, or no recommendation. What
+ * changes is that not recommending is no longer the same as not measuring.
+ */
+function referralHeadline(input: {
+  recommendsFollowUp: boolean;
+  assessableCount: number;
+  deviantCount: number;
+}): string {
+  const { recommendsFollowUp, assessableCount, deviantCount } = input;
+  if (recommendsFollowUp) {
+    return `Disarankan pemeriksaan lanjutan · ${deviantCount} dari ${assessableCount} sinyal menyimpang`;
+  }
+  if (assessableCount === 0) return "Belum ada sinyal yang dapat dinilai pada sesi ini";
+  if (assessableCount < REFERRAL_DEVIANT_THRESHOLD) {
+    return deviantCount > 0
+      ? `${deviantCount} sinyal menyimpang, dan sinyal pembandingnya tidak dapat dinilai · belum cukup untuk menyarankan rujukan`
+      : "Sinyal yang dapat dinilai tidak menyimpang, dan sinyal pembandingnya tidak dapat dinilai";
+  }
+  return `Belum cukup sinyal untuk menyarankan rujukan · ${deviantCount} dari ${assessableCount} menyimpang`;
+}
+
 export function buildReferralRecommendation(input: ReferralInput): ReferralRecommendation {
   const signals: ReferralSignal[] = [
     geometricSignal(input.geopref),
@@ -223,11 +253,7 @@ export function buildReferralRecommendation(input: ReferralInput): ReferralRecom
     deviantCount,
     threshold: REFERRAL_DEVIANT_THRESHOLD,
     recommendsFollowUp,
-    headline: recommendsFollowUp
-      ? `Disarankan pemeriksaan lanjutan · ${deviantCount} dari ${assessableCount} sinyal menyimpang`
-      : assessableCount < REFERRAL_DEVIANT_THRESHOLD
-        ? "Sinyal yang dapat dinilai terlalu sedikit untuk menyusun rekomendasi"
-        : `Belum cukup sinyal untuk menyarankan rujukan · ${deviantCount} dari ${assessableCount} menyimpang`,
+    headline: referralHeadline({ recommendsFollowUp, assessableCount, deviantCount }),
     validatedOnToddlers: false,
     reassures: false,
     thresholdStatus: "design_choice_not_validated_cutoff",

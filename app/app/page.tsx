@@ -2311,10 +2311,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   is still reported, so a positive control may still supply a
                   name. Transient either way: it never reaches profile, the log,
                   or the network. */}
-              {(!isEngineeringStudy || positiveControl?.speakerBehind) && <>
-                <label className="checkField"><span><IconTimer size={14} />Panggil nama {isAdultParticipant ? "peserta" : "anak"} lewat tablet</span><input type="checkbox" checked={callNameEnabled} onChange={(event) => { const on = event.target.checked; setCallNameEnabled(on); if (!on) { callNameRef.current = ""; setCallNamePresent(false); } }} /><small>Biarkan mati bila Anda ingin memanggil sendiri. Panggilan tetap dicatat sebagai tidak dibunyikan, bukan sebagai anak yang tidak menoleh.</small></label>
-                {callNameEnabled && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {isAdultParticipant ? "peserta" : "anak"}</span><input key={String(positiveControl?.speakerBehind)} defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Dipakai untuk membunyikan panggilan lewat speaker; hasilnya tetap indeks deskriptif, bukan sinyal keputusan." : "Nama hanya hidup di memori selama sesi berjalan."}</small></label>}
-              </>}
+
             </div>
             {isGateB && <div className="bridgeSetup" aria-label="Metadata pasangan Gate B">
               <div className="bridgeSetupHead"><div><strong>Kontrak pasangan</strong><small>Nilai ini harus identik pada aliran Neurogaze dan WebGazer.</small></div><span>Gate B · riset</span></div>
@@ -2329,6 +2326,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <label><span>Tinggi layar (mm)</span><input type="number" min="50" value={bridgeMeta.screenHeightMm} onChange={(event) => setBridgeMeta({ ...bridgeMeta, screenHeightMm: Number(event.target.value) })} /></label>
                 <label><span>Jarak mata–layar (mm)</span><input type="number" min="200" value={bridgeMeta.viewingDistanceMm} onChange={(event) => setBridgeMeta({ ...bridgeMeta, viewingDistanceMm: Number(event.target.value) })} /></label>
               </div>
+            </div>}
+            {(!isEngineeringStudy || positiveControl?.speakerBehind) && <div className="nameCallField">
+              <label className="checkRow optional">
+                <input type="checkbox" checked={callNameEnabled} onChange={(event) => { const on = event.target.checked; setCallNameEnabled(on); if (!on) { callNameRef.current = ""; setCallNamePresent(false); } }} />
+                <span><strong>Panggil nama {isAdultParticipant ? "peserta" : "anak"} lewat tablet.</strong> Biarkan mati bila Anda ingin memanggil sendiri; panggilan lalu dicatat sebagai tidak dibunyikan, bukan sebagai {isAdultParticipant ? "peserta" : "anak"} yang tidak menoleh.</span>
+              </label>
+              {callNameEnabled && <label className="nameCallInput">
+                <span><IconTimer size={14} />Nama panggilan {isAdultParticipant ? "peserta" : "anak"}</span>
+                <input key={String(positiveControl?.speakerBehind)} defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} />
+                <small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Dipakai untuk membunyikan panggilan lewat speaker; hasilnya tetap indeks deskriptif, bukan sinyal keputusan." : "Nama hanya hidup di memori selama sesi berjalan."}</small>
+              </label>}
             </div>}
             <label className="checkRow">
               <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
