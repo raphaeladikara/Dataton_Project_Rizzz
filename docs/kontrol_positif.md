@@ -102,9 +102,27 @@ ini prosedur tertulis, bukan improvisasi.
 | Jarak | 500 mm mata–layar, diukur sekali dengan meteran | Angka yang sama dimasukkan ke kolom jarak pandang di aplikasi |
 | Tinggi | Pusat layar sejajar mata peserta | Kalau layar terlalu rendah, rentang vertikal kalibrasi gagal |
 | Cahaya | Ruangan terang merata, tanpa jendela di belakang peserta | Backlight membuat iris tidak terbaca |
+| Speaker | Speaker kabel 3,5 mm, digantung di sandaran kursi **di belakang** peserta | Wajib. Alasannya di bawah; tanpa ini sinyal ketiga mati |
 | Peserta | 8–10 orang dewasa | Di bawah 8, jangan latih model apa pun; laporkan kontrol positifnya saja |
 | Browser | Chrome/Edge di `localhost` atau HTTPS | Kamera tidak jalan di HTTP non-lokal |
 | Waktu | ~12 menit per peserta untuk dua kondisi | 8 peserta ≈ satu setengah jam kerja |
+
+**Kenapa speakernya harus di belakang.** Yang diukur `response_to_name` bukan "bereaksi
+terhadap suara", melainkan **berorientasi ke arah orang yang memanggil dari luar bidang
+pandang** — Perochon dkk. 2023 menulisnya lugas: *"their name was called three times by an
+examiner standing behind them"*, dan yang dikode adalah putaran kepala dari facial
+landmark. Kalau suara keluar dari tablet, ia datang dari tempat yang sedang ditatap
+peserta, dan selama fase itu layar menampilkan wajah tokoh vektor — jadi yang "memanggil"
+tampak ada di layar. Respons yang benar berubah menjadi *tetap menatap layar*, yang tidak
+bisa dibedakan dari tidak merespons sama sekali.
+
+Sesi uji pertama membuktikannya: `|yaw|` maksimum sepanjang 1.585 frame hanya 0,118,
+sementara ambang tolehan 0,28. Tidak satu frame pun mendekat. Speaker kabel di belakang
+mengembalikan paradigmanya tanpa mengubah satu baris kode dan tanpa orang kedua —
+presisi waktunya tetap, karena yang bicara tetap aplikasi.
+
+Pastikan speakernya **tidak terlihat** peserta. Kalau terlihat, ia menjadi target visual
+alih-alih sumber yang harus dicari.
 
 **Prasyarat versi.** Protokol stimulus harus sudah final sebelum perekaman pertama.
 Rekaman pada versi stimulus lama tidak sebanding dan harus diulang. Catat
@@ -207,10 +225,11 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
      sinyal `response_to_name` terbaca 0/3 pada kedua kondisi — menyimpang palsu di
      kondisi 1, dan tidak ada yang bisa ditahan di kondisi 2. Kolomnya tidak disimpan,
      tidak masuk log, dan hilang saat sesi selesai.
-4. **Naikkan volume dan pastikan panggilannya terdengar.** Suara keluar lewat speaker
-   tablet dengan `speechSynthesis`. Uji sekali sebelum peserta pertama: kalau perangkat
-   tidak punya suara bahasa Indonesia, ia memakai suara bawaan — itu tetap sah, yang
-   penting peserta mendengar namanya.
+4. **Pasang speaker di belakang peserta dan uji dengar.** Colokkan speaker kabel,
+   gantung di sandaran kursi di luar pandangan peserta, naikkan volume sampai terdengar
+   jelas tanpa mengagetkan. Kalau perangkat tidak punya suara bahasa Indonesia,
+   `speechSynthesis` memakai suara bawaan — itu tetap sah, yang penting peserta mendengar
+   namanya datang dari belakang.
 5. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
 6. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
    dengan `CALIBRATION_STABILITY`, `CALIBRATION_COVERAGE`, atau `CALIBRATION_RANGE_*`,
@@ -223,7 +242,19 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
 10. **Unduh log audit.** Tombol **Unduh log audit JSON** di bawah laporan. Karena sesi ini
    ditandai kontrol positif, berkasnya sudah turun dengan nama yang benar —
    `kp-03-biasa-1.json` — jadi tidak ada yang perlu diganti namanya.
-11. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`.
+11. **Periksa berkasnya sebelum difilekan.**
+
+    ```bash
+    cd app && npm run kp:check -- ~/Downloads/kp-03-biasa-1.json
+    ```
+
+    Ia menolak sesi yang tidak layak, memperingatkan yang mencurigakan, dan mencetak baris
+    `lembar_sesi.csv` siap tempel sehingga tidak ada angka yang disalin dengan tangan.
+    **Jalankan ini pada sesi pertama hari itu:** peringatan *"Kondisi 1 tetapi tidak ada
+    tolehan"* berarti speakernya belum bekerja, dan itu harus ketahuan sebelum delapan
+    orang terlanjur direkam.
+12. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`, lalu tempel barisnya
+    ke `lembar_sesi.csv`.
 
 Antara kondisi 1 dan 2, beri jeda ~1 menit dan kalibrasi ulang. Kalibrasi tidak
 diwariskan antar sesi.
