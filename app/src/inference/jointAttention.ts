@@ -23,6 +23,10 @@ export type JointAttentionProfile = {
   medianLiftPoints: number | null;
   medianLatencyMs: number | null;
   faceToTargetTransitions: number;
+  /** Trials where the participant was in the face AOI as the cue was delivered. */
+  attendedAtCue: number;
+  /** Trials whose post-cue window entered the cued target AOI at all. */
+  trialsEnteringTarget: number;
   pValue: number | null;
   verdict: JointAttentionVerdict;
 };
@@ -74,19 +78,38 @@ export function summarizeJointAttention(summary: CueFeatureSummary | null): Join
       medianLiftPoints: medianLift === null ? null : medianLift * 100,
       medianLatencyMs: median(latencies),
       faceToTargetTransitions: summary.faceTargetTransitions,
+      attendedAtCue: responses.filter((response) => response.faceAtCue === true).length,
+      trialsEnteringTarget: responses.filter((response) => response.probability > 0).length,
       pValue: null, verdict: "WITHHELD_TOO_FEW_TRIALS",
     };
   }
 
   const pValue = signTestPValue(trialsFollowed, trialsScored);
+  // Attendance and floor are counted from the same trials the sign test uses,
+  // so the floor criterion below can never be evaluated on a different set.
+  const attendedAtCue = responses.filter((response) => response.faceAtCue === true).length;
+  const trialsEnteringTarget = responses.filter((response) => response.probability > 0).length;
   return {
     trialsScored, trialsFollowed,
     medianLiftPoints: medianLift === null ? null : medianLift * 100,
     medianLatencyMs: median(latencies),
     faceToTargetTransitions: summary.faceTargetTransitions,
-    pValue, verdict: cueVerdict(pValue, medianLift, trialsFollowed, trialsScored),
+    attendedAtCue,
+    trialsEnteringTarget,
+    pValue,
+    verdict: cueVerdict({ pValue, medianLift, trialsFollowed, trialsScored, attendedAtCue, trialsEnteringTarget }),
   };
 }
+
+/**
+ * How much of the battery has to show the participant looking at the model when
+ * the cue lands before a floor reading counts as a finding rather than an
+ * absence. Three of eight trials is not enough to say someone saw the cue and
+ * declined it.
+ */
+export const MIN_ATTENDED_SHARE = 0.6;
+/** Trials allowed to enter the target at all before the floor no longer holds. */
+export const MAX_TRIALS_ENTERING_TARGET = 1;
 
 /**
  * Three findings, not two.
@@ -102,13 +125,34 @@ export function summarizeJointAttention(summary: CueFeatureSummary | null): Join
  * trials is chance, and chance is inconclusive: it is the case the session was
  * too short to resolve, not a finding about the child.
  */
-function cueVerdict(
-  pValue: number,
-  medianLift: number | null,
-  trialsFollowed: number,
-  trialsScored: number,
-): JointAttentionVerdict {
-  if (pValue < 0.05) return "FOLLOWS_CUES";
-  if (medianLift !== null && medianLift < 0 && trialsFollowed * 2 < trialsScored) return "DOES_NOT_FOLLOW";
+function cueVerdict(input: {
+  pValue: number;
+  medianLift: number | null;
+  trialsFollowed: number;
+  trialsScored: number;
+  attendedAtCue: number;
+  trialsEnteringTarget: number;
+}): JointAttentionVerdict {
+  if (input.pValue < 0.05) return "FOLLOWS_CUES";
+  if (input.medianLift !== null && input.medianLift < 0 && input.trialsFollowed * 2 < input.trialsScored) return "DOES_NOT_FOLLOW";
+  // The floor.
+  //
+  // A participant who never enters either target AOI scores lift = 0 on every
+  // trial, because post-cue and pre-cue looking are both zero. The lift test
+  // above reads that as a tie and calls it indeterminate — so the strongest
+  // possible non-following, someone who watched the model and then moved
+  // nowhere, was the one pattern the rule could not report. Twelve of twelve
+  // deliberately-produced sessions in the positive control landed here.
+  //
+  // This is a criterion, not a test, and it is written that way on purpose: a
+  // sign test needs non-tied trials and there are none. What makes it a finding
+  // rather than an absence is the precondition — the participant has to have
+  // been looking at the model when the cue was delivered, in most trials. Fail
+  // that and the session says nothing about cue following, only that the cue
+  // was probably never seen, and the verdict stays indeterminate below.
+  if (
+    input.trialsEnteringTarget <= MAX_TRIALS_ENTERING_TARGET
+    && input.attendedAtCue >= Math.ceil(input.trialsScored * MIN_ATTENDED_SHARE)
+  ) return "DOES_NOT_FOLLOW";
   return "NOT_DISTINGUISHABLE";
 }

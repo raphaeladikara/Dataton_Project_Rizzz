@@ -12,7 +12,7 @@
 - [`jalur_rujukan.md`](jalur_rujukan.md): kenapa belum ada rujukan yang bisa keluar, kunci yang menahannya, dan rencana delapan langkah membukanya. **Baca ini sebelum kontrol positif.**
 - [`etika_perekaman.md`](etika_perekaman.md): kenapa tidak ada balita dan tidak ada anak ASD yang direkam tim ini, apa yang sudah dicoba, apa yang boleh dikerjakan sebagai gantinya, dan jawaban untuk pertanyaan juri soal izin. **Baca sebelum sesi perekaman apa pun.**
 - [`model_rujukan.md`](model_rujukan.md): rancangan model rujukan — kalibrasi likelihood-ratio, bobot dari data terbit CC BY 4.0, empat audit yang menggerbanginya, dan kriteria menolaknya.
-- [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif — alat, peserta, naskah instruksi, penamaan berkas, kriteria mutu, dan cara mendaftarkan rekamannya.
+- [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif — alat, peserta, naskah instruksi, penamaan berkas, kriteria mutu, dan cara mendaftarkan rekamannya. **Sudah dijalankan** 19 Agustus 2026; hasilnya, confound-nya, dan sembilan cacat yang dibongkarnya ada di [`research/hasil/kontrol_positif/README.md`](../research/hasil/kontrol_positif/README.md).
 - [`model_dikarantina.md`](model_dikarantina.md): kenapa CNN 0,882 dan CNN wajah 0,932 tidak dipakai, uji berpasangan yang menggantikan argumen "CI bertumpang tindih", dan apakah keduanya bisa dibuat berguna.
 - [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md): klaim dampak yang bisa dipertahankan, biaya per pemeriksaan, jalur integrasi, dan jalur pengumpulan data Gate C.
 - [`provenance/harness_gate_a_b.md`](provenance/harness_gate_a_b.md): apa yang bisa dan tidak bisa diperiksa tentang asal bukti Gate A/B, plus aturan perekaman berikutnya.

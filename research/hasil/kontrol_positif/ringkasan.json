@@ -1,0 +1,1027 @@
+{
+  "schemaVersion": 1,
+  "scope": "Responsivitas instrumen pada orang dewasa yang memproduksi pola secara sengaja. Bukan sensitivitas, bukan spesifisitas, bukan akurasi, dan bukan pernyataan apa pun tentang autisme.",
+  "participants": 12,
+  "participantsPerDevice": 4,
+  "pairingRecoverable": false,
+  "sessionsRecorded": 23,
+  "sessionsUsable": 15,
+  "attritionByCondition": {
+    "biasa": {
+      "direkam": 11,
+      "dipakai": 9,
+      "ditahan": 2
+    },
+    "produksi": {
+      "direkam": 12,
+      "dipakai": 6,
+      "ditahan": 6
+    }
+  },
+  "qualityLimits": {
+    "calibration_error_deg": 3.0,
+    "face_rate": 0.85,
+    "gaze_dropout": 0.2,
+    "gaze_saturation": 0.25,
+    "geopref_aoi_coverage": 0.5,
+    "geopref_min_samples": 60
+  },
+  "edgeEpsilon": 0.002,
+  "edgeEpsilonSensitivity": {
+    "0": {
+      "ditahan": 2,
+      "ditahan_produksi": 2
+    },
+    "0.0005": {
+      "ditahan": 8,
+      "ditahan_produksi": 6
+    },
+    "0.001": {
+      "ditahan": 8,
+      "ditahan_produksi": 6
+    },
+    "0.002": {
+      "ditahan": 8,
+      "ditahan_produksi": 6
+    },
+    "0.005": {
+      "ditahan": 9,
+      "ditahan_produksi": 7
+    },
+    "0.01": {
+      "ditahan": 10,
+      "ditahan_produksi": 8
+    }
+  },
+  "signals": [
+    {
+      "signal": "geometric_preference",
+      "n_produksi": 6,
+      "n_biasa": 7,
+      "median_produksi": 0.9427568970489282,
+      "median_biasa": 0.34317343173431736,
+      "range_produksi": [
+        0.8942731277533039,
+        1.0
+      ],
+      "range_biasa": [
+        0.07958477508650519,
+        0.734375
+      ],
+      "auc": 1.0,
+      "separated": true,
+      "margin": 0.15989812775330392,
+      "mannwhitney_p": 0.0005827505827505828
+    },
+    {
+      "signal": "cue_following",
+      "n_produksi": 6,
+      "n_biasa": 9,
+      "median_produksi": 0.0,
+      "median_biasa": 8.0,
+      "range_produksi": [
+        0.0,
+        1.0
+      ],
+      "range_biasa": [
+        5.0,
+        8.0
+      ],
+      "auc": 1.0,
+      "separated": true,
+      "margin": 4.0,
+      "mannwhitney_p": 0.0006288140797573777
+    },
+    {
+      "signal": "centre_hold_spread",
+      "n_produksi": 6,
+      "n_biasa": 9,
+      "median_produksi": 0.051260729006101485,
+      "median_biasa": 0.31487767317215387,
+      "range_produksi": [
+        0.02615850561019878,
+        0.06257538210375424
+      ],
+      "range_biasa": [
+        0.07102289613657242,
+        0.3981750119718726
+      ],
+      "auc": 1.0,
+      "separated": true,
+      "margin": 0.008447514032818182,
+      "mannwhitney_p": 0.0001998001998001998
+    }
+  ],
+  "compositeRule": {
+    "threshold": 2,
+    "asShipped": {
+      "fired": {
+        "biasa": 0,
+        "produksi": 0
+      },
+      "reason": "Aturan yang dikirim menuntut dua sinyal menyimpang, dan preferensi geometrik berstatus tidak_dapat_dinilai selama klip lebih pendek daripada protokol terbit. Paling banyak satu sinyal tersedia, jadi aturannya tidak dapat menyala pada perilaku apa pun. Nol di kedua baris adalah keadaan aturannya, bukan hasil pengukuran tentang peserta."
+    },
+    "demonstrasi": {
+      "fired": {
+        "biasa": 0,
+        "produksi": 4
+      },
+      "notFired": {
+        "biasa": 9,
+        "produksi": 2
+      },
+      "perSession": {
+        "biasa": [
+          {
+            "berkas": "kp-a-biasa-1.json",
+            "geometric_preference": "normal",
+            "cue_following": "normal",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-a-biasa-3.json",
+            "geometric_preference": "tidak_dapat_dinilai",
+            "cue_following": "tidak_dapat_dinilai",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-a-biasa-4.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "normal",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-b-biasa-2.json",
+            "geometric_preference": "normal",
+            "cue_following": "normal",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-b-biasa-3.json",
+            "geometric_preference": "normal",
+            "cue_following": "normal",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-b-biasa-4.json",
+            "geometric_preference": "tidak_dapat_dinilai",
+            "cue_following": "normal",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-c-biasa-1.json",
+            "geometric_preference": "normal",
+            "cue_following": "tidak_dapat_dinilai",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-c-biasa-2.json",
+            "geometric_preference": "normal",
+            "cue_following": "tidak_dapat_dinilai",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-c-biasa-3.json",
+            "geometric_preference": "normal",
+            "cue_following": "tidak_dapat_dinilai",
+            "menyala": false
+          }
+        ],
+        "produksi": [
+          {
+            "berkas": "kp-a-produksi-2.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "tidak_dapat_dinilai",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-b-produksi-1.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "menyimpang",
+            "menyala": true
+          },
+          {
+            "berkas": "kp-b-produksi-2.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "tidak_dapat_dinilai",
+            "menyala": false
+          },
+          {
+            "berkas": "kp-c-produksi-2.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "menyimpang",
+            "menyala": true
+          },
+          {
+            "berkas": "kp-c-produksi-3.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "menyimpang",
+            "menyala": true
+          },
+          {
+            "berkas": "kp-c-produksi-4.json",
+            "geometric_preference": "menyimpang",
+            "cue_following": "menyimpang",
+            "menyala": true
+          }
+        ]
+      },
+      "caveat": "Ambang 69% diterapkan pada klip yang lebih pendek daripada protokol tempat ambang itu diturunkan. Angka ini menjawab apakah aturannya merespons, bukan apakah aturannya benar, dan bukan rujukan."
+    }
+  },
+  "sensitivityModel": {
+    "purpose": "analisis_sensitivitas_bukan_jalur_keputusan",
+    "grouping": "perangkat (4 peserta per perangkat), bukan peserta",
+    "n_sessions": 13,
+    "n_groups": 3,
+    "features": [
+      "geopref_percent",
+      "cue_trials_entering_target_share"
+    ],
+    "auc_out_of_fold": 1.0,
+    "per_fold": [
+      {
+        "held_out_device": "a",
+        "n_test": 6,
+        "n_produksi": 3,
+        "auc_out_of_fold": 1.0
+      },
+      {
+        "held_out_device": "b",
+        "n_test": 4,
+        "n_produksi": 2,
+        "auc_out_of_fold": 1.0
+      },
+      {
+        "held_out_device": "c",
+        "n_test": 3,
+        "n_produksi": 1,
+        "auc_out_of_fold": 1.0
+      }
+    ],
+    "standardised_coefficients": {
+      "geopref_percent": 1.0567935219932127,
+      "cue_trials_entering_target_share": -1.2891896162797718
+    },
+    "warning": "Dilatih pada orang dewasa yang memperagakan pola sesuai naskah. Bobot ini mempelajari naskahnya, bukan autisme, dan tidak boleh dipasang ke jalur rujukan."
+  },
+  "confounds": [
+    "Panel geometrik berada di kanan pada seluruh 24 sesi dan urutan isyarat identik pada seluruhnya, karena kedua skema counterbalancing diturunkan dari kolom identitas yang diisi sama untuk semua peserta. Preferensi geometrik karena itu tidak terpisah dari bias melirik ke kanan di data ini.",
+    "Identitas peserta tidak terekam, jadi tidak ada analisis berpasangan dan grup validasi silang adalah perangkat, bukan orang.",
+    "Urutan kondisi tidak diseimbangkan, dan itu disengaja: instruksi kondisi 2 tidak dapat ditarik kembali. Efek urutan karena itu tidak dapat dipisahkan dari efek kondisi."
+  ],
+  "sessions": [
+    {
+      "file": "kp-a-biasa-1.json",
+      "device": "a",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "KP-01",
+      "session_id": "f27d1d0b-7092-45c3-bec9-aa85d566cc27",
+      "created_at": "2026-08-19T11:17:28.139Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 1.5601153572951962,
+      "face_rate": 1,
+      "gaze_dropout": 0.0006321112515802474,
+      "gaze_saturation": 0.02939297124600639,
+      "geometric_side": "right",
+      "geopref_percent": 0.37898089171974525,
+      "geopref_aoi_coverage": 0.9486404833836858,
+      "geopref_valid_samples": 314,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 8,
+      "cue_trials_entering_target": 8,
+      "cue_attended_at_cue": 4,
+      "centre_hold_iqr": 0.28143473907492517,
+      "saturation_by_epsilon": {
+        "0": 0.0134185303514377,
+        "0.0005": 0.019169329073482427,
+        "0.001": 0.025559105431309903,
+        "0.002": 0.02939297124600639,
+        "0.005": 0.04984025559105431,
+        "0.01": 0.065814696485623
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-a-biasa-2.json",
+      "device": "a",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "01738c5c-549b-40f5-9569-6be126b96860",
+      "created_at": "2026-08-19T13:58:00.805Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 2.4003496626592304,
+      "face_rate": 1,
+      "gaze_dropout": 0,
+      "gaze_saturation": 0.3692501575299307,
+      "geometric_side": "right",
+      "geopref_percent": 0.8111111111111111,
+      "geopref_aoi_coverage": 0.5389221556886228,
+      "geopref_valid_samples": 180,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 0,
+      "centre_hold_iqr": 0.22740693380594967,
+      "saturation_by_epsilon": {
+        "0": 0.10649023314429741,
+        "0.0005": 0.32514177693761814,
+        "0.001": 0.34593572778827975,
+        "0.002": 0.3692501575299307,
+        "0.005": 0.4007561436672968,
+        "0.01": 0.4303717706364209
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 37%"
+      ]
+    },
+    {
+      "file": "kp-a-biasa-3.json",
+      "device": "a",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "01738c5c-549b-40f5-9569-6be126b96860",
+      "created_at": "2026-08-19T13:58:00.805Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 2.5348896586657084,
+      "face_rate": 1,
+      "gaze_dropout": 0,
+      "gaze_saturation": 0.1128725428027901,
+      "geometric_side": "right",
+      "geopref_percent": null,
+      "geopref_aoi_coverage": 0.3253731343283582,
+      "geopref_valid_samples": 109,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 6,
+      "cue_trials_entering_target": 7,
+      "cue_attended_at_cue": 0,
+      "centre_hold_iqr": 0.3449947313494582,
+      "saturation_by_epsilon": {
+        "0": 0.029169308814204185,
+        "0.0005": 0.07482561826252378,
+        "0.001": 0.09194673430564362,
+        "0.002": 0.1128725428027901,
+        "0.005": 0.15155358275206088,
+        "0.01": 0.1927710843373494
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-a-biasa-4.json",
+      "device": "a",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "01738c5c-549b-40f5-9569-6be126b96860",
+      "created_at": "2026-08-19T13:58:00.805Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 1.5146152465764249,
+      "face_rate": 1,
+      "gaze_dropout": 0,
+      "gaze_saturation": 0.005667506297229219,
+      "geometric_side": "right",
+      "geopref_percent": 0.734375,
+      "geopref_aoi_coverage": 0.9580838323353293,
+      "geopref_valid_samples": 320,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 8,
+      "cue_trials_entering_target": 8,
+      "cue_attended_at_cue": 2,
+      "centre_hold_iqr": 0.3315839703075085,
+      "saturation_by_epsilon": {
+        "0": 0.0,
+        "0.0005": 0.004408060453400504,
+        "0.001": 0.005037783375314861,
+        "0.002": 0.005667506297229219,
+        "0.005": 0.009445843828715366,
+        "0.01": 0.0163727959697733
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-a-produksi-1.json",
+      "device": "a",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "a7554e2b-6df3-440d-9ee2-183b5d064511",
+      "created_at": "2026-08-19T14:08:04.478Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 1.7071591879998789,
+      "face_rate": 1,
+      "gaze_dropout": 0.0006305170239596647,
+      "gaze_saturation": 0.5620204603580563,
+      "geometric_side": "right",
+      "geopref_percent": 0.9794520547945206,
+      "geopref_aoi_coverage": 0.8716417910447761,
+      "geopref_valid_samples": 292,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 0,
+      "centre_hold_iqr": 0.04249204418393948,
+      "saturation_by_epsilon": {
+        "0": 0.22762148337595908,
+        "0.0005": 0.5038363171355499,
+        "0.001": 0.5332480818414322,
+        "0.002": 0.5620204603580563,
+        "0.005": 0.6074168797953964,
+        "0.01": 0.6521739130434783
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 56%"
+      ]
+    },
+    {
+      "file": "kp-a-produksi-2.json",
+      "device": "a",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "a7554e2b-6df3-440d-9ee2-183b5d064511",
+      "created_at": "2026-08-19T14:08:04.478Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 2.563188336841494,
+      "face_rate": 1,
+      "gaze_dropout": 0.001260239445494693,
+      "gaze_saturation": 0.1813570069752695,
+      "geometric_side": "right",
+      "geopref_percent": 1.0,
+      "geopref_aoi_coverage": 0.5253731343283582,
+      "geopref_valid_samples": 176,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 0,
+      "centre_hold_iqr": 0.059312756364717,
+      "saturation_by_epsilon": {
+        "0": 0.020291693088142042,
+        "0.0005": 0.1160431198478123,
+        "0.001": 0.14140773620798985,
+        "0.002": 0.1813570069752695,
+        "0.005": 0.25301204819277107,
+        "0.01": 0.3348129359543437
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-a-produksi-3.json",
+      "device": "a",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "a7554e2b-6df3-440d-9ee2-183b5d064511",
+      "created_at": "2026-08-19T14:08:04.478Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 1.7773085105579658,
+      "face_rate": 1,
+      "gaze_dropout": 0,
+      "gaze_saturation": 0.43108873505349277,
+      "geometric_side": "right",
+      "geopref_percent": 0.9748427672955975,
+      "geopref_aoi_coverage": 0.9492537313432836,
+      "geopref_valid_samples": 318,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 1,
+      "centre_hold_iqr": 0.09937266543694179,
+      "saturation_by_epsilon": {
+        "0": 0.15607300188797987,
+        "0.0005": 0.38892385147891756,
+        "0.001": 0.4090623033354311,
+        "0.002": 0.43108873505349277,
+        "0.005": 0.46633102580239144,
+        "0.01": 0.49024543738200127
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 43%"
+      ]
+    },
+    {
+      "file": "kp-a-produksi-4.json",
+      "device": "a",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "a7554e2b-6df3-440d-9ee2-183b5d064511",
+      "created_at": "2026-08-19T14:08:04.478Z",
+      "viewport_aspect": 2.1052631578947367,
+      "calibration_error_deg": 2.265164865618601,
+      "face_rate": 1,
+      "gaze_dropout": 0,
+      "gaze_saturation": 0.5063291139240507,
+      "geometric_side": "right",
+      "geopref_percent": 0.9955357142857143,
+      "geopref_aoi_coverage": 0.6746987951807228,
+      "geopref_valid_samples": 224,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 0,
+      "centre_hold_iqr": 0.12451637814520256,
+      "saturation_by_epsilon": {
+        "0": 0.310126582278481,
+        "0.0005": 0.46962025316455697,
+        "0.001": 0.4873417721518987,
+        "0.002": 0.5063291139240507,
+        "0.005": 0.5335443037974683,
+        "0.01": 0.5607594936708861
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 51%"
+      ]
+    },
+    {
+      "file": "kp-b-biasa-1.json",
+      "device": "b",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "KP-02",
+      "session_id": "f4a0464d-e32d-44a8-b174-b3569fccd0d3",
+      "created_at": "2026-08-19T11:52:48.560Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 2.932296769664257,
+      "face_rate": 1,
+      "gaze_dropout": 0.01842664776754077,
+      "gaze_saturation": 0.3564421190320471,
+      "geometric_side": "left",
+      "geopref_percent": null,
+      "geopref_aoi_coverage": 0.4431137724550898,
+      "geopref_valid_samples": 148,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 5,
+      "cue_trials_entering_target": 6,
+      "cue_attended_at_cue": 1,
+      "centre_hold_iqr": 0.26814535036451564,
+      "saturation_by_epsilon": {
+        "0": 0.20470896010464357,
+        "0.0005": 0.3243950294310007,
+        "0.001": 0.34270765206017006,
+        "0.002": 0.3564421190320471,
+        "0.005": 0.3865271419228254,
+        "0.01": 0.41268803139306737
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 36%"
+      ]
+    },
+    {
+      "file": "kp-b-biasa-2.json",
+      "device": "b",
+      "condition": "biasa",
+      "attempt": 2,
+      "child_id": "GA-20260819-01",
+      "session_id": "d9152df7-7c92-4619-979e-81f18d33562a",
+      "created_at": "2026-08-19T12:14:17.371Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 1.216636569793689,
+      "face_rate": 1,
+      "gaze_dropout": 0.007560137457044647,
+      "gaze_saturation": 0.0351213282247765,
+      "geometric_side": "right",
+      "geopref_percent": 0.3511111111111111,
+      "geopref_aoi_coverage": 0.6736526946107785,
+      "geopref_valid_samples": 225,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 7,
+      "cue_trials_entering_target": 8,
+      "cue_attended_at_cue": 3,
+      "centre_hold_iqr": 0.31487767317215387,
+      "saturation_by_epsilon": {
+        "0": 0.010855683269476373,
+        "0.0005": 0.02554278416347382,
+        "0.001": 0.03065134099616858,
+        "0.002": 0.0351213282247765,
+        "0.005": 0.04597701149425287,
+        "0.01": 0.05555555555555555
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-b-biasa-3.json",
+      "device": "b",
+      "condition": "biasa",
+      "attempt": 3,
+      "child_id": "GA-20260819-01",
+      "session_id": "93e20a9a-8850-468d-b68d-5f949d042397",
+      "created_at": "2026-08-19T12:25:37.683Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 1.4852314893958023,
+      "face_rate": 1,
+      "gaze_dropout": 0.05320600272851295,
+      "gaze_saturation": 0.052097428958051424,
+      "geometric_side": "right",
+      "geopref_percent": 0.34317343173431736,
+      "geopref_aoi_coverage": 0.8237082066869301,
+      "geopref_valid_samples": 271,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 7,
+      "cue_trials_entering_target": 7,
+      "cue_attended_at_cue": 1,
+      "centre_hold_iqr": 0.3981750119718726,
+      "saturation_by_epsilon": {
+        "0": 0.02435723951285521,
+        "0.0005": 0.046008119079837616,
+        "0.001": 0.04939106901217862,
+        "0.002": 0.052097428958051424,
+        "0.005": 0.05751014884979702,
+        "0.01": 0.07036535859269283
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-b-biasa-4.json",
+      "device": "b",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "95a2cc81-b988-4a3d-ae8d-5cda64a9cdba",
+      "created_at": "2026-08-19T12:28:42.656Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 2.0448940961460975,
+      "face_rate": 1,
+      "gaze_dropout": 0.0348918353105373,
+      "gaze_saturation": 0.06241699867197875,
+      "geometric_side": "right",
+      "geopref_percent": null,
+      "geopref_aoi_coverage": 0.3780487804878049,
+      "geopref_valid_samples": 124,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 7,
+      "cue_trials_entering_target": 8,
+      "cue_attended_at_cue": 4,
+      "centre_hold_iqr": 0.39574116151674943,
+      "saturation_by_epsilon": {
+        "0": 0.0351925630810093,
+        "0.0005": 0.045816733067729085,
+        "0.001": 0.05245683930942895,
+        "0.002": 0.06241699867197875,
+        "0.005": 0.08632138114209828,
+        "0.01": 0.11420982735723771
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-b-produksi-1.json",
+      "device": "b",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "54bfdc75-8727-4bc0-a072-e43b5d976a5e",
+      "created_at": "2026-08-19T12:39:07.277Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 1.9985428822382059,
+      "face_rate": 1,
+      "gaze_dropout": 0.058543226684819594,
+      "gaze_saturation": 0.006697923643670462,
+      "geometric_side": "right",
+      "geopref_percent": 0.948220064724919,
+      "geopref_aoi_coverage": 0.939209726443769,
+      "geopref_valid_samples": 309,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 6,
+      "centre_hold_iqr": 0.03179112218280672,
+      "saturation_by_epsilon": {
+        "0": 0.006697923643670462,
+        "0.0005": 0.006697923643670462,
+        "0.001": 0.006697923643670462,
+        "0.002": 0.006697923643670462,
+        "0.005": 0.007367716008037508,
+        "0.01": 0.007367716008037508
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-b-produksi-2.json",
+      "device": "b",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "812d99f5-dd9f-4167-966c-b764db8efcc0",
+      "created_at": "2026-08-19T12:42:49.873Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 1.0821744947614982,
+      "face_rate": 1,
+      "gaze_dropout": 0.03532608695652173,
+      "gaze_saturation": 0.17627345844504022,
+      "geometric_side": "right",
+      "geopref_percent": 0.9248826291079812,
+      "geopref_aoi_coverage": 0.6635514018691588,
+      "geopref_valid_samples": 213,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 3,
+      "centre_hold_iqr": 0.06257538210375424,
+      "saturation_by_epsilon": {
+        "0": 0.028150134048257374,
+        "0.0005": 0.1193029490616622,
+        "0.001": 0.14544235924932977,
+        "0.002": 0.17627345844504022,
+        "0.005": 0.22184986595174264,
+        "0.01": 0.26541554959785524
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-b-produksi-3.json",
+      "device": "b",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "4c94c6e9-58f5-4fe2-bcc1-ec5dbc0175c5",
+      "created_at": "2026-08-19T12:45:25.529Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 2.2340038163070033,
+      "face_rate": 1,
+      "gaze_dropout": 0.040082930200414646,
+      "gaze_saturation": 0.3081155433287483,
+      "geometric_side": "right",
+      "geopref_percent": 0.9454545454545454,
+      "geopref_aoi_coverage": 0.6646525679758308,
+      "geopref_valid_samples": 220,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 1,
+      "centre_hold_iqr": 0.043121410841023056,
+      "saturation_by_epsilon": {
+        "0": 0.12173314993122421,
+        "0.0005": 0.2579092159559835,
+        "0.001": 0.2826685006877579,
+        "0.002": 0.3081155433287483,
+        "0.005": 0.35075653370013754,
+        "0.01": 0.39752407152682256
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 31%"
+      ]
+    },
+    {
+      "file": "kp-b-produksi-4.json",
+      "device": "b",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "4c94c6e9-58f5-4fe2-bcc1-ec5dbc0175c5",
+      "created_at": "2026-08-19T12:45:25.529Z",
+      "viewport_aspect": 2.087431693989071,
+      "calibration_error_deg": 2.1353009618550596,
+      "face_rate": 1,
+      "gaze_dropout": 0.04817618719889882,
+      "gaze_saturation": 0.41496598639455784,
+      "geometric_side": "right",
+      "geopref_percent": 0.9593908629441624,
+      "geopref_aoi_coverage": 0.6234177215189873,
+      "geopref_valid_samples": 197,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 2,
+      "centre_hold_iqr": 0.025691131008066914,
+      "saturation_by_epsilon": {
+        "0": 0.14489795918367346,
+        "0.0005": 0.35714285714285715,
+        "0.001": 0.38571428571428573,
+        "0.002": 0.41496598639455784,
+        "0.005": 0.46122448979591835,
+        "0.01": 0.5020408163265306
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 41%"
+      ]
+    },
+    {
+      "file": "kp-c-biasa-1.json",
+      "device": "c",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "6b6a8a8f-05ac-4713-a582-8b02aa38f67e",
+      "created_at": "2026-08-19T12:04:28.873Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.0651692224650433,
+      "face_rate": 1,
+      "gaze_dropout": 0.03478810879190386,
+      "gaze_saturation": 0.005232177894048398,
+      "geometric_side": "right",
+      "geopref_percent": 0.07958477508650519,
+      "geopref_aoi_coverage": 0.8757575757575757,
+      "geopref_valid_samples": 289,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 5,
+      "cue_trials_entering_target": 7,
+      "cue_attended_at_cue": 6,
+      "centre_hold_iqr": 0.21156346510343266,
+      "saturation_by_epsilon": {
+        "0": 0.0,
+        "0.0005": 0.003924133420536298,
+        "0.001": 0.004578155657292348,
+        "0.002": 0.005232177894048398,
+        "0.005": 0.008502289077828646,
+        "0.01": 0.011772400261608895
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-c-biasa-2.json",
+      "device": "c",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "22ae1449-74ec-4542-9c5b-5f9a4574aa49",
+      "created_at": "2026-08-19T12:13:26.324Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.0916242435778365,
+      "face_rate": 1,
+      "gaze_dropout": 0.021505376344086002,
+      "gaze_saturation": 0.0,
+      "geometric_side": "right",
+      "geopref_percent": 0.19254658385093168,
+      "geopref_aoi_coverage": 0.9817073170731707,
+      "geopref_valid_samples": 322,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 5,
+      "cue_trials_entering_target": 8,
+      "cue_attended_at_cue": 6,
+      "centre_hold_iqr": 0.07102289613657242,
+      "saturation_by_epsilon": {
+        "0": 0.0,
+        "0.0005": 0.0,
+        "0.001": 0.0,
+        "0.002": 0.0,
+        "0.005": 0.0,
+        "0.01": 0.0
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-c-biasa-3.json",
+      "device": "c",
+      "condition": "biasa",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "96614aae-000e-43dc-a6d2-a693016e0afa",
+      "created_at": "2026-08-19T12:16:48.783Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.5920282585951175,
+      "face_rate": 1,
+      "gaze_dropout": 0.042405063291139244,
+      "gaze_saturation": 0.01054713249835201,
+      "geometric_side": "right",
+      "geopref_percent": 0.2636986301369863,
+      "geopref_aoi_coverage": 0.9636963696369637,
+      "geopref_valid_samples": 292,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 4,
+      "cue_trials_entering_target": 5,
+      "cue_attended_at_cue": 6,
+      "centre_hold_iqr": 0.18244182255298186,
+      "saturation_by_epsilon": {
+        "0": 0.00988793671720501,
+        "0.0005": 0.01054713249835201,
+        "0.001": 0.01054713249835201,
+        "0.002": 0.01054713249835201,
+        "0.005": 0.013183915622940013,
+        "0.01": 0.015820698747528016
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-c-produksi-1.json",
+      "device": "c",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "da2b9315-529d-4b04-b65d-b592e7c7f6f4",
+      "created_at": "2026-08-19T12:08:57.822Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.389844114794991,
+      "face_rate": 1,
+      "gaze_dropout": 0.017099430018999384,
+      "gaze_saturation": 0.6185567010309279,
+      "geometric_side": "right",
+      "geopref_percent": null,
+      "geopref_aoi_coverage": 0.021341463414634148,
+      "geopref_valid_samples": 7,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 1,
+      "centre_hold_iqr": 0.036504202637251126,
+      "saturation_by_epsilon": {
+        "0": 0.29896907216494845,
+        "0.0005": 0.5760309278350515,
+        "0.001": 0.5992268041237113,
+        "0.002": 0.6185567010309279,
+        "0.005": 0.6565721649484536,
+        "0.01": 0.6900773195876289
+      },
+      "withheld_reasons": [
+        "pandangan menempel di tepi layar 62%"
+      ]
+    },
+    {
+      "file": "kp-c-produksi-2.json",
+      "device": "c",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "6222c68e-3c8a-4515-b2d2-758ccae57bbb",
+      "created_at": "2026-08-19T12:23:24.002Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.9844785271536618,
+      "face_rate": 1,
+      "gaze_dropout": 0.017710309930423773,
+      "gaze_saturation": 0.0,
+      "geometric_side": "right",
+      "geopref_percent": 0.9631901840490797,
+      "geopref_aoi_coverage": 0.9848942598187311,
+      "geopref_valid_samples": 326,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 1,
+      "cue_trials_entering_target": 1,
+      "cue_attended_at_cue": 8,
+      "centre_hold_iqr": 0.02615850561019878,
+      "saturation_by_epsilon": {
+        "0": 0.0,
+        "0.0005": 0.0,
+        "0.001": 0.0,
+        "0.002": 0.0,
+        "0.005": 0.0,
+        "0.01": 0.0
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-c-produksi-3.json",
+      "device": "c",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "1530a6ae-3d37-4c29-963f-22b72d288283",
+      "created_at": "2026-08-19T12:26:27.334Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.1695773123651072,
+      "face_rate": 1,
+      "gaze_dropout": 0.04990524320909662,
+      "gaze_saturation": 0.0006653359946773121,
+      "geometric_side": "right",
+      "geopref_percent": 0.9372937293729373,
+      "geopref_aoi_coverage": 0.9099099099099099,
+      "geopref_valid_samples": 303,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 0,
+      "cue_trials_entering_target": 0,
+      "cue_attended_at_cue": 6,
+      "centre_hold_iqr": 0.04320870164748597,
+      "saturation_by_epsilon": {
+        "0": 0.0006653359946773121,
+        "0.0005": 0.0006653359946773121,
+        "0.001": 0.0006653359946773121,
+        "0.002": 0.0006653359946773121,
+        "0.005": 0.0006653359946773121,
+        "0.01": 0.0006653359946773121
+      },
+      "withheld_reasons": []
+    },
+    {
+      "file": "kp-c-produksi-4.json",
+      "device": "c",
+      "condition": "produksi",
+      "attempt": 1,
+      "child_id": "GA-20260819-01",
+      "session_id": "1530a6ae-3d37-4c29-963f-22b72d288283",
+      "created_at": "2026-08-19T12:26:27.334Z",
+      "viewport_aspect": 1.8801331853496115,
+      "calibration_error_deg": 1.5623734701896557,
+      "face_rate": 1,
+      "gaze_dropout": 0.035386631716906924,
+      "gaze_saturation": 0.009900990099009901,
+      "geometric_side": "right",
+      "geopref_percent": 0.8942731277533039,
+      "geopref_aoi_coverage": 0.6941896024464832,
+      "geopref_valid_samples": 227,
+      "cue_trials_scored": 8,
+      "cue_trials_followed": 1,
+      "cue_trials_entering_target": 1,
+      "cue_attended_at_cue": 7,
+      "centre_hold_iqr": 0.060469729022947005,
+      "saturation_by_epsilon": {
+        "0": 0.0033003300330033004,
+        "0.0005": 0.007920792079207921,
+        "0.001": 0.008580858085808581,
+        "0.002": 0.009900990099009901,
+        "0.005": 0.010561056105610561,
+        "0.01": 0.011881188118811881
+      },
+      "withheld_reasons": []
+    }
+  ]
+}

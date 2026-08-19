@@ -376,12 +376,29 @@ export function fitCalibration(
   };
 }
 
+/**
+ * The projection, not a drawable point.
+ *
+ * This used to clamp both axes into [0, 1] before returning, which was wrong in
+ * three places at once and silently so. Calibration error is measured as the
+ * distance from this point to a target that always sits inside the screen, so a
+ * clamped prediction is nearer the target than the real one and the reported
+ * error came out too small. `offScreenRate` counts samples outside [0, 1] and
+ * could therefore never count one, leaving `OFF_SCREEN_DOMINANT` unreachable.
+ * `processGazeSamples` rejects samples beyond `maxBoundsMargin` and never saw
+ * one either — `rejectedBounds` is 0 in every session recorded so far.
+ *
+ * A session whose calibration maps most of the battery off the top of the
+ * screen was indistinguishable from one that mapped it onto the panels. Where a
+ * point has to be drawn or scored, clamp there; the measurement itself keeps
+ * saying where the gaze actually landed.
+ */
 export function applyCalibration(calibration: Calibration, signal: EyeSignal) {
   const row = [1, signal.u, signal.v];
   const project = (coefficients: [number, number, number]) =>
     coefficients.reduce((sum, value, index) => sum + value * row[index], 0);
   return {
-    x: Math.max(0, Math.min(1, calibration.curveX ? projectCurve(calibration.curveX, signal.u) : project(calibration.x))),
-    y: Math.max(0, Math.min(1, calibration.curveY ? projectCurve(calibration.curveY, signal.v) : project(calibration.y))),
+    x: calibration.curveX ? projectCurve(calibration.curveX, signal.u) : project(calibration.x),
+    y: calibration.curveY ? projectCurve(calibration.curveY, signal.v) : project(calibration.y),
   };
 }

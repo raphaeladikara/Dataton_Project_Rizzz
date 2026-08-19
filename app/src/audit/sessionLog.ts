@@ -123,6 +123,28 @@ export function createSessionAudit(input: {
   };
 }
 
+/**
+ * A fresh identity for a recording that reuses an already-consented session.
+ *
+ * The audit log used to be minted once, on the consent screen, and an operator
+ * who ran the battery again without walking back through consent produced a
+ * second recording carrying the first one's `sessionId` and `createdAt`. Five
+ * such collisions sit in the positive-control set, and two files there are the
+ * same recording downloaded twice — indistinguishable, from the log alone, from
+ * two recordings of two people.
+ *
+ * Everything counterbalanced in a session derives from this id, so re-minting
+ * it is also what stops a second recording from replaying the first one's
+ * panel side and cue order.
+ */
+export function renewSessionIdentity(log: SessionAuditLog): SessionAuditLog {
+  return {
+    ...log,
+    sessionId: globalThis.crypto?.randomUUID?.() ?? `ng-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export function appendAuditEvent(
   log: SessionAuditLog,
   type: string,

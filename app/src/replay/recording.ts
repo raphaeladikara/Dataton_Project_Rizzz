@@ -20,6 +20,16 @@ export type RecordedSession = {
   gazeDropout: number;
   brightness: number;
   calibrationErrorDeg: number;
+  /**
+   * The key the recording's counterbalanced choices came from.
+   *
+   * Replay has to score the panel the participant was actually shown. Drawing a
+   * fresh key at replay time draws a fresh side, so the same recording came back
+   * as 81% geometric on one run and 19% on the next — the complement, from
+   * scoring the other panel. Newer logs carry the key outright; older ones are
+   * reproduced from the field their renderer read at the time.
+   */
+  counterbalanceKey: string;
 };
 
 type Unknown = Record<string, unknown>;
@@ -89,10 +99,20 @@ export function inspectAuditLog(log: unknown, id: string): RecordingInspection {
   if (gazeDropout === null) return { ok: false, reason: "`quality.gazeDropout` bukan angka." };
 
   const calibration = isObject(log.calibration) ? log.calibration : null;
+  const counterbalance = isObject(gaze.counterbalance) ? gaze.counterbalance : null;
+  const profile = isObject(log.profile) ? log.profile : null;
+  const recordedKey =
+    (typeof counterbalance?.key === "string" && counterbalance.key)
+    // Recordings from before the key was written down: the renderer read the
+    // identity field, so that field is the key, uniform value and all.
+    || (typeof profile?.childId === "string" && profile.childId)
+    || (typeof log.sessionId === "string" && log.sessionId)
+    || id;
   return {
     ok: true,
     recording: {
       id,
+      counterbalanceKey: recordedKey,
       label: typeof log.sessionId === "string" ? log.sessionId : id,
       capturedAt: typeof log.createdAt === "string" ? log.createdAt : "",
       points: capturedPoints,

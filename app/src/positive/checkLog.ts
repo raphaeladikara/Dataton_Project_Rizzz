@@ -10,6 +10,14 @@ export const SHEET_LIMITS = {
   calibrationErrorDeg: 3.0,
   faceRate: 0.85,
   gazeDropout: 0.2,
+  /**
+   * Share of samples the calibration pinned to a screen edge. Not in the
+   * original criteria list because nothing measured it: the projection was
+   * clamped before any gate could see it, so a session that mapped half its
+   * battery off the top of the screen reported a clean 1.4 degrees and an empty
+   * reasons array.
+   */
+  gazeSaturationRate: 0.25,
 } as const;
 
 export const SHEET_HEADER =
@@ -36,6 +44,42 @@ const status = (summary: LoggedSummary | null, id: string) =>
 
 const number = (value: number | undefined, digits: number) =>
   typeof value === "number" && Number.isFinite(value) ? value.toFixed(digits) : "-";
+
+/**
+ * Sessions that cannot be told apart from each other.
+ *
+ * Two of the twelve first-condition recordings turned out to be one recording
+ * downloaded twice, and three more shared a session id with each other because
+ * the id was minted on the consent screen rather than per recording. Neither is
+ * visible in a single file, so the check has to see the set.
+ */
+export function findDuplicateSessions(
+  logs: { path: string; log: SessionAuditLog }[],
+): { reason: string; paths: string[] }[] {
+  const bySessionId = new Map<string, string[]>();
+  const byContent = new Map<string, string[]>();
+  for (const { path, log } of logs) {
+    const id = log.sessionId;
+    bySessionId.set(id, [...(bySessionId.get(id) ?? []), path]);
+    // Two files carrying the same recording carry the same samples. Comparing
+    // the trace itself rather than the whole file means a re-download that
+    // picked up one extra audit event still reads as the duplicate it is.
+    const points = (log.gaze as { processedPoints?: { t: number; x: number; y: number }[] } | undefined)?.processedPoints ?? [];
+    const fingerprint = `${points.length}|${points.slice(0, 24).map((point) => `${point.t}:${point.x.toFixed(6)}:${point.y.toFixed(6)}`).join(",")}`;
+    if (points.length) byContent.set(fingerprint, [...(byContent.get(fingerprint) ?? []), path]);
+  }
+  const findings: { reason: string; paths: string[] }[] = [];
+  for (const paths of byContent.values()) {
+    if (paths.length > 1) findings.push({ reason: "jejak pandangannya identik: satu rekaman, beberapa berkas", paths });
+  }
+  const alreadyPaired = new Set(findings.flatMap((finding) => finding.paths.join("|")));
+  for (const [id, paths] of bySessionId) {
+    if (paths.length > 1 && !alreadyPaired.has(paths.join("|"))) {
+      findings.push({ reason: `berbagi sessionId ${id.slice(0, 8)} tetapi isinya berbeda: rekaman berbeda yang tidak dapat dibedakan di log`, paths });
+    }
+  }
+  return findings;
+}
 
 export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCheck {
   const failures: string[] = [];
@@ -92,11 +136,25 @@ export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCh
       failures.push(`Laju frame valid ${quality.faceRate.toFixed(2)} di bawah batas ${SHEET_LIMITS.faceRate}.`);
     if (quality.gazeDropout > SHEET_LIMITS.gazeDropout)
       failures.push(`Dropout gaze ${quality.gazeDropout.toFixed(2)} melewati batas ${SHEET_LIMITS.gazeDropout}.`);
+    if (quality.gazeSaturationRate === undefined) {
+      warnings.push("Log ini tidak memuat laju saturasi pandangan; direkam sebelum ukuran itu ada, jadi sesi keluar-layar tidak dapat dikesampingkan.");
+    } else if (quality.gazeSaturationRate > SHEET_LIMITS.gazeSaturationRate) {
+      failures.push(
+        `Pandangan menempel di tepi layar pada ${(quality.gazeSaturationRate * 100).toFixed(0)}% sampel; batas ${SHEET_LIMITS.gazeSaturationRate * 100}%. Tidak ada AOI yang dapat terkena, jadi sesi ini tidak mengukur apa pun.`,
+      );
+    }
   }
 
   const summary = ((log.assessment as { positiveControl?: LoggedSummary } | undefined)?.positiveControl ?? null);
   if (meta && !summary) {
     failures.push("Blok assessment.positiveControl tidak ada; laporan tidak membaca sesi yang baru berjalan.");
+  }
+
+  const counterbalance = (log.gaze as { counterbalance?: { key?: string } } | undefined)?.counterbalance;
+  if (!counterbalance) {
+    warnings.push(
+      "Log tidak mencatat sisi panel maupun urutan isyarat yang dijalankan. Rekaman sebelum penanda ini menurunkannya dari kolom identitas, jadi sesi yang berbagi identitas juga berbagi seluruh counterbalancing-nya.",
+    );
   }
 
   if (log.modelError) warnings.push(`Model skoring tidak dimuat: ${log.modelError} Sesi tetap sah untuk kontrol positif.`);

@@ -7,6 +7,15 @@ export type GazePipelineDiagnostics = {
   finiteSamples: number;
   rejectedBounds: number;
   rejectedJump: number;
+  /**
+   * Share of accepted samples the calibration mapped onto or past a screen
+   * edge, so the clamp below is the only reason they carry a coordinate at all.
+   * A saturated sample says the mapping ran out of range, not that the
+   * participant looked at the edge, and every AOI in the atlas starts well
+   * inside the screen — so a session full of them measures nothing while
+   * looking complete.
+   */
+  saturatedSamples: number;
   segments: number;
   outputSamples: number;
   longestGapMs: number;
@@ -38,6 +47,7 @@ export function processGazeSamples(
   const ordered = [...input].sort((a, b) => a.t - b.t);
   let rejectedBounds = 0;
   let rejectedJump = 0;
+  let saturatedSamples = 0;
   const finite = ordered.filter((point) => Number.isFinite(point.t) && Number.isFinite(point.x) && Number.isFinite(point.y));
   const bounded = finite.filter((point) => {
     const accepted = point.x >= -config.maxBoundsMargin && point.x <= 1 + config.maxBoundsMargin && point.y >= -config.maxBoundsMargin && point.y <= 1 + config.maxBoundsMargin;
@@ -64,6 +74,7 @@ export function processGazeSamples(
         continue;
       }
     }
+    if (point.x <= 0 || point.x >= 1 || point.y <= 0 || point.y >= 1) saturatedSamples += 1;
     active.push({ ...point, x: Math.max(0, Math.min(1, point.x)), y: Math.max(0, Math.min(1, point.y)) });
   }
   if (active.length) rawSegments.push(active);
@@ -111,6 +122,7 @@ export function processGazeSamples(
       finiteSamples: finite.length,
       rejectedBounds,
       rejectedJump,
+      saturatedSamples,
       segments: rawSegments.length,
       outputSamples: output.length,
       longestGapMs,

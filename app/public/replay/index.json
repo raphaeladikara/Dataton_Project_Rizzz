@@ -1,5 +1,8 @@
 {
   "schema": "neurogaze-replay-manifest-v1",
   "note": "Daftar rekaman sesi nyata yang boleh diputar ulang oleh Demo cepat. Ekspor log audit sesi kamera, letakkan berkasnya di folder ini, lalu tambahkan nama berkasnya di sini. Selama daftar ini kosong, Demo cepat memakai simulasi dan mengatakannya di laporan.",
-  "recordings": []
+  "recordings": [
+    "sesi-biasa.json",
+    "sesi-produksi.json"
+  ]
 }
