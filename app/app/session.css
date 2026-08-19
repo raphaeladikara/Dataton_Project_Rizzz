@@ -1446,6 +1446,14 @@
   background: var(--indigo-600);
   box-shadow: 0 8px 20px rgba(49, 70, 134, 0.22);
 }
+/* A demonstration whose composite rule fired. Slate for the same reason the
+   banner below it is slate: the room has to see that the rule responded
+   without the badge passing for the coral one a field referral prints. */
+.decisionBadge.demonstration {
+  --icon-knockout: var(--slate-700);
+  background: var(--slate-700);
+  box-shadow: 0 8px 20px rgba(73, 90, 95, 0.24);
+}
 
 .reportPage > .warning {
   max-width: none;
@@ -2579,6 +2587,8 @@ dd {
   .printMeta dt::after { content: ":"; }
   .printMeta dd { margin: 0; font-weight: 700; }
   .printHeadline { margin: 0 0 4pt; font-size: 13pt; font-weight: 700; }
+  /* Loud on paper, because the sheet leaves the room without the screen. */
+  .printDemonstration { margin: 10pt 0 0; padding: 6pt 8pt; border: 1.5pt solid #000; font-size: 10pt; }
   .printSummary table { width: 100%; border-collapse: collapse; font-size: 10pt; }
   .printSummary th, .printSummary td { padding: 4pt 6pt; border-bottom: 0.5pt solid #999; text-align: left; vertical-align: top; }
   .printSummary th[scope="row"] { width: 30%; font-weight: 700; }

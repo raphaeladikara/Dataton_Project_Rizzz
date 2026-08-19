@@ -341,6 +341,20 @@ menunjukkan bentuk laporan rujukan, pakai **Peragakan · Pola diproduksi** di ta
 **Panduan & demo**. Laporannya membawa banner mode demonstrasi dan tetap tidak
 mengeluarkan rujukan.
 
+**Kalau yang ingin ditunjukkan adalah bahwa alat ini membedakan**, pakai **Peragakan ·
+kamera langsung** dua kali berturut-turut, di tab yang sama. Sesi pertama: pandangi
+panel geometrik saja dan jangan ikuti isyarat arah — laporannya keluar sebagai
+*Disarankan pemeriksaan lanjutan · 2 dari 2 sinyal menyimpang*, dengan alasan tiap
+sinyal dan sumbernya tercetak di bawahnya. Sesi kedua: minta relawan menonton adegan
+sosial dan benar-benar mengikuti isyarat arah — laporannya keluar sebagai *Tidak ada
+sinyal yang menyimpang · 2 dari 2 sinyal dinilai*. Dua hal yang harus disebut ketika
+melakukannya: keduanya mode peragaan, jadi tidak satu pun mengeluarkan rujukan; dan
+relawan perlu mengikuti minimal tujuh dari delapan isyarat, karena di bawah itu uji
+tandanya tidak mencapai p &lt; 0,05 dan sinyalnya terbaca *tidak dapat dinilai*, bukan
+*sesuai harapan*. **Mulai observasi kamera** tidak bisa dipakai untuk ini: di jalur
+lapangan perbandingan 69% tidak pernah dilakukan, jadi hanya satu dari dua sinyal yang
+dapat dinilai dan aturan komposit tidak mungkin menyala.
+
 **Tidak menemukan tombol demonya.** Beranda sekarang hanya punya satu tombol, dan itu
 sesi sungguhan. Seluruh jalur demo pindah ke tab **Panduan & demo**, di bawah panduan
 operator.

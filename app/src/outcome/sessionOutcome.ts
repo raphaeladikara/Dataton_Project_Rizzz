@@ -61,10 +61,19 @@ export function resolveSessionOutcome(input: SessionOutcomeInput): SessionOutcom
   // false here by construction, not by configuration.
   if (isDemonstrationOutcome(input.geopref.outcome)) {
     const above = input.geopref.outcome === "GEOMETRIC_PREFERENCE_DEMONSTRATION";
+    // Both sides of the cutoff have to read as a placement. A below-threshold
+    // demonstration used to print the percentage with no verdict attached, so
+    // the run that shows the instrument responding to an ordinary participant
+    // — the half of a stage demonstration that proves it does not refer
+    // everyone — was the half nobody could read off the headline.
     return {
       ...base, kind: "RULE_IN_DEMONSTRATION",
-      headline: `MODE DEMONSTRASI · ${geometric}% waktu pada pola geometrik${above ? " — di atas ambang 69%" : ""}`,
-      summaryLine: `${cueLine(input.jointAttention)} Ambang 69% diterapkan pada klip yang lebih pendek daripada protokol terbit, jadi angka ini tidak sah untuk keputusan apa pun dan bukan rujukan. Bentuk laporan inilah yang akan muncul bila stimulus penuh tersedia.`,
+      headline: above
+        ? `MODE DEMONSTRASI · ${geometric}% waktu pada pola geometrik — di atas ambang 69%`
+        : `MODE DEMONSTRASI · ${geometric}% waktu pada pola geometrik, ${social}% pada adegan sosial — di bawah ambang 69%`,
+      summaryLine: `${cueLine(input.jointAttention)} Ambang 69% diterapkan pada klip yang lebih pendek daripada protokol terbit, jadi angka ini tidak sah untuk keputusan apa pun dan bukan rujukan.${above
+        ? " Bentuk laporan inilah yang akan muncul bila stimulus penuh tersedia."
+        : " Berada di bawah ambang juga bukan tanda aman: ambang ini melewatkan sebagian besar anak ASD."}`,
       emitsReferral: false,
     };
   }

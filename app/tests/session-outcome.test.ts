@@ -127,3 +127,35 @@ test("only a validated protocol can ever set emitsReferral", () => {
     assert.equal(outcome.claimsDiagnosis, false);
   });
 });
+
+/**
+ * Below-threshold demonstrations used to print a bare percentage.
+ *
+ * The above-threshold branch said "— di atas ambang 69%" and the below one said
+ * nothing at all, so the run that shows an ordinary participant landing under
+ * the cutoff — the half of a stage demonstration that proves the instrument
+ * responds to what it sees rather than referring everyone — produced a headline
+ * that read as a measurement with no verdict attached.
+ */
+test("a below-threshold demonstration places the number under the cutoff", () => {
+  const above = resolveSessionOutcome({
+    ...baseInput,
+    geopref: { ...baseInput.geopref, percentGeometric: 0.97, outcome: "GEOMETRIC_PREFERENCE_DEMONSTRATION" },
+  });
+  const below = resolveSessionOutcome({
+    ...baseInput,
+    geopref: { ...baseInput.geopref, percentGeometric: 0.34, outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" },
+  });
+
+  assert.match(above.headline, /di atas ambang 69%/);
+  assert.match(below.headline, /di bawah ambang 69%/);
+  assert.notEqual(above.headline, below.headline);
+  // Both stay inert and both stay marked.
+  assert.equal(above.emitsReferral, false);
+  assert.equal(below.emitsReferral, false);
+  assert.match(below.headline, /MODE DEMONSTRASI/);
+  // Landing under the cutoff is not a clean bill of health, and the branch that
+  // says so is the one an ordinary participant sees.
+  assert.match(below.summaryLine, /bukan tanda aman/);
+  assert.equal(below.reassures, false);
+});
