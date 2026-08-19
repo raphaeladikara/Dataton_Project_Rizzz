@@ -197,7 +197,14 @@ test("the preferential-looking phase plays the clip, not the vector actor", () =
 });
 
 test("the only automatic referral trigger is the published GeoPref threshold", () => {
-  assert.match(page, /sessionOutcome\.emitsReferral \? "PERIKSA LANJUT"/);
+  // The badge grew a module of its own when a demonstration needed a tone that
+  // was neither the coral of a field referral nor the plain TERUKUR of an
+  // ordinary session. The property that has to survive the move: the field
+  // referral label is reachable from `emitsReferral` and from nothing else.
+  const badge = readFileSync(new URL("../src/outcome/reportBadge.ts", import.meta.url), "utf8");
+  assert.match(badge, /if \(input\.outcome\.emitsReferral\) return \{ tone: "refer", label: "PERIKSA LANJUT" \}/);
+  assert.equal((badge.match(/label: "PERIKSA LANJUT"/g) ?? []).length, 1);
+  assert.match(page, /className=\{`decisionBadge \$\{badge\.tone\}`\}/);
   const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
   assert.match(outcome, /emitsReferral: true/);
   // Exactly one branch may emit a referral, and it is the GeoPref rule-in one.
@@ -320,7 +327,17 @@ test("demonstration mode never reaches the child path and never emits a referral
   // marks the outcome so sessionOutcome can force emitsReferral to false.
   const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
   assert.match(outcome, /isDemonstrationOutcome\(input\.geopref\.outcome\)/);
-  assert.match(outcome, /kind: "RULE_IN_DEMONSTRATION"[\s\S]{0,400}?emitsReferral: false/);
+  // Bound to the first `emitsReferral` after the branch opens rather than to a
+  // character window, so adding a sentence of copy cannot quietly stop the
+  // assertion from reaching the line it is about.
+  const demonstrationBranch = /kind: "RULE_IN_DEMONSTRATION"[\s\S]*?emitsReferral: (true|false)/.exec(outcome);
+  assert.ok(demonstrationBranch, "the demonstration branch should exist");
+  assert.equal(demonstrationBranch![1], "false");
+  // The decision the operator read goes into the log next to the gaze samples
+  // and the quality gate, so an exported demonstration is arguable from the
+  // file rather than only from whoever was in the room.
+  assert.match(page, /quality: nextQuality, gaze, assessment, decision/);
+  assert.match(page, /const decision = \{[\s\S]{0,600}?demonstrationMode,/);
 });
 
 test("the child calibration target is a face that stays visible while active", () => {

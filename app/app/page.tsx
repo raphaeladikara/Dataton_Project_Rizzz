@@ -49,7 +49,8 @@ import { activeGeoprefAsset } from "../src/geopref/stimulusMeta";
 import { geoprefLayout, GEOPREF_AOI_VERSION, GEOPREF_VIDEO_ASPECT } from "../src/geopref/protocol";
 import { scoreGeopref } from "../src/geopref/score";
 import { resolveSessionOutcome } from "../src/outcome/sessionOutcome";
-import { buildReferralRecommendation } from "../src/outcome/referralRecommendation";
+import { buildReferralRecommendation, REFERRAL_RULE_VERSION } from "../src/outcome/referralRecommendation";
+import { reportBadge } from "../src/outcome/reportBadge";
 import {
   appendAuditEvent,
   createSessionAudit,
@@ -960,6 +961,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const isAdultParticipant = isGateA || isGateB || isStageDemo;
   const introCopy = stimulusIntroCopy({ engineering: isGateA || isGateB, positiveControl, gateB: isGateB });
   const isEngineeringStudy = isGateA || isGateB;
+  // Read from both lanes, because a demonstration whose composite fires is not
+  // a referral and is not nothing either, and the badge is what most of a room
+  // actually reads.
+  const badge = reportBadge({
+    engineeringStudy: isEngineeringStudy,
+    qualityPassed: Boolean(quality?.passed),
+    outcome: sessionOutcome,
+    demonstrationMode,
+    recommendsFollowUp: referral.recommendsFollowUp,
+  });
   const useTechnicalCalibration = isEngineeringStudy || technicalCalibration;
   const activeTargets = useTechnicalCalibration ? TARGETS : CHILD_TARGETS;
   const calibrationLimitDeg = isEngineeringStudy ? 3 : 5;
@@ -1817,6 +1828,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setRisk(nextRisk);
     if (auditRef.current) {
       const observations = summarizeSessionObservations(nextCueSummary);
+      const nextJointAttention = summarizeJointAttention(nextCueSummary);
       const assessment = mode === "replay"
         ? {
             status: nextRisk === null ? "withheld" : "demo_only",
@@ -1839,7 +1851,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               positiveControl: positiveControlFromSession({
                 meta: positiveControl,
                 geopref: nextGeopref,
-                jointAttention: summarizeJointAttention(nextCueSummary),
+                jointAttention: nextJointAttention,
               }),
             } : {}),
           };
@@ -1880,10 +1892,46 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         ...(mode === "live" ? { processedPoints: captured, frames: frameTraceRef.current.samples() } : {}),
         ...(isGateB ? { cleanSamples: captured } : {}),
       };
+      // What the report said, and everything that produced it.
+      //
+      // `assessment` is the Carette research panel and nothing else, so a
+      // downloaded log carried the gaze samples and the quality gate but not one
+      // field of the decision the operator actually read on screen: not the
+      // percentage, not its interval, not the composite rule, not whether the
+      // threshold had been applied at all. A session could be argued about only
+      // by re-running the app on the same recording at the same version. The
+      // sheet a kader hands over and the file a reviewer opens now say the same
+      // thing.
+      //
+      // Recomputed from the locals rather than read off `geoprefResult`,
+      // `sessionOutcome` and `referral`: those are memos of state this function
+      // is still in the middle of setting, so reading them here would write the
+      // previous recording's decision into this recording's log.
+      const decision = {
+        ruleVersion: REFERRAL_RULE_VERSION,
+        // False on every field session while the licensed clip is short. It is
+        // the single field that says whether the 69% comparison was made at all.
+        demonstrationMode,
+        stimulus: {
+          assetId: geoprefAsset.id,
+          durationSeconds: geoprefAsset.durationSeconds,
+          validatedProtocol: geoprefAsset.validatedProtocol,
+        },
+        geopref: nextGeopref,
+        jointAttention: nextJointAttention,
+        sessionOutcome: resolveSessionOutcome({
+          mode,
+          qualityPassed: nextQuality.passed,
+          validityCanScore: nextValidity.canScore,
+          geopref: nextGeopref,
+          jointAttention: nextJointAttention,
+        }),
+        referral: buildReferralRecommendation({ geopref: nextGeopref, jointAttention: nextJointAttention }),
+      };
       const next = appendAuditEvent(
-        { ...auditRef.current, quality: nextQuality, gaze, assessment },
+        { ...auditRef.current, quality: nextQuality, gaze, assessment, decision },
         nextQuality.passed ? "quality.passed" : "quality.withheld",
-        { reasons: nextQuality.reasons, validity: nextValidity, assessment, ...gaze },
+        { reasons: nextQuality.reasons, validity: nextValidity, assessment, decision, ...gaze },
         nextQuality.passed ? "info" : "warning",
       );
       commitAudit(next);
@@ -2236,7 +2284,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 {recordingEntries.length > 1 && (
                   <p>Pilih rekaman yang diputar. Keduanya sesi kamera sungguhan dari kontrol positif, dan laporannya menyebut yang mana.</p>
                 )}
-                <p>Peragaan kamera langsung menjalankan sesi sungguhan dengan ambang yang sama diterapkan, untuk peserta dewasa. Ia tidak tersedia pada jalur anak.</p>
+                {/* The control a presenter actually needs, and the one that got
+                    skipped because the copy never said what only it can do. */}
+                <p>Peragaan kamera langsung menjalankan sesi sungguhan untuk peserta dewasa: kamera, kalibrasi, dan gerbang mutu yang sama, dengan ambang yang sama diterapkan. Hanya lewat jalur ini “Disarankan pemeriksaan lanjutan” bisa muncul di depan penonton — dan hanya lewat jalur ini pula kebalikannya bisa ditunjukkan, karena peserta yang menonton adegan sosial dan mengikuti isyarat arah keluar tanpa rekomendasi. Jalankan dua orang berturut-turut kalau yang perlu terlihat adalah bahwa alat ini membedakan, bukan merujuk semua orang. Ia tidak tersedia pada jalur anak.</p>
               </div>
               {/* One button per registered recording rather than a single control
                   that silently plays whichever file is first. The presenter has
@@ -2563,9 +2613,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : sessionOutcome.headline}</h1>
               <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
             </div>
-            <span className={`decisionBadge ${isEngineeringStudy ? "research" : sessionOutcome.emitsReferral ? "refer" : sessionOutcome.kind === "WITHHELD" ? "withheld" : "monitor"}`}>
-              {isEngineeringStudy ? <IconResearch size={15} /> : sessionOutcome.emitsReferral ? <IconScanpathSpread size={15} /> : sessionOutcome.kind === "WITHHELD" ? <IconSignalHeld size={15} /> : <IconScanpathFocus size={15} />}
-              {isEngineeringStudy ? (quality.passed ? "LULUS TEKNIS · TANPA SKOR" : "BELUM LULUS · TANPA SKOR") : sessionOutcome.emitsReferral ? "PERIKSA LANJUT" : sessionOutcome.kind === "WITHHELD" ? "REKAMAN DITAHAN" : "TERUKUR"}
+            <span className={`decisionBadge ${badge.tone}`}>
+              {badge.tone === "research" ? <IconResearch size={15} /> : badge.tone === "refer" || (badge.tone === "demonstration" && referral.recommendsFollowUp) ? <IconScanpathSpread size={15} /> : badge.tone === "withheld" ? <IconSignalHeld size={15} /> : <IconScanpathFocus size={15} />}
+              {badge.label}
             </span>
           </div>
           {demonstrationMode && <div className="demonstrationBanner" role="status">
@@ -2615,7 +2665,18 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               </section>}
               <section className="observationAnswer">
                 <span className="observationQuestion"><IconInfo size={20} /></span>
-                <div><small>Cara membaca hasil ini</small><h2>{sessionOutcome.emitsReferral ? "Kenapa hasil ini perlu ditindaklanjuti?" : "Kenapa hasil ini belum berarti aman?"}</h2><p>{sessionOutcome.emitsReferral ? "Preferensi kuat pada pola geometrik jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita usia 12 sampai 49 bulan. Bawa hasil ini ke kader atau Puskesmas bersama SDIDTK." : "Ambang rujukan otomatis dirancang untuk memastikan hasil positif, bukan menyingkirkan ASD. Sensitivitasnya hanya 17 persen, jadi sebagian besar anak ASD tidak terdeteksi di sini. Indeks lain di atas adalah pengukuran deskriptif yang belum punya ambang tervalidasi; skrining perkembangan rutin tetap diperlukan."}</p></div>
+                {/* Three answers, because there are three situations.
+                    This section used to switch on emitsReferral alone, which
+                    demonstration mode forces to false — so a report whose
+                    composite lane had just recommended a follow-up asked, one
+                    heading later, why the result did not mean the child was
+                    safe. The app disagreeing with itself in front of an
+                    audience costs more than the sentence it saved.
+                    recommendsFollowUp without emitsReferral is reachable only
+                    in a demonstration: in the field the composite needs the
+                    geometric signal assessable, and that needs the threshold
+                    applied. */}
+                <div><small>Cara membaca hasil ini</small><h2>{sessionOutcome.emitsReferral || referral.recommendsFollowUp ? "Kenapa hasil ini perlu ditindaklanjuti?" : "Kenapa hasil ini belum berarti aman?"}</h2><p>{sessionOutcome.emitsReferral ? "Preferensi kuat pada pola geometrik jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita usia 12 sampai 49 bulan. Bawa hasil ini ke kader atau Puskesmas bersama SDIDTK." : referral.recommendsFollowUp ? `Kedua sinyal yang dapat dinilai sama-sama menyimpang. Seluruh selang kepercayaan waktu tatap pada pola geometrik berada di atas ambang 69 persen, dan pola itu jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita. Isyarat arah diikuti pada ${jointAttention ? `${jointAttention.trialsFollowed} dari ${jointAttention.trialsScored}` : "sebagian kecil"} percobaan, dibandingkan terhadap peserta yang sama sebelum isyarat diberikan. Beginilah sesi lapangan akan terbaca bila stimulus penuh tersedia. Sesi ini peragaan, jadi tidak ada rujukan yang dikeluarkan dan hasilnya tidak dibawa ke layanan kesehatan.` :"Ambang rujukan otomatis dirancang untuk memastikan hasil positif, bukan menyingkirkan ASD. Sensitivitasnya hanya 17 persen, jadi sebagian besar anak ASD tidak terdeteksi di sini. Indeks lain di atas adalah pengukuran deskriptif yang belum punya ambang tervalidasi; skrining perkembangan rutin tetap diperlukan."}</p></div>
               </section>
               <section className="decisionRules" aria-labelledby="decision-rules-heading">
                 <div className="decisionRulesHead"><small>Cara membaca status</small><h2 id="decision-rules-heading">Kapan sistem memberi arahan?</h2></div>
@@ -2767,6 +2828,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <div><dt>Sumber sesi</dt><dd>{mode === "live" ? "Sesi kamera langsung" : recording ? `Rekaman ${recording.label}` : "Simulasi, bukan sesi nyata"}</dd></div>
               <div><dt>Versi aplikasi</dt><dd>app {APP_VERSION}</dd></div>
             </dl>
+            {/* The sheet leaves the room without the screen. A demonstration that
+                printed as an ordinary session was a demonstration only the people
+                who saw the banner knew about. */}
+            {demonstrationMode && <p className="printDemonstration"><strong>MODE DEMONSTRASI — bukan hasil sesi lapangan.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun.</p>}
             <h2>Hasil</h2>
             <p className="printHeadline">{sessionOutcome.headline}</p>
             <p>{sessionOutcome.summaryLine}</p>

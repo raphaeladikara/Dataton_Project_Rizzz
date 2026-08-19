@@ -286,3 +286,86 @@ test("a session that assessed nothing says so rather than reporting zero deviati
   assert.equal(recommendation.assessableCount, 0);
   assert.match(recommendation.headline, /Belum ada sinyal/);
 });
+
+/**
+ * The other half of a stage demonstration.
+ *
+ * Everything above tests a session that could only assess one signal, because
+ * that is every field session while the licensed clip is short. In a
+ * demonstration both signals are assessable, and a participant who follows the
+ * cues and watches the social panel deviates on neither — the run whose entire
+ * job is to show that the instrument does not simply recommend everyone.
+ *
+ * That run used to print "Belum cukup sinyal untuk menyarankan rujukan", the
+ * sentence written for a session that could not assess its comparison. It was
+ * false: the session assessed both signals and both came back clean. On stage
+ * it read as the instrument failing rather than as the instrument working.
+ */
+test("a session that assessed every signal and found none deviant says that, not that it lacked signals", () => {
+  const ordinary = buildReferralRecommendation({
+    geopref: {
+      percentGeometric: 0.34,
+      percentGeometricCi: [0.19, 0.51] as readonly [number, number],
+      threshold: 0.69,
+      outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" as const,
+    },
+    jointAttention: { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 8, pValue: 0.004 },
+  });
+
+  assert.equal(ordinary.assessableCount, 2);
+  assert.equal(ordinary.deviantCount, 0);
+  assert.equal(ordinary.recommendsFollowUp, false);
+  assert.doesNotMatch(ordinary.headline, /[Bb]elum cukup sinyal/);
+  assert.match(ordinary.headline, /Tidak ada sinyal yang menyimpang/);
+  // Reporting a clean sweep is still not reassurance; the report's own limit
+  // copy carries that, and the headline must not undo it.
+  assert.doesNotMatch(ordinary.headline, /aman|normal|tidak autis|negatif/i);
+  assert.equal(ordinary.reassures, false);
+});
+
+test("one deviant signal out of two reports the count against the threshold", () => {
+  const partial = buildReferralRecommendation({
+    geopref: {
+      percentGeometric: 0.34,
+      percentGeometricCi: [0.19, 0.51] as readonly [number, number],
+      threshold: 0.69,
+      outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" as const,
+    },
+    jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 0, pValue: 1 },
+  });
+
+  assert.equal(partial.assessableCount, 2);
+  assert.equal(partial.deviantCount, 1);
+  assert.equal(partial.recommendsFollowUp, false);
+  // Not the "sinyal pembandingnya tidak dapat dinilai" sentence: the comparison
+  // signal was assessed here, and it came back clean.
+  assert.doesNotMatch(partial.headline, /tidak dapat dinilai/);
+  assert.match(partial.headline, /1 dari 2 sinyal menyimpang/);
+  assert.match(partial.headline, /di bawah batas 2/);
+});
+
+/**
+ * The demonstration a presenter actually runs: produced pattern, then an
+ * ordinary viewer, on the same build. The two must not share a headline.
+ */
+test("the produced pattern and an ordinary viewer reach opposite recommendations", () => {
+  const cues = { trialsScored: 8 };
+  const produced = buildReferralRecommendation({
+    geopref: { percentGeometric: 0.97, percentGeometricCi: [0.93, 1] as readonly [number, number], threshold: 0.69, outcome: "GEOMETRIC_PREFERENCE_DEMONSTRATION" as const },
+    jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsFollowed: 0, pValue: 1, ...cues },
+  });
+  const ordinary = buildReferralRecommendation({
+    geopref: { percentGeometric: 0.34, percentGeometricCi: [0.19, 0.51] as readonly [number, number], threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" as const },
+    jointAttention: { verdict: "FOLLOWS_CUES", trialsFollowed: 8, pValue: 0.004, ...cues },
+  });
+
+  assert.equal(produced.recommendsFollowUp, true);
+  assert.match(produced.headline, /Disarankan pemeriksaan lanjutan/);
+  assert.equal(ordinary.recommendsFollowUp, false);
+  assert.notEqual(produced.headline, ordinary.headline);
+  // Neither is a validated instrument, and neither says it is.
+  for (const item of [produced, ordinary]) {
+    assert.equal(item.validatedOnToddlers, false);
+    assert.equal(item.thresholdStatus, "design_choice_not_validated_cutoff");
+  }
+});

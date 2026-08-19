@@ -81,6 +81,13 @@ Three layers. Do not blur them.
   so they cannot drift; no arm may cite the CNN.
 - The child's given name is transient: it exists in a ref for speech synthesis and
   must never reach `profile`, the audit log, or disk.
+- **The audit log's `decision` block is what the operator read; `assessment` is the
+  Carette research panel.** They are not the same thing and `assessment` never carried
+  the result. `decision` holds the GeoPref percentage with its interval, the
+  cue-following contrast, the session outcome, the composite rule, and
+  `demonstrationMode` — the one field that says whether the 69% comparison was made at
+  all. It is recomputed from locals inside `runStimulus`, never read off the memos,
+  which are state that function is still in the middle of setting.
 - Keep public copy, paper claims, and documentation aligned with the canonical
   summaries and with `docs/keputusan_ilmiah.md`.
 - `npm test` globs `tests/*.test.mjs` and `tests/*.test.ts`, so a new test file runs
@@ -139,3 +146,17 @@ Three rules that matter while editing anything public-facing:
   entry point on purpose. `RULE_IN_DEMONSTRATION` hard-codes `emitsReferral: false`, the
   banner stays on screen and on the report, and the mode is written to the audit log.
   `app/tests/child-flow-contract.test.ts` guards all of it.
+- **"Peragakan · kamera langsung" is the only path that can show a referral live.**
+  "Mulai observasi kamera" is `target_population_research`, where the 69% comparison is
+  never made, so the composite has one assessable signal out of the two it needs and
+  cannot fire no matter what the participant does. Under `stage_demo` both signals become
+  assessable and both directions are reachable: a produced pattern reaches
+  "Disarankan pemeriksaan lanjutan · 2 dari 2 sinyal menyimpang", and an ordinary
+  participant reaches "Tidak ada sinyal yang menyimpang · 2 dari 2 sinyal dinilai". Run
+  the two back to back when the point being made is that the instrument discriminates.
+  The ordinary half needs the cues actually followed: eight trials cannot reach p < 0,05
+  below seven successes, so five of eight lands on `NOT_DISTINGUISHABLE` and reads as
+  unassessed rather than as normal.
+- **The badge is `src/outcome/reportBadge.ts`, not an expression in the report JSX.**
+  Coral belongs to `emitsReferral` and to nothing else; a demonstration gets its own
+  slate tone and says which of the two outcomes it is demonstrating.

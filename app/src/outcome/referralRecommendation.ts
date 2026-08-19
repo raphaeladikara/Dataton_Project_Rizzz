@@ -234,7 +234,16 @@ function referralHeadline(input: {
       ? `${deviantCount} sinyal menyimpang, dan sinyal pembandingnya tidak dapat dinilai · belum cukup untuk menyarankan rujukan`
       : "Sinyal yang dapat dinilai tidak menyimpang, dan sinyal pembandingnya tidak dapat dinilai";
   }
-  return `Belum cukup sinyal untuk menyarankan rujukan · ${deviantCount} dari ${assessableCount} menyimpang`;
+  // Every signal was assessable and the rule still did not fire. "Belum cukup
+  // sinyal" is false here, because the session assessed all of them, and this
+  // is the branch an ordinary participant lands in on stage — the run whose
+  // whole job is to show that the instrument does not simply refer everyone.
+  // It has to report the count it measured rather than borrow the sentence
+  // written for a session that could only assess one signal. Not deviating is
+  // still not reassurance; referralLimit on the report carries that.
+  return deviantCount > 0
+    ? `${deviantCount} dari ${assessableCount} sinyal menyimpang · di bawah batas ${REFERRAL_DEVIANT_THRESHOLD} untuk menyarankan rujukan`
+    : `Tidak ada sinyal yang menyimpang · ${assessableCount} dari ${assessableCount} sinyal dinilai`;
 }
 
 export function buildReferralRecommendation(input: ReferralInput): ReferralRecommendation {

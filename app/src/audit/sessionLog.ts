@@ -65,6 +65,15 @@ export type SessionAuditLog = {
   quality?: Quality;
   gaze?: Record<string, unknown>;
   assessment?: Record<string, unknown>;
+  /**
+   * The decision the operator read, and its inputs: the GeoPref percentage
+   * with its interval, the cue-following contrast, the session outcome, the
+   * composite rule, and whether the threshold was applied in demonstration
+   * mode. `assessment` is the Carette research panel and never carried any of
+   * it, so an exported session used to be checkable for signal quality and
+   * unarguable about the result.
+   */
+  decision?: Record<string, unknown>;
   events: AuditEvent[];
 };
 
