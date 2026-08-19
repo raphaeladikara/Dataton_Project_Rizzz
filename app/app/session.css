@@ -2652,3 +2652,23 @@ dd {
   font-size: .82rem;
   line-height: 1.6;
 }
+
+/* Checkbox inside the consent form grid: label, control, then the note it needs. */
+.formGrid label.checkField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.formGrid label.checkField > span { grid-column: 1; }
+
+.formGrid label.checkField > input[type="checkbox"] {
+  grid-column: 2;
+  grid-row: 1;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--teal-600);
+}
+
+.formGrid label.checkField > small { grid-column: 1 / -1; }

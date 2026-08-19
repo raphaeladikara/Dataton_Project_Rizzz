@@ -5,11 +5,13 @@ import {
   positiveControlBlockers,
   positiveControlFileName,
   positiveControlFromSession,
+  sessionNameCalls,
   stimulusIntroCopy,
   summarizePositiveControl,
   type PositiveControlMeta,
 } from "../src/positive/control";
 import { buildReferralRecommendation, type ReferralInput } from "../src/outcome/referralRecommendation";
+import { NAME_CALL_OFFSETS_MS, nameCallTimeline, STIMULUS_PHASES } from "../src/stimulus/protocol";
 
 const biasa: PositiveControlMeta = { condition: "biasa", attempt: 1 };
 const produksi: PositiveControlMeta = { condition: "produksi", attempt: 1 };
@@ -169,3 +171,49 @@ test("a positive control without a name to call is allowed", () => {
   assert.deepEqual(positiveControlBlockers(biasa), []);
 });
 
+
+/**
+ * Two declared modes instead of one guessed from whether a name was typed.
+ *
+ * Without a speaker behind the participant the name call cannot be measured the
+ * way it was validated, so it is not delivered at all: no voice, no index, and
+ * the log says the mode rather than leaving a reader to infer it from an empty
+ * number. With one, the calls go out and the head-turn detector runs.
+ */
+test("no speaker means no calls are delivered at all", () => {
+  assert.deepEqual(sessionNameCalls({ speakerBehind: false }, STIMULUS_PHASES), []);
+});
+
+test("a declared speaker delivers every call, anchored to the battery clock", () => {
+  const calls = sessionNameCalls({ speakerBehind: true }, STIMULUS_PHASES);
+  assert.equal(calls.length, NAME_CALL_OFFSETS_MS.length);
+  assert.deepEqual(calls, nameCallTimeline(STIMULUS_PHASES));
+});
+
+test("declaring a speaker but giving no name to call is refused", () => {
+  assert.deepEqual(
+    positiveControlBlockers({ ...biasa, speakerBehind: true }, { callName: "  " }),
+    ["Speaker dipakai tetapi nama panggilan belum diisi"],
+  );
+  assert.deepEqual(positiveControlBlockers({ ...biasa, speakerBehind: true }, { callName: "Rafa" }), []);
+});
+
+test("without a speaker the name is irrelevant and never blocks the session", () => {
+  assert.deepEqual(positiveControlBlockers({ ...biasa, speakerBehind: false }, { callName: "" }), []);
+  assert.deepEqual(positiveControlBlockers(biasa, { callName: "" }), []);
+});
+
+/**
+ * The mode changes what was collected, never whether the signal counts. It stays
+ * out of the rule in both modes; a rear speaker is a lab rig, not a Posyandu one.
+ */
+test("the speaker mode never puts the signal back into the rule", () => {
+  for (const speakerBehind of [true, false]) {
+    const summary = positiveControlFromSession({
+      meta: { ...produksi, speakerBehind },
+      geopref: { percentGeometric: 0.82, threshold: 0.69, outcome: "GEOMETRIC_PREFERENCE" },
+      jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 1, pValue: 0.98 },
+    });
+    assert.deepEqual(summary.signals.map((item) => item.id), ["geometric_preference", "cue_following"]);
+  }
+});

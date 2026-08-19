@@ -14,7 +14,7 @@ const base = (over: Record<string, unknown> = {}) => ({
   profile: { childId: "KP-01", ageMonths: null, site: "tab-a", operator: "RA" },
   privacy: {} as never,
   environment: {} as never,
-  positiveControl: { condition: "biasa", attempt: 1 },
+  positiveControl: { condition: "biasa", attempt: 1, speakerBehind: true },
   quality: { faceRate: 0.96, gazeDropout: 0.04, calibrationErrorDeg: 2.1, passed: true, reasons: [] },
   gaze: { frames: [{ t: 0 }] },
   assessment: {
@@ -56,10 +56,12 @@ test("a silent name call warns but no longer fails the session", () => {
   assert.ok(result.warnings.some((line) => /tidak berbunyi/.test(line)), result.warnings.join("; "));
 });
 
-test("the quarantined signal is recorded as such, not as a verdict", () => {
-  const result = checkPositiveControlLog(base());
-  assert.equal(result.sheetRow.split(",")[11], "dikarantina");
-  assert.deepEqual(result.warnings.filter((line) => /speaker/i.test(line)), []);
+test("the quarantined signal is recorded with what it measured, never as a verdict", () => {
+  const result = checkPositiveControlLog(base({
+    gaze: { frames: [{ t: 0 }], responseToName: { callsDelivered: 3, callsSkipped: 0, responses: 2 } },
+  }));
+  assert.equal(result.sheetRow.split(",")[11], "dikarantina (2/3)");
+  assert.deepEqual(result.warnings.filter((line) => /penempatan speaker/i.test(line)), []);
 });
 
 test("a session below a quality threshold fails and names the threshold", () => {
@@ -87,4 +89,40 @@ test("the session sheet row is emitted ready to paste", () => {
   assert.equal(cells[4], "kp-01-biasa-1.json");
   assert.equal(cells[8], "MEASURED_PROTOCOL_ABBREVIATED");
   assert.equal(cells[12], "tidak");
+});
+
+test("a session without a declared speaker expects no calls and says so in the sheet", () => {
+  const result = checkPositiveControlLog(base({
+    positiveControl: { condition: "biasa", attempt: 1, speakerBehind: false },
+    events: [],
+  }));
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.sheetRow.split(",")[11], "tidak_dipakai");
+  assert.deepEqual(result.warnings.filter((line) => /panggilan/i.test(line)), []);
+});
+
+test("declaring a speaker but delivering no calls is a contradiction the checker catches", () => {
+  const result = checkPositiveControlLog(base({
+    positiveControl: { condition: "biasa", attempt: 1, speakerBehind: true },
+    events: [],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.failures.some((line) => /speaker/i.test(line)), result.failures.join("; "));
+});
+
+/**
+ * With a speaker declared, a session where nobody ever turned is the signature
+ * of a speaker that is misplaced, too quiet, or in front of the participant.
+ */
+test("a declared speaker with no head turn at all warns about the rig", () => {
+  const result = checkPositiveControlLog(base({
+    positiveControl: { condition: "biasa", attempt: 1, speakerBehind: true },
+    gaze: { frames: [{ t: 0 }], responseToName: { callsDelivered: 3, callsSkipped: 0, responses: 0 } },
+  }));
+  assert.ok(result.warnings.some((line) => /speaker/i.test(line)), result.warnings.join("; "));
+});
+
+test("logs recorded before the mode existed are flagged as undeclared, not assumed", () => {
+  const result = checkPositiveControlLog(base({ positiveControl: { condition: "biasa", attempt: 1 } }));
+  assert.ok(result.warnings.some((line) => /tidak dideklarasikan/i.test(line)), result.warnings.join("; "));
 });

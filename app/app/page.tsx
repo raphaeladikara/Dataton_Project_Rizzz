@@ -63,6 +63,7 @@ import {
   positiveControlBlockers,
   stimulusIntroCopy,
   positiveControlFromSession,
+  sessionNameCalls,
   type PositiveControlMeta,
 } from "../src/positive/control";
 import { loadFirstRecording, type RecordedSession } from "../src/replay/recording";
@@ -71,7 +72,6 @@ import { geometryFeatures } from "../src/scanpath/features";
 import {
   GEOPREF_PHASE_ID,
   NAME_CALL_OFFSETS_MS,
-  nameCallTimeline,
   NAME_CALL_PHASE_ID,
   phaseAtElapsed,
   scoredPhaseTargets,
@@ -556,6 +556,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [positiveControl, setPositiveControl] = useState<PositiveControlMeta | null>(null);
   /** Measured once per rig with a tape measure, then typed in. */
   const [viewingDistanceMm, setViewingDistanceMm] = useState(500);
+  /** Mirrors callNameRef so the consent gate can see it; the name itself stays in the ref. */
+  const [callNamePresent, setCallNamePresent] = useState(false);
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -841,9 +843,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const consentIssues = useMemo(
     () => [
       ...consentBaseIssues,
-      ...(positiveControl ? positiveControlBlockers(positiveControl) : []),
+      ...(positiveControl ? positiveControlBlockers(positiveControl, { callName: callNamePresent ? "ada" : "" }) : []),
     ],
-    [consentBaseIssues, positiveControl],
+    [consentBaseIssues, positiveControl, callNamePresent],
   );
 
   const geoprefAsset = useMemo(() => activeGeoprefAsset(), []);
@@ -900,6 +902,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setDemonstrationMode(modeChoice === "replay" && Boolean(options.demonstration));
     // Opted into per session on the Gate A consent screen, never carried over.
     setPositiveControl(null);
+    setCallNamePresent(false);
     setMode(modeChoice);
     setSessionPurpose(purpose);
     setScenario(replay);
@@ -931,6 +934,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPoints([]);
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
+    setCallNamePresent(false);
     frameTraceRef.current.reset();
     setProgress(0);
     setStage("consent");
@@ -1378,6 +1382,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     // session id rather than the declaration order. Everything downstream that
     // cares about ordering has to read this, not STIMULUS_PHASES.
     const orderedPhases = sessionStimulusPhases(profile.childId || "NG-0000");
+    const nameCallsPlanned = sessionNameCalls(positiveControl, orderedPhases);
     const retryPhaseIds = validity?.outcome === "RETRY_STAGE" ? validity.invalidStages : [];
     const runPhases = retryPhaseIds.length
       ? orderedPhases.filter((phase) => retryPhaseIds.includes(phase.id))
@@ -1477,7 +1482,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           setStimulusCueActive(true);
           recordAudit("stimulus.cue_started", { id: phaseState.phase.id, elapsedMs: Math.round(elapsed), plannedOnsetMs: phaseState.phase.cueOnsetMs });
         }
-        if (phaseState.phase.id === NAME_CALL_PHASE_ID) {
+        // The phase always runs — removing it would change the battery and make
+        // these recordings incomparable to earlier ones — but the calls only go
+        // out when a speaker behind the participant was declared. Played through
+        // the tablet they measure nothing, and a call that measures nothing is
+        // better not delivered than delivered and misread.
+        if (phaseState.phase.id === NAME_CALL_PHASE_ID && nameCallsPlanned.length > 0) {
           NAME_CALL_OFFSETS_MS.forEach((offsetMs, index) => {
             if (nameCallsDelivered.has(index) || phaseState.phaseElapsedMs < offsetMs) return;
             nameCallsDelivered.add(index);
@@ -1550,9 +1560,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     // recomputed. Anything the log needs has to come from these locals.
     const nextPhenotype = buildPhenotypeProfile({
       frames: frameTraceRef.current.samples(),
-      // Anchored to this session's phase order, because the frame trace is
-      // stamped from the start of the battery and the raw offsets are not.
-      nameCalls: nameCallTimeline(orderedPhases),
+      // Empty when no speaker was declared, so the index reads "not measured"
+      // instead of a confident zero out of three.
+      nameCalls: nameCallsPlanned,
       socialPhases: SOCIAL_PHASE_IDS,
       nonsocialPhases: [GEOPREF_PHASE_ID],
     });
@@ -1690,6 +1700,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         pipeline: processedDiagnostics,
         ood: nextOod,
         cueFeatures: nextCueSummary,
+        // The descriptive index the speaker mode decides whether to collect.
+        // Quarantined from the rule, so the log is the only place it is auditable.
+        responseToName: nextPhenotype.responseToName,
+        nameCallsPlanned: nameCallsPlanned.length,
         aoiVersion: AOI_VERSION,
         // Exported so a recorded session can be replayed with the same
         // phenotype indices it produced live. Pose and eye opening are derived
@@ -1761,6 +1775,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPoints([]);
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
+    setCallNamePresent(false);
     frameTraceRef.current.reset();
     setCalibration(null);
     setCalibrationMessage(null);
@@ -2092,6 +2107,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     </select></label>
                   : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
               {positiveControl && <label><span><IconResearch size={14} />Percobaan ke-</span><input type="number" min="1" max={MAX_POSITIVE_CONTROL_ATTEMPTS} value={positiveControl.attempt} onChange={(event) => setPositiveControl({ ...positiveControl, attempt: Number(event.target.value) })} /><small>Maksimal {MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi. Sesudah itu peserta dicatat tidak dapat dinilai.</small></label>}
+              {positiveControl && <label className="checkField"><span><IconResearch size={14} />Pakai speaker di belakang peserta</span><input type="checkbox" checked={Boolean(positiveControl.speakerBehind)} onChange={(event) => { const on = event.target.checked; if (!on) { callNameRef.current = ""; setCallNamePresent(false); } setPositiveControl({ ...positiveControl, speakerBehind: on }); }} /><small>Tanpa ini panggilan nama tidak dibunyikan sama sekali dan indeksnya dicatat tidak terukur. Sinyalnya dikarantina dari aturan komposit di kedua mode.</small></label>}
               {positiveControl && <label><span><IconTimer size={14} />Jarak mata–layar (mm)</span><input type="number" min="200" max="1200" value={viewingDistanceMm} onChange={(event) => setViewingDistanceMm(Number(event.target.value))} /><small>Diukur sekali dengan meteran, bukan ditaksir.</small></label>}
               <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
               <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
@@ -2099,7 +2115,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   is still reported, so a positive control may still supply a
                   name. Transient either way: it never reaches profile, the log,
                   or the network. */}
-              {(!isEngineeringStudy || positiveControl) && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {positiveControl ? "peserta" : "anak"}</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Opsional: sinyal respons nama dikarantina, jadi kolom ini hanya mengisi indeks deskriptif." : "Kosongkan bila Anda ingin memanggil sendiri."}</small></label>}
+              {(!isEngineeringStudy || positiveControl?.speakerBehind) && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {positiveControl ? "peserta" : "anak"}</span><input key={String(positiveControl?.speakerBehind)} defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Dipakai untuk membunyikan panggilan lewat speaker; hasilnya tetap indeks deskriptif, bukan sinyal keputusan." : "Kosongkan bila Anda ingin memanggil sendiri."}</small></label>}
             </div>
             {isGateB && <div className="bridgeSetup" aria-label="Metadata pasangan Gate B">
               <div className="bridgeSetupHead"><div><strong>Kontrak pasangan</strong><small>Nilai ini harus identik pada aliran Neurogaze dan WebGazer.</small></div><span>Gate B · riset</span></div>
@@ -2442,7 +2458,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     <div><dt>sinyal_isyarat</dt><dd>{referral.signals.find((item) => item.id === "cue_following")?.status ?? "-"}</dd></div>
                     {/* Descriptive only. The signal is quarantined out of the rule,
                         so the sheet records what was measured, not a verdict. */}
-                    <div><dt>sinyal_nama</dt><dd>dikarantina{phenotype.responseToName.proportion == null ? "" : ` (${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered})`}</dd></div>
+                    <div><dt>sinyal_nama</dt><dd>{positiveControl?.speakerBehind ? `dikarantina (${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered})` : "tidak_dipakai"}</dd></div>
                     <div><dt>komposit_menyala</dt><dd>{referral.recommendsFollowUp ? "ya" : "tidak"}</dd></div>
                     <div><dt>outcome</dt><dd>{geoprefResult?.outcome ?? "-"}</dd></div>
                   </dl>
