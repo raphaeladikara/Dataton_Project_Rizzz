@@ -1,4 +1,5 @@
 import type { GeoprefOutcome } from "../geopref/score";
+import { nameCallTimeline, type StimulusPhase } from "../stimulus/protocol";
 import {
   buildReferralRecommendation,
   type ReferralInput,
@@ -19,6 +20,15 @@ export type PositiveControlCondition = "biasa" | "produksi";
 export type PositiveControlMeta = {
   condition: PositiveControlCondition;
   attempt: number;
+  /**
+   * Whether a speaker placed behind the participant delivered the name calls.
+   *
+   * Two declared modes rather than one inferred from whether a name was typed.
+   * Absent on sessions recorded before the flag existed, which is why it reads
+   * as false here and as "not declared" in the log checker: those recordings
+   * cannot say which rig they used.
+   */
+  speakerBehind?: boolean;
 };
 
 /**
@@ -27,16 +37,22 @@ export type PositiveControlMeta = {
  */
 export const MAX_POSITIVE_CONTROL_ATTEMPTS = 3;
 
-export function positiveControlBlockers(meta: PositiveControlMeta): string[] {
+export function positiveControlBlockers(
+  meta: PositiveControlMeta,
+  session: { callName: string } = { callName: "" },
+): string[] {
   if (!Number.isInteger(meta.attempt) || meta.attempt < 1) {
     return ["Nomor percobaan harus 1, 2, atau 3"];
   }
   if (meta.attempt > MAX_POSITIVE_CONTROL_ATTEMPTS) {
     return [`Percobaan maksimal ${MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi`];
   }
-  // The name is deliberately not required. Response to name is quarantined out
-  // of the rule (see QUARANTINED_SIGNALS), so leaving it blank only empties a
-  // descriptive index — not a reason to stop a session at a Posyandu table.
+  // The name only matters once a speaker is declared. Without one no call is
+  // delivered at all, so an empty field is the correct state rather than a
+  // missing one — and never a reason to stop a session at a Posyandu table.
+  if (meta.speakerBehind && !session.callName.trim()) {
+    return ["Speaker dipakai tetapi nama panggilan belum diisi"];
+  }
   return [];
 }
 
@@ -48,6 +64,22 @@ export function positiveControlBlockers(meta: PositiveControlMeta): string[] {
 export function positiveControlFileName(participantId: string, meta: PositiveControlMeta): string {
   const slug = participantId.trim().toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "");
   return `${slug}-${meta.condition}-${meta.attempt}.json`;
+}
+
+/**
+ * The calls this session should deliver.
+ *
+ * Empty without a declared speaker: the published paradigm needs the voice to
+ * come from outside the participant's field of view, so a call played through
+ * the tablet measures nothing and is better not delivered than delivered and
+ * misread. Anchored to the battery clock, because the frame trace is stamped
+ * from the start of the battery while the raw offsets are phase-relative.
+ */
+export function sessionNameCalls(
+  meta: Pick<PositiveControlMeta, "speakerBehind"> | null,
+  phases: readonly StimulusPhase[],
+): { index: number; offsetMs: number }[] {
+  return meta?.speakerBehind ? [...nameCallTimeline(phases)] : [];
 }
 
 export type PositiveControlSummary = {

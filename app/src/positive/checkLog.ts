@@ -54,11 +54,31 @@ export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCh
 
   const calls = log.events.filter((event) => event.type === "stimulus.name_called");
   const silent = calls.filter((event) => (event.data as { spoken?: boolean } | undefined)?.spoken !== true);
-  // Response to name is quarantined out of the rule, so a silent call empties a
-  // descriptive index rather than invalidating the session.
-  if (silent.length) {
+  const speaker = meta ? meta.speakerBehind : undefined;
+
+  if (meta && speaker === undefined) {
+    warnings.push(
+      "Mode speaker tidak dideklarasikan di log ini, jadi tidak dapat dipastikan apakah panggilan nama terukur. Rekaman sebelum penanda ini ada.",
+    );
+  }
+  if (speaker === true && calls.length === 0) {
+    // The two must agree or the evidence contradicts itself about its own rig.
+    failures.push("Log menyatakan speaker dipakai tetapi tidak ada panggilan nama yang terekam.");
+  }
+  if (speaker === false && calls.length > 0) {
+    failures.push("Log menyatakan speaker tidak dipakai tetapi panggilan nama tetap terekam.");
+  }
+  // Response to name is quarantined out of the rule in both modes, so a silent
+  // call empties a descriptive index rather than invalidating the session.
+  if (speaker === true && silent.length) {
     warnings.push(
       `${silent.length} dari ${calls.length} panggilan nama tidak berbunyi, jadi indeks respons nama kosong. Sinyal ini dikarantina, sesi tetap sah.`,
+    );
+  }
+  const nameIndex = (log.gaze as { responseToName?: { callsDelivered?: number; responses?: number } } | undefined)?.responseToName;
+  if (speaker === true && nameIndex && (nameIndex.callsDelivered ?? 0) > 0 && nameIndex.responses === 0) {
+    warnings.push(
+      "Speaker dipakai tetapi tidak ada satu pun tolehan terekam. Periksa penempatan speaker, volumenya, dan apakah ia terlihat peserta.",
     );
   }
 
@@ -96,7 +116,11 @@ export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCh
     status(summary, "geometric_preference"),
     status(summary, "cue_following"),
     // Measured and reported, never counted. See QUARANTINED_SIGNALS.
-    "dikarantina",
+    speaker === true
+      ? `dikarantina (${nameIndex?.responses ?? 0}/${nameIndex?.callsDelivered ?? 0})`
+      : speaker === false
+        ? "tidak_dipakai"
+        : "dikarantina",
     summary ? (summary.compositeWouldFire ? "ya" : "tidak") : "-",
     meta?.condition === "produksi" ? "" : "-",
     "",

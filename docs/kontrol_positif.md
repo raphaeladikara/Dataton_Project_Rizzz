@@ -157,6 +157,32 @@ ke `profile.childId` di log audit, dan log audit akan di-commit.
 
 ---
 
+## Dua mode panggilan nama
+
+Modenya dideklarasikan di layar persetujuan, bukan ditebak dari ada-tidaknya nama.
+
+| | Speaker tidak dicentang | Speaker dicentang |
+|---|---|---|
+| Kolom nama | tidak muncul | muncul, wajib diisi |
+| Panggilan saat sesi | tidak dibunyikan sama sekali | dibunyikan tiga kali |
+| Indeks respons nama | tidak terukur | terukur, masuk log sebagai `gaze.responseToName` |
+| Kolom `sinyal_nama` | `tidak_dipakai` | `dikarantina (n/m)` |
+| Masuk aturan komposit | tidak | **tetap tidak** |
+
+Fase panggilan nama tetap berjalan 13 detik di kedua mode. Menghapusnya akan mengubah
+baterai dan membuat rekaman ini tidak sebanding dengan yang sudah ada.
+
+Baris terakhir tabel yang paling penting: mode speaker menentukan **apakah indeksnya
+dikumpulkan**, bukan apakah ia dihitung. Speaker di belakang adalah konfigurasi lab, dan
+memvalidasi sinyal pada rig yang tidak akan dipakai kader tetap tidak sah — jadi
+sinyalnya dikarantina di kedua mode. Mode speaker ada supaya indeksnya bisa dikumpulkan
+untuk keperluan lain, dan supaya log menyebut sendiri rig mana yang dipakai.
+
+Log mencatat modenya sebagai `positiveControl.speakerBehind`. `npm run kp:check` menolak
+log yang menyatakan speaker dipakai tetapi tidak memuat panggilan, dan sebaliknya.
+
+---
+
 ## Protokol
 
 Tiap peserta direkam dua kali, satu per kondisi, dengan perangkat yang sama.
@@ -231,10 +257,10 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
    - Lokasi: `Lab` atau nama ruangan; nilai ini juga masuk sebagai `deviceId`
    - Operator: inisial
    - Jarak mata–layar: `500` (atau angka yang benar-benar diukur)
-   - Nama panggilan peserta: **wajib.** Tanpa ini panggilan nama tidak berbunyi dan
-     sinyal `response_to_name` terbaca 0/3 pada kedua kondisi — menyimpang palsu di
-     kondisi 1, dan tidak ada yang bisa ditahan di kondisi 2. Kolomnya tidak disimpan,
-     tidak masuk log, dan hilang saat sesi selesai.
+   - **Pakai speaker di belakang peserta:** biarkan **tidak dicentang** untuk protokol
+     Posyandu yang realistis. Kolom nama panggilan baru muncul kalau dicentang.
+   - Nama panggilan peserta: hanya kalau speaker dipakai, dan kalau begitu wajib diisi.
+     Kolomnya tidak disimpan, tidak masuk log, dan hilang saat sesi selesai.
 4. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
 5. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
    dengan `CALIBRATION_STABILITY`, `CALIBRATION_COVERAGE`, atau `CALIBRATION_RANGE_*`,
