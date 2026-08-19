@@ -190,15 +190,19 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
 1. **Jalankan aplikasi.** `cd app && npm run dev`, buka `http://localhost:3000` di
    tablet (satu jaringan, pakai alamat Network yang dicetak Next.js) atau langsung di
    perangkat uji.
-2. **Mulai observasi kamera** dari beranda. Jangan lewat Demo cepat — jalur itu tidak
-   menghasilkan jejak frame.
+2. **Masuk lewat Gate A.** Topbar → **Panduan & demo** → gulir ke bawah → **Mulai Gate A
+   sekarang**. Bukan tombol "Mulai observasi kamera" di beranda: jalur itu meminta usia
+   16–30 bulan dan peserta dewasa tidak bisa melewatinya tanpa mengarang angka yang lalu
+   ikut masuk ke log. Jangan lewat Demo cepat — jalur itu tidak menghasilkan jejak frame.
 3. **Isi metadata sesi:**
    - Identitas: `KP-03` (kode peserta, bukan nama)
-   - Usia: kosongkan, atau isi usia peserta dalam bulan kalau ingin lengkap
-   - Lokasi: `Lab` atau nama ruangan
+   - Jenis sesi: pilih **Kontrol positif · kondisi 1** atau **kondisi 2** sesuai yang
+     sedang direkam. Pilihan ini yang menentukan nama berkas unduhan dan yang membuat
+     layar intro berhenti menyebut tugas apa pun.
+   - Percobaan ke-: `1`, naik hanya kalau percobaan sebelumnya ditahan
+   - Lokasi: `Lab` atau nama ruangan; nilai ini juga masuk sebagai `deviceId`
    - Operator: inisial
    - Jarak mata–layar: `500` (atau angka yang benar-benar diukur)
-   - Tujuan sesi: pilih yang bukan demo, supaya log membawa `purpose` yang benar
 4. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
 5. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
    dengan `CALIBRATION_STABILITY`, `CALIBRATION_COVERAGE`, atau `CALIBRATION_RANGE_*`,
@@ -208,9 +212,10 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
 7. **Jalankan baterai 80 detik.** Operator tidak bicara, tidak menunjuk layar, tidak
    berdiri di sisi kiri atau kanan peserta. Berdirilah di belakang tablet.
 8. **Laporan muncul.** Catat isinya ke lembar sesi (kolomnya di bawah).
-9. **Unduh log audit.** Tombol unduh di panel teknis laporan. Berkasnya turun sebagai
-   `neurogaze-audit-KP-03-<8 hex>.json`.
-10. **Ganti nama dan simpan** sesuai konvensi di bawah.
+9. **Unduh log audit.** Tombol **Unduh log audit JSON** di bawah laporan. Karena sesi ini
+   ditandai kontrol positif, berkasnya sudah turun dengan nama yang benar —
+   `kp-03-biasa-1.json` — jadi tidak ada yang perlu diganti namanya.
+10. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`.
 
 Antara kondisi 1 dan 2, beri jeda ~1 menit dan kalibrasi ulang. Kalibrasi tidak
 diwariskan antar sesi.
@@ -259,7 +264,14 @@ research/hasil/kontrol_positif/
 ```
 
 Pola nama: `kp-<peserta>-<kondisi>-<percobaan>.json`, dengan kondisi `biasa` atau
-`produksi`. Huruf kecil semua, tanpa spasi.
+`produksi`. Huruf kecil semua, tanpa spasi. Nama ini dibentuk aplikasi dari kolom yang
+diisi di layar persetujuan, bukan diketik operator — dan kondisi yang sama juga tersimpan
+di dalam berkasnya sebagai `positiveControl`, sehingga berkas yang tertukar namanya masih
+bisa dikembalikan ke kondisi yang benar.
+
+Kolom `sinyal_*`, `komposit_menyala`, dan `outcome` di lembar sesi tersedia dua tempat:
+di panel **Respons instrumen · kontrol positif** pada laporan, dan di dalam log sebagai
+`assessment.positiveControl`. Kalau keduanya berbeda, yang benar adalah log.
 
 **Sesi yang ditahan tetap disimpan dan tetap dihitung.** Attrition adalah data, dan
 proyek ini sudah mengutip attrition webcam balita 42% dari Steffan dkk. 2024. Kalau

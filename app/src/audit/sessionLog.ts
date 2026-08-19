@@ -1,6 +1,7 @@
 import type { DeviceDiagnostics, Quality } from "../domain/types";
 import type { CalibrationDiagnostics } from "../capture/faceLandmarker";
 import type { GateBStudyMeta } from "../gateb/studyMeta";
+import { positiveControlFileName, type PositiveControlMeta } from "../positive/control";
 
 export type AuditEvent = {
   atMs: number;
@@ -35,6 +36,12 @@ export type SessionAuditLog = {
   };
   modelVersion?: string;
   study?: GateBStudyMeta;
+  /**
+   * Present only on positive-control sessions. The condition is the axis the
+   * whole analysis contrasts, so it rides inside the evidence rather than in a
+   * filename an operator types by hand.
+   */
+  positiveControl?: PositiveControlMeta;
   /** Needed to express Gate B error in degrees rather than pixels. */
   viewingGeometry?: ViewingGeometry;
   device?: DeviceDiagnostics;
@@ -62,6 +69,7 @@ export function createSessionAudit(input: {
   researchConsent: boolean;
   modelVersion?: string;
   study?: GateBStudyMeta;
+  positiveControl?: PositiveControlMeta;
   viewingGeometry?: ViewingGeometry;
 }): SessionAuditLog {
   const sessionId = globalThis.crypto?.randomUUID?.() ?? `ng-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -101,6 +109,7 @@ export function createSessionAudit(input: {
     },
     modelVersion: input.modelVersion,
     ...(input.study ? { study: input.study } : {}),
+    ...(input.positiveControl ? { positiveControl: input.positiveControl } : {}),
     ...(input.viewingGeometry ? { viewingGeometry: input.viewingGeometry } : {}),
     events: [{ atMs: 0, type: "session.created", level: "info" }],
   };
@@ -121,6 +130,9 @@ export function serializeAuditLog(log: SessionAuditLog): string {
 }
 
 export function auditFilename(log: SessionAuditLog): string {
+  // A positive control is filed by participant, condition, and attempt, so the
+  // name the operator saves is already the name the protocol asks for.
+  if (log.positiveControl) return positiveControlFileName(log.profile.childId, log.positiveControl);
   const safeChild = log.profile.childId.replace(/[^a-z0-9_-]+/gi, "-").slice(0, 32) || "anonymous";
   return `neurogaze-audit-${safeChild}-${log.sessionId.slice(0, 8)}.json`;
 }

@@ -58,6 +58,13 @@ import {
 } from "../src/quality/sessionValidity";
 import { assessFeatureOod, type OodAssessment, type OodReference } from "../src/quality/ood";
 import type { GateBStudyMeta } from "../src/gateb/studyMeta";
+import {
+  MAX_POSITIVE_CONTROL_ATTEMPTS,
+  positiveControlBlockers,
+  stimulusIntroCopy,
+  summarizePositiveControl,
+  type PositiveControlMeta,
+} from "../src/positive/control";
 import { loadFirstRecording, type RecordedSession } from "../src/replay/recording";
 import { SCENARIOS, syntheticSessionPoints } from "../src/replay/scenarios";
 import { geometryFeatures } from "../src/scanpath/features";
@@ -541,6 +548,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
    * and the outcome it produces has emitsReferral hard-coded to false.
    */
   const [demonstrationMode, setDemonstrationMode] = useState(false);
+  /**
+   * Positive control (docs/kontrol_positif.md). Adult participants produce the
+   * three decision patterns on purpose. Null on every other session, including
+   * plain Gate A device testing.
+   */
+  const [positiveControl, setPositiveControl] = useState<PositiveControlMeta | null>(null);
+  /** Measured once per rig with a tape measure, then typed in. */
+  const [viewingDistanceMm, setViewingDistanceMm] = useState(500);
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -723,14 +738,23 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       researchConsent,
       modelVersion: model?.model_version,
       study: isGateB ? bridgeMeta : undefined,
+      positiveControl: positiveControl ?? undefined,
       // Shaped for research/recompute_gate_b.py: degrees cannot be recomputed
-      // from a pair file that does not carry the display geometry.
+      // from a pair file that does not carry the display geometry. A positive
+      // control carries the distance alone — the protocol fixes it at 500 mm
+      // and the analysis needs to see whether the rig actually held there.
       viewingGeometry: isGateB ? {
         screenWidthMm: bridgeMeta.screenWidthMm,
         screenHeightMm: bridgeMeta.screenHeightMm,
         viewingDistanceMm: bridgeMeta.viewingDistanceMm,
         deviceId: bridgeMeta.deviceId,
         referenceDevice: bridgeMeta.referenceDevice,
+      } : positiveControl ? {
+        screenWidthMm: 0,
+        screenHeightMm: 0,
+        viewingDistanceMm,
+        deviceId: profile.site,
+        referenceDevice: "-",
       } : undefined,
     });
     commitAudit(next);
@@ -805,7 +829,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     synth.speak(utterance);
   }
 
-  const consentIssues = useMemo(() => consentBlockers({
+  const consentBaseIssues = useMemo(() => consentBlockers({
     purpose: sessionPurpose,
     childId: profile.childId,
     ageMonths: profile.age,
@@ -813,6 +837,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     researchConsent,
     bridge: sessionPurpose === "gate_b_bridge" ? bridgeMeta : null,
   }), [sessionPurpose, profile.childId, profile.age, consented, researchConsent, bridgeMeta]);
+  const consentIssues = useMemo(
+    () => [...consentBaseIssues, ...(positiveControl ? positiveControlBlockers(positiveControl) : [])],
+    [consentBaseIssues, positiveControl],
+  );
 
   const geoprefAsset = useMemo(() => activeGeoprefAsset(), []);
   const geoprefResult = useMemo(() => {
@@ -843,6 +871,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   }), [geoprefResult, jointAttention, phenotype]);
   const isGateA = sessionPurpose === "gate_a_adult";
   const isGateB = sessionPurpose === "gate_b_bridge";
+  const introCopy = stimulusIntroCopy({ engineering: isGateA || isGateB, positiveControl, gateB: isGateB });
   const isEngineeringStudy = isGateA || isGateB;
   const useTechnicalCalibration = isEngineeringStudy || technicalCalibration;
   const activeTargets = useTechnicalCalibration ? TARGETS : CHILD_TARGETS;
@@ -866,6 +895,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setDemoRun("idle");
     // Replay only. There is no argument that reaches this from a live session.
     setDemonstrationMode(modeChoice === "replay" && Boolean(options.demonstration));
+    // Opted into per session on the Gate A consent screen, never carried over.
+    setPositiveControl(null);
     setMode(modeChoice);
     setSessionPurpose(purpose);
     setScenario(replay);
@@ -1089,34 +1120,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setRecording(found);
     setDemoRun("calibrating");
   }
-
-  useEffect(() => {
-    if (demoRun === "idle" || demoRun === "done") return;
-    let cancelled = false;
-    void (async () => {
-      if (demoRun === "calibrating") {
-        if (!calibration) {
-          if (!busy) await runCalibration();
-          return;
-        }
-        if (cancelled) return;
-        setSanityPassed(true);
-        setDemoRun("measuring");
-        return;
-      }
-      if (!model) return;
-      if (!quality) {
-        if (!busy) await runStimulus({ fast: true });
-        return;
-      }
-      if (cancelled) return;
-      setDemoRun("done");
-      setStage("report");
-    })();
-    return () => { cancelled = true; };
-    // runCalibration and runStimulus close over the state this effect waits on.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [demoRun, calibration, quality, model, busy]);
 
   async function runCalibration() {
     setCalibrationAttempts((value) => value + 1);
@@ -1648,6 +1651,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             score: null,
             outcome: "no_referral_direction",
             observations,
+            // Every column lembar_sesi.csv asks for, written by the app rather
+            // than transcribed off the screen by an operator at a lab table.
+            ...(positiveControl ? {
+              positiveControl: summarizePositiveControl({
+                meta: positiveControl,
+                referral,
+                geoprefOutcome: geoprefResult?.outcome ?? null,
+              }),
+            } : {}),
           };
       const gaze = {
         rawSamples: rawCaptured.length,
@@ -1679,6 +1691,37 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setBusy(false);
     setStage("quality");
   }
+
+  // Drives the quick demo from calibration through to the report. It sits below
+  // runCalibration and runStimulus because it calls both, and reading it before
+  // they exist is what the compiler objects to.
+  useEffect(() => {
+    if (demoRun === "idle" || demoRun === "done") return;
+    let cancelled = false;
+    void (async () => {
+      if (demoRun === "calibrating") {
+        if (!calibration) {
+          if (!busy) await runCalibration();
+          return;
+        }
+        if (cancelled) return;
+        setSanityPassed(true);
+        setDemoRun("measuring");
+        return;
+      }
+      if (!model) return;
+      if (!quality) {
+        if (!busy) await runStimulus({ fast: true });
+        return;
+      }
+      if (cancelled) return;
+      setDemoRun("done");
+      setStage("report");
+    })();
+    return () => { cancelled = true; };
+    // runCalibration and runStimulus close over the state this effect waits on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoRun, calibration, quality, model, busy]);
 
   function restart() {
     void leaveMeasurementFullscreen();
@@ -1772,14 +1815,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}>
                   Mulai observasi kamera <span aria-hidden="true"><IconArrowRight size={16} /></span>
                 </button>
-                <button className="textButton" onClick={() => void startQuickDemo({ demonstration: true })}>
-                  Peragakan bentuk laporan rujukan
-                </button>
+                {/* One real action, one demo. The step-by-step replay lives on the
+                    scenario cards below and the demonstration variant next to them;
+                    neither belongs in a row the operator reads with a child waiting. */}
                 <button className="secondary" onClick={() => void startQuickDemo()}>
                   <IconPlay size={14} /> Demo cepat: langsung ke laporan
-                </button>
-                <button className="textButton" onClick={() => start("replay", SCENARIOS[0])}>
-                  Telusuri alur lengkap
                 </button>
               </div>
               <div className="trustList" aria-label="Perlindungan data utama" style={{ "--i": 4 } as CSSProperties}>
@@ -1848,7 +1888,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             <div className="sectionHead">
               <span className="sectionPill" data-tone="amber"><IconPlay size={11} /> Demo tanpa kamera</span>
               <h2 id="replay-heading">Pratinjau tiga keadaan laporan.</h2>
-              <p>Simulasi dengan hasil tetap untuk menguji alur, bahasa rekomendasi, dan keputusan yang ditahan.</p>
+              <p>Simulasi dengan hasil tetap untuk menguji alur, bahasa rekomendasi, dan keputusan yang ditahan. Berbeda dengan Demo cepat, ketiganya dijalani langkah demi langkah dari layar persetujuan.</p>
             </div>
             <div className="scenarioGrid">
               {SCENARIOS.map((item, index) => {
@@ -1864,10 +1904,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     <span className={`scenarioVisual ${item.id}`} aria-hidden="true"><ScenarioIcon size={38} /></span>
                     <strong>{item.title.replace("Contoh: ", "")}</strong>
                     <small>{item.id === "refer" ? "Pemeriksaan kualitas lulus · arahan rujuk" : item.id === "withheld" ? "Mutu tidak cukup · skor ditahan" : "Pemeriksaan kualitas lulus · pantau rutin"}</small>
-                    <span className="scenarioLink">Buka demo <IconArrowRight size={14} /></span>
+                    <span className="scenarioLink">Telusuri alur <IconArrowRight size={14} /></span>
                   </button>
                 );
               })}
+            </div>
+            {/* The threshold is held on every path above, so the referral layout
+                never appears there. This is the one control that applies it, and
+                it has to say why before anyone clicks it. */}
+            <div className="demoAside">
+              <div>
+                <strong>Perlu melihat bentuk laporan rujukan?</strong>
+                <p>Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang GeoPref 69% ditahan di ketiga demo di atas. Peragaan menerapkannya sekali supaya tata letak laporan rujukan terlihat. Sesinya tetap tidak mengeluarkan rujukan, dan laporannya membawa banner mode demonstrasi.</p>
+              </div>
+              <button className="secondary" onClick={() => void startQuickDemo({ demonstration: true })}>
+                <IconResearch size={15} /> Peragakan bentuk laporan rujukan
+              </button>
             </div>
           </section>
 
@@ -2006,7 +2058,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <div className="formCard">
             <div className="formGrid">
               <label><span><IconChild size={14} />{isEngineeringStudy ? "ID peserta pseudonim" : "ID anak pseudonim"}</span><input value={profile.childId} onChange={(event) => setProfile({ ...profile, childId: event.target.value })} /></label>
-              {isEngineeringStudy ? <label><span><IconResearch size={14} />Jenis sesi</span><input value={isGateB ? "Gate B · WebGazer agreement" : "Dewasa · validasi engineering"} disabled /></label> : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
+              {isGateB
+                ? <label><span><IconResearch size={14} />Jenis sesi</span><input value="Gate B · WebGazer agreement" disabled /></label>
+                : isGateA
+                  ? <label><span><IconResearch size={14} />Jenis sesi</span><select
+                      value={positiveControl ? `kp-${positiveControl.condition}` : "engineering"}
+                      onChange={(event) => setPositiveControl(event.target.value === "engineering"
+                        ? null
+                        : { condition: event.target.value === "kp-produksi" ? "produksi" : "biasa", attempt: positiveControl?.attempt ?? 1 })}
+                    >
+                      <option value="engineering">Dewasa · validasi engineering</option>
+                      <option value="kp-biasa">Kontrol positif · kondisi 1 menonton biasa</option>
+                      <option value="kp-produksi">Kontrol positif · kondisi 2 pola diproduksi</option>
+                    </select></label>
+                  : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
+              {positiveControl && <label><span><IconResearch size={14} />Percobaan ke-</span><input type="number" min="1" max={MAX_POSITIVE_CONTROL_ATTEMPTS} value={positiveControl.attempt} onChange={(event) => setPositiveControl({ ...positiveControl, attempt: Number(event.target.value) })} /><small>Maksimal {MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi. Sesudah itu peserta dicatat tidak dapat dinilai.</small></label>}
+              {positiveControl && <label><span><IconTimer size={14} />Jarak mata–layar (mm)</span><input type="number" min="200" max="1200" value={viewingDistanceMm} onChange={(event) => setViewingDistanceMm(Number(event.target.value))} /><small>Diukur sekali dengan meteran, bukan ditaksir.</small></label>}
               <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
               <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
               {!isEngineeringStudy && <label className="transientField"><span><IconTimer size={14} />Nama panggilan anak</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. Kosongkan bila Anda ingin memanggil sendiri.</small></label>}
@@ -2339,6 +2406,26 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   <span><IconRoute size={18} /></span>
                   <div><strong>Langkah berikutnya</strong><p>{isGateB ? "Simpan kedua aliran browser dengan pair ID, stimulus, AOI, dan origin waktu yang sama. Status studi ditentukan dari seluruh kohort, bukan satu pasangan." : "Unduh log JSON, ulangi Gate A pada perangkat fisik yang dituju, lalu bandingkan presisi, dropout, FPS, latensi, baterai, dan panas perangkat. Jangan aktifkan skor kamera dari hasil ini."}</p></div>
                 </div>
+                {positiveControl && <div className="positiveControlReadout">
+                  <div className="positiveControlHead">
+                    <div>
+                      <strong>Respons instrumen · kontrol positif</strong>
+                      <small>Kondisi {positiveControl.condition === "biasa" ? "1 · menonton biasa" : "2 · pola diproduksi"} · percobaan {positiveControl.attempt}</small>
+                    </div>
+                    <span>Salin ke lembar sesi</span>
+                  </div>
+                  <dl>
+                    <div><dt>sinyal_geopref</dt><dd>{referral.signals.find((item) => item.id === "geometric_preference")?.status ?? "-"}</dd></div>
+                    <div><dt>sinyal_isyarat</dt><dd>{referral.signals.find((item) => item.id === "cue_following")?.status ?? "-"}</dd></div>
+                    <div><dt>sinyal_nama</dt><dd>{referral.signals.find((item) => item.id === "response_to_name")?.status ?? "-"}</dd></div>
+                    <div><dt>komposit_menyala</dt><dd>{referral.recommendsFollowUp ? "ya" : "tidak"}</dd></div>
+                    <div><dt>outcome</dt><dd>{geoprefResult?.outcome ?? "-"}</dd></div>
+                  </dl>
+                  {/* The rule firing here says the instrument moved when a pattern
+                      was produced on request. It says nothing about the adult who
+                      produced it, and this session emits no referral either way. */}
+                  <p><strong>Ini status respons alat ukur, bukan penilaian atas peserta.</strong> Peserta memproduksi polanya atas permintaan, jadi “komposit menyala” berarti aturannya bergerak seperti yang diharapkan — bukan bahwa peserta perlu diperiksa. Sesi ini tidak mengeluarkan rujukan.</p>
+                </div>}
                 {cueSummary && <div className="cueReadout">
                   <div className="cueReadoutHead"><div><strong>Respons selama stimulus</strong><small>Deskriptif, bukan lulus/gagal</small></div><span>Tidak masuk skor</span></div>
                   <div className="cueRows">
@@ -2490,13 +2577,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <div className={`stimulusCanvas phase-${stimulusPhase?.id ?? "ready"}`} aria-label="Adegan perhatian bersama dengan wajah dan dua mainan">
             <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} geoprefSource={geoprefAsset.path} geometricSide={geoprefLayout(profile.childId || "NG-0000").geometricSide} />
             {!busy && progress === 0 && <div className={`stimulusIntro ${isEngineeringStudy ? "gateA" : "child"}`}>
-              <span className="stimulusAudience">{isEngineeringStudy ? `Peserta dewasa · ${isGateB ? "Gate B" : "Gate A"}` : "Instruksi untuk pengasuh"}</span>
-              <strong>{isEngineeringStudy ? "Ikuti petunjuk sosial di layar." : "Tugas anak hanya menonton."}</strong>
-              <p>{isEngineeringStudy ? "Amati wajah, lalu ikuti arah mata, kepala, atau tangan ke benda yang dituju. Tidak perlu mengklik." : "Posisikan anak dengan nyaman dan biarkan responsnya alami. Jangan menyebut sisi layar, warna, atau meminta anak melihat ke arah tertentu."}</p>
+              <span className="stimulusAudience">{introCopy.audience}</span>
+              <strong>{introCopy.task}</strong>
+              <p>{introCopy.detail}</p>
               <div className="stimulusSteps" aria-label="Ringkasan tugas">
-                <span><b>1</b>{isEngineeringStudy ? "Lihat wajah" : "Duduk nyaman"}</span>
-                <span><b>2</b>{isEngineeringStudy ? "Ikuti arah cue" : "Biarkan menonton"}</span>
-                <span><b>3</b>{isEngineeringStudy ? "Tanpa klik" : "Tanpa mengarahkan"}</span>
+                {introCopy.steps.map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}
               </div>
               <small>{isEngineeringStudy ? `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
               <button className="startStimulus" disabled={!calibration || sanityPassed !== true || (mode === "replay" && !model)} onClick={() => void runStimulus()}><IconPlay size={15} />{mode === "replay" ? "Saya paham · mulai demo" : isEngineeringStudy ? "Saya paham · mulai pengukuran" : "Mulai tes"}</button>
