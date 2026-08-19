@@ -192,7 +192,11 @@ test("two remaining signals mean the rule needs both, and says so when it cannot
   });
   assert.equal(abbreviated.assessableCount, 1);
   assert.equal(abbreviated.recommendsFollowUp, false);
-  assert.match(abbreviated.headline.toLowerCase(), /terlalu sedikit/);
+  // One assessable signal can never reach the threshold of two, and the
+  // headline has to say that it is the missing comparison holding the
+  // recommendation back rather than something the child did.
+  assert.match(abbreviated.headline.toLowerCase(), /tidak dapat dinilai/);
+  assert.match(abbreviated.headline.toLowerCase(), /belum cukup untuk menyarankan rujukan/);
 });
 
 /**
@@ -243,4 +247,42 @@ test("the measured string carries the interval so the report cannot show a bare 
   });
   const geometric = recommendation.signals.find((signal) => signal.id === "geometric_preference");
   assert.match(geometric?.measured ?? "", /CI/);
+});
+
+/**
+ * A field session has one assessable signal today, so "cannot recommend" is the
+ * only verdict the lane will ever reach. It still has to say what it measured:
+ * a child who followed none of eight cues and a child who followed all eight
+ * used to produce the identical sentence.
+ */
+test("not recommending is not the same as not measuring", () => {
+  const held = {
+    percentGeometric: 0.4,
+    percentGeometricCi: [0.28, 0.53] as readonly [number, number],
+    threshold: 0.69,
+    outcome: "MEASURED_PROTOCOL_ABBREVIATED" as const,
+  };
+  const deviant = buildReferralRecommendation({
+    geopref: held,
+    jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 0, pValue: 1 },
+  });
+  const ordinary = buildReferralRecommendation({
+    geopref: held,
+    jointAttention: { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 8, pValue: 0.008 },
+  });
+
+  assert.equal(deviant.recommendsFollowUp, false);
+  assert.equal(ordinary.recommendsFollowUp, false);
+  assert.notEqual(deviant.headline, ordinary.headline);
+  assert.match(deviant.headline, /menyimpang/);
+  assert.match(ordinary.headline, /tidak menyimpang/);
+});
+
+test("a session that assessed nothing says so rather than reporting zero deviations", () => {
+  const recommendation = buildReferralRecommendation({
+    geopref: null,
+    jointAttention: { verdict: "WITHHELD_TOO_FEW_TRIALS", trialsScored: 2, trialsFollowed: 1, pValue: null },
+  });
+  assert.equal(recommendation.assessableCount, 0);
+  assert.match(recommendation.headline, /Belum ada sinyal/);
 });

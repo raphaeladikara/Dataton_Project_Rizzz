@@ -2672,3 +2672,77 @@ dd {
 }
 
 .formGrid label.checkField > small { grid-column: 1 / -1; }
+
+/* Name call — a decision about the session, so it sits with the consent rows
+   rather than among the identity fields. It lived in .formGrid before, where
+   `.formGrid input` gave the checkbox block display, full width, and 13px of
+   padding: a 20px box rendered as a 46px slab, wedged against the field beside
+   it and reading as though it belonged to that field. */
+.nameCallField {
+  margin-top: 20px;
+}
+
+.nameCallField .checkRow {
+  margin-top: 0;
+}
+
+.nameCallInput {
+  display: block;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--teal-200);
+  border-radius: var(--r-sm);
+  background: var(--sand-50);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-400);
+}
+
+.nameCallInput > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.nameCallInput svg {
+  color: var(--teal-500);
+  opacity: 0.8;
+}
+
+.nameCallInput > input {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  background: #fff;
+  color: var(--ink-800);
+  font-family: var(--font-mono-stack);
+  font-size: 14px;
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.nameCallInput > input:hover {
+  border-color: var(--teal-200);
+}
+
+.nameCallInput > input:focus {
+  outline: none;
+  border-color: var(--teal-400);
+  box-shadow: 0 0 0 3px rgba(42, 157, 135, 0.16);
+}
+
+.nameCallInput > small {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
+  color: var(--ink-400);
+}

@@ -5,6 +5,8 @@ export type SessionOutcomeKind =
   | "RULE_IN_GEOMETRIC"
   | "MEASURED_NO_RULE_IN"
   | "MEASURED_PROTOCOL_ABBREVIATED"
+  /** Enough looking to report a percentage, not enough to place it against the cutoff. */
+  | "MEASURED_INTERVAL_STRADDLES_THRESHOLD"
   /** Stage demonstration of the full report shape. Structurally inert. */
   | "RULE_IN_DEMONSTRATION"
   | "WITHHELD";
@@ -72,6 +74,22 @@ export function resolveSessionOutcome(input: SessionOutcomeInput): SessionOutcom
       ...base, kind: "MEASURED_PROTOCOL_ABBREVIATED",
       headline: `${geometric}% waktu pada pola geometrik, ${social}% pada adegan sosial`,
       summaryLine: `${cueLine(input.jointAttention)} Klip yang tersedia lebih pendek daripada protokol 60/90 detik, jadi ambang 69% belum berlaku.`,
+      emitsReferral: false,
+    };
+  }
+
+  // Measured, but not placeable on either side of the cutoff. It must not fall
+  // through to the branch below, which says "di bawah ambang 69%" — a session
+  // whose interval straddles the cutoff has not measured itself below it, and
+  // reporting that would be the reassurance this whole report refuses to give.
+  if (input.geopref.outcome === "MEASURED_INTERVAL_STRADDLES_THRESHOLD") {
+    const interval = input.geopref.percentGeometricCi;
+    return {
+      ...base, kind: "MEASURED_INTERVAL_STRADDLES_THRESHOLD",
+      headline: `${geometric}% waktu pada pola geometrik, ${social}% pada adegan sosial`,
+      summaryLine: `${cueLine(input.jointAttention)} ${interval
+        ? `Selang kepercayaannya ${percent(interval[0])}–${percent(interval[1])}% melintasi ambang 69%, jadi sesi ini tidak menempatkan angkanya di salah satu sisi.`
+        : "Waktu tatapnya terlalu pendek untuk menghitung selang kepercayaan, jadi ambang 69% tidak diterapkan."} Ini batas panjang pengukuran, bukan temuan tentang anak.`,
       emitsReferral: false,
     };
   }
