@@ -123,20 +123,28 @@ The reasoning behind these decisions is recorded in
 
 ### Known gaps
 
-- Replay still plays synthetic points until a recorded session is registered, and the
-  demo report is withheld. The synthetic scanpath is genuinely out of distribution, so
-  the OOD guard flags it and the quality gate refuses to score — the report now names
-  the offending features instead of only saying no. Registering one real session is
-  what fixes this: `npm run replay:register -- <audit-log.json> --as session-a.json`,
-  which refuses a log that carries no frame trace instead of registering a recording
-  that would reproduce the synthetic path's empty indices.
-- Because of that, the composite recommendation and the demonstration report have
-  been verified by contract and unit tests but never seen rendering with real numbers.
-  The positive-control protocol that produces those recordings is in
-  [`docs/kontrol_positif.md`](docs/kontrol_positif.md).
-- Nothing in this repository demonstrates that the pipeline can separate two
-  behavioural conditions. Gate A shows accuracy, Gate B shows agreement; neither shows
-  discriminative response. That is what the positive control is for.
+- Replay plays two real recordings, one per positive-control condition, registered
+  from `research/hasil/kontrol_positif/sesi/`. Before that it played a synthetic
+  Lissajous path that the OOD guard correctly flagged and the quality gate correctly
+  refused to score, which meant the demo report was withheld every time and no run of
+  it ever carried real numbers. Registration refuses a log with no frame trace, so a
+  replay export cannot be registered as a recording:
+  `npm run replay:register -- <audit-log.json> --as session-a.json`.
+- The pipeline separates two behavioural conditions, and that is now measured rather
+  than assumed. Twelve consenting adults recorded 23 sessions on 19 August 2026, half
+  watching ordinarily and half producing the pattern on instruction; both decision
+  signals separate the conditions with no session of one overlapping the other, and
+  the composite rule fires on 0 of 9 ordinary-viewing sessions. Numbers, confounds and
+  the six defects the recordings exposed:
+  [`research/hasil/kontrol_positif/README.md`](research/hasil/kontrol_positif/README.md).
+  What it does not show is anything about autism — the participants are adults
+  following a script, so there is no sensitivity, specificity, or accuracy in it.
+- The composite rule as shipped fires on no session under any behaviour, and cannot:
+  it needs two deviant signals and geometric preference stays unassessable while the
+  licensed clip is shorter than the protocol its 69% cutoff came from. The table above
+  applies that cutoff in demonstration mode, purely so the question "does the rule
+  respond" has an answer. Removing that block is Kunci 1 in
+  [`docs/jalur_rujukan.md`](docs/jalur_rujukan.md), not a code change.
 - The Gate B known-target block (nine targets, absolute accuracy for both streams)
   is implemented on the analysis side but no session has recorded one yet.
 - No toddler appears in any evidence in this repository, and none will before ethics

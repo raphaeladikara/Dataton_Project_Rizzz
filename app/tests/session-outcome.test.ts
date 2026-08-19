@@ -13,7 +13,7 @@ const baseInput = {
   },
   jointAttention: {
     trialsScored: 8, trialsFollowed: 7, medianLiftPoints: 24, medianLatencyMs: 660,
-    faceToTargetTransitions: 12, pValue: 0.035, verdict: "FOLLOWS_CUES" as const,
+    faceToTargetTransitions: 12, attendedAtCue: 6, trialsEnteringTarget: 7, pValue: 0.035, verdict: "FOLLOWS_CUES" as const,
   },
 };
 

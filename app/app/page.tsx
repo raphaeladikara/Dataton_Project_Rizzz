@@ -38,7 +38,7 @@ import { consentBlockers } from "../src/domain/consent";
 import { createFrameTrace } from "../src/capture/frameTrace";
 import { buildPhenotypeProfile, type PhenotypeProfile } from "../src/phenotype/profile";
 import { activeGeoprefAsset } from "../src/geopref/stimulusMeta";
-import { geoprefLayout, GEOPREF_VIDEO_ASPECT } from "../src/geopref/protocol";
+import { geoprefLayout, GEOPREF_AOI_VERSION, GEOPREF_VIDEO_ASPECT } from "../src/geopref/protocol";
 import { scoreGeopref } from "../src/geopref/score";
 import { resolveSessionOutcome } from "../src/outcome/sessionOutcome";
 import { buildReferralRecommendation } from "../src/outcome/referralRecommendation";
@@ -46,6 +46,7 @@ import {
   appendAuditEvent,
   createSessionAudit,
   downloadAuditLog,
+  renewSessionIdentity,
   type SessionAuditLog,
 } from "../src/audit/sessionLog";
 import { processGazeSamples, type GazePipelineDiagnostics } from "../src/gaze/pipeline";
@@ -353,21 +354,44 @@ const SCENARIO_ICON = {
  * Counts a value up on mount. Reserved for the rare, high-value numbers
  * (risk score, quality readings) — never for anything a user sees repeatedly.
  */
+/**
+ * Counts up to a measurement, and lands on it even when nothing animates.
+ *
+ * It used to start at zero and rely on requestAnimationFrame to carry it to the
+ * real number. Browsers do not run rAF in a hidden tab, so a report opened and
+ * left in the background rendered every index as 0 and stayed there — and for
+ * a figure like "0% waktu pada pola geometrik" that is not an obviously missing
+ * value, it is a plausible one. The headline said 19% in the same view.
+ *
+ * The value is therefore correct from the first paint, and the animation is
+ * something that happens to it rather than the only thing that produces it.
+ */
 function Ticker({ value, format }: { value: number; format: (n: number) => string }) {
-  const [shown, setShown] = useState(0);
+  const [shown, setShown] = useState(value);
 
   useEffect(() => {
-    const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 620;
+    // State already holds the value, so the two cases that cannot animate need
+    // no write at all: they are already showing the right number.
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || document.hidden) return;
     let frame = 0;
     const startedAt = performance.now();
+    const settle = () => setShown(value);
     const step = (now: number) => {
-      const t = duration === 0 ? 1 : Math.min(1, (now - startedAt) / duration);
-      // Matches --ease-out: fast first, settles gently.
+      const t = Math.min(1, (now - startedAt) / 620);
+      // Matches --ease-out: fast first, settles gently. The first frame lands at
+      // t ~ 0, which is where the count-up starts from.
       setShown(value * (1 - (1 - t) ** 3));
       if (t < 1) frame = requestAnimationFrame(step);
     };
     frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
+    // Hiding the tab suspends the loop wherever it happens to be, so the number
+    // is committed on the way out rather than frozen part-grown.
+    document.addEventListener("visibilitychange", settle);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("visibilitychange", settle);
+    };
   }, [value]);
 
   return <>{format(shown)}</>;
@@ -590,6 +614,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   // Captured when the stimulus starts, not at render time: a later resize must
   // not move the AOIs away from where the child was actually looking.
   const [stageAspect, setStageAspect] = useState(GEOPREF_VIDEO_ASPECT);
+  /**
+   * The id every counterbalanced choice in this recording derives from.
+   *
+   * Held in state as well as on the audit log because the geopref stage reads
+   * it during render to decide which way to mirror the clip, and the scorer
+   * reads it afterwards to decide which panel was the geometric one. Those two
+   * must be the same string or the score is computed against the panel the
+   * participant was not shown.
+   */
+  const [counterbalanceKey, setCounterbalanceKey] = useState<string | null>(null);
   const [quality, setQuality] = useState<Quality | null>(null);
   const [validity, setValidity] = useState<SessionValidityResult | null>(null);
   const [risk, setRisk] = useState<number | null>(null);
@@ -853,12 +887,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const geoprefPoints = points.filter((point) => point.phase === GEOPREF_PHASE_ID);
     if (!geoprefPoints.length) return null;
     return scoreGeopref(geoprefPoints, {
-      ...geoprefLayout(profile.childId || "NG-0000"),
+      ...geoprefLayout(counterbalanceKey ?? "NG-0000"),
       validatedProtocol: geoprefAsset.validatedProtocol,
       demonstrationMode,
       viewportAspect: stageAspect,
     });
-  }, [points, profile.childId, geoprefAsset, stageAspect, demonstrationMode]);
+  }, [points, counterbalanceKey, geoprefAsset, stageAspect, demonstrationMode]);
   const jointAttention = useMemo(() => summarizeJointAttention(cueSummary), [cueSummary]);
   const sessionOutcome = useMemo(() => resolveSessionOutcome({
     mode,
@@ -1381,9 +1415,28 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     // Cue order is counterbalanced per session, so the run order comes from the
     // session id rather than the declaration order. Everything downstream that
     // cares about ordering has to read this, not STIMULUS_PHASES.
-    const orderedPhases = sessionStimulusPhases(profile.childId || "NG-0000");
-    const nameCallsPlanned = sessionNameCalls(positiveControl, orderedPhases);
     const retryPhaseIds = validity?.outcome === "RETRY_STAGE" ? validity.invalidStages : [];
+    // A partial retry continues the recording it is repairing, so it keeps that
+    // recording's key; anything else is a new recording and gets a new one.
+    // Keying off `profile.childId` — which is what this did — meant an operator
+    // who left the identity field alone between participants handed every one
+    // of them the same panel side and the same cue sequence. All 24
+    // positive-control sessions ran the identical order because of it.
+    let runKey = counterbalanceKey;
+    // Replay reproduces a recording, so it inherits that recording's key rather
+    // than drawing one: the panel scored has to be the panel that was shown.
+    const replayKey = mode === "replay" ? recordingRef.current?.counterbalanceKey : null;
+    if (replayKey) {
+      runKey = replayKey;
+      setCounterbalanceKey(replayKey);
+    } else if (!retryPhaseIds.length || !runKey) {
+      const renewed = auditRef.current ? renewSessionIdentity(auditRef.current) : null;
+      runKey = renewed?.sessionId ?? globalThis.crypto?.randomUUID?.() ?? `ng-${Date.now()}`;
+      if (renewed) commitAudit(renewed);
+      setCounterbalanceKey(runKey);
+    }
+    const orderedPhases = sessionStimulusPhases(runKey);
+    const nameCallsPlanned = sessionNameCalls(positiveControl, orderedPhases);
     const runPhases = retryPhaseIds.length
       ? orderedPhases.filter((phase) => retryPhaseIds.includes(phase.id))
       : orderedPhases;
@@ -1577,12 +1630,18 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const phaseTargets = scoredPhaseTargets();
     const nextCueSummary = cueFeatures(captured, phaseTargets);
     const capturedGeoprefPoints = captured.filter((point) => point.phase === GEOPREF_PHASE_ID);
+    // Both of these are set by this same function a few hundred lines up, so
+    // reading them back off state here would read the previous render's values:
+    // the panel side of the recording before this one, and — on a first run —
+    // the aspect placeholder the state was initialised with rather than the
+    // stage the clip was actually letterboxed into. The locals are the values
+    // this recording ran on.
     const nextGeopref = capturedGeoprefPoints.length
       ? scoreGeopref(capturedGeoprefPoints, {
-          ...geoprefLayout(profile.childId || "NG-0000"),
+          ...geoprefLayout(runKey),
           validatedProtocol: geoprefAsset.validatedProtocol,
           demonstrationMode,
-          viewportAspect: stageAspect,
+          viewportAspect: capturedStageAspect,
         })
       : null;
     const baseQuality = evaluateQuality({
@@ -1596,11 +1655,25 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       sampleCount: captured.length,
       coverage: nextOod?.coverage,
       phaseCoverage: nextCueSummary.phaseCoverage,
+      gazeSaturationRate: processedDiagnostics
+        ? processedDiagnostics.saturatedSamples / Math.max(processedDiagnostics.inputSamples, 1)
+        : undefined,
       oodMaxRobustZ: nextOod?.maxRobustZ,
+      // Reported, never gating.
+      //
       // Carette is a legacy reference from a different device, population,
-      // sampling rate, and stimulus. It may block replay inference, but it
-      // must not turn a technically valid live capture into a camera failure.
-      oodFlaggedFeatures: mode === "replay" ? nextOod?.flaggedFeatures : undefined,
+      // sampling rate, and stimulus, and the guard built on it exists to decide
+      // whether that model's output may be read. Feeding its flags to the
+      // quality gate made it decide something else entirely: whether the
+      // session was recorded well enough to report at all. In replay that
+      // withheld the whole report — including preferential looking and cue
+      // following, which are read off AOIs and owe the Carette feature space
+      // nothing — so the first real recording registered for the demo came back
+      // as a camera failure. Its own copy said "rekaman cukup baik untuk
+      // dianalisis" in the same panel.
+      //
+      // The guard now gates the model it was built for, at the inference call
+      // below, and nothing else.
     });
     const scoredPhases = STIMULUS_PHASES.filter((phase) => phase.scored);
     const phaseAssessments = scoredPhases.map((phase) => phaseAssessment(
@@ -1651,10 +1724,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     // decision boundary therefore does not transfer to this stimulus, on top of
     // the age and sampling-rate gaps. It runs so the research panel can show
     // the OOD guard rejecting it, and never drives a referral.
+    // The OOD guard is what stands between this model and a number anybody
+    // reads, so it gates the inference rather than the report. Withheld here
+    // means withheld in the audit log too: `assessment.score` cannot carry a
+    // value the guard rejected, and `outcome` cannot become refer or monitor
+    // off the back of one.
+    const riskIsInterpretable = mode === "replay" && Boolean(nextOod?.passed);
     const nextRisk = nextValidity.canScore && nextQuality.passed && model
+      && (mode !== "replay" || riskIsInterpretable)
       ? infer(model, features)
       : null;
-    const riskIsInterpretable = mode === "replay" && Boolean(nextOod?.passed);
     setRiskInterpretable(riskIsInterpretable);
     setLatencyMs(performance.now() - inferenceStarted);
     setCueSummary(nextCueSummary);
@@ -1700,6 +1779,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         pipeline: processedDiagnostics,
         ood: nextOod,
         cueFeatures: nextCueSummary,
+        // What this recording was actually counterbalanced to.
+        //
+        // It used to be derivable only by re-running geoprefLayout on the same
+        // input the app used, which meant a reader had to know which field that
+        // was — and when the field turned out to be the operator-typed identity
+        // rather than the session id, every recording that shared an identity
+        // silently shared a panel side and a cue order. Written down, the
+        // assignment is checkable from the file instead of reconstructable from
+        // the source at the version that produced it.
+        counterbalance: {
+          derivedFrom: "recordingSessionId",
+          key: runKey,
+          geometricSide: geoprefLayout(runKey).geometricSide,
+          geoprefAoiVersion: GEOPREF_AOI_VERSION,
+          cueOrder: orderedPhases.map((phase) => phase.id),
+        },
         // The descriptive index the speaker mode decides whether to collect.
         // Quarantined from the rule, so the log is the only place it is auditable.
         responseToName: nextPhenotype.responseToName,
@@ -2616,7 +2711,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           {!busy && <div className="stimulusHeader"><Logo /><span>{isEngineeringStudy ? "Uji peserta dewasa" : "Anak cukup menonton"} · siap</span>{mode === "live" && <span className={`stimulusTracking ${tracking?.accepted ? "good" : "bad"}`}><i />{trackingCopy(tracking).title}</span>}<button onClick={restart}><IconArrowLeft size={15} /> Kembali</button></div>}
           {busy && <div className="stimulusOperatorControls"><button onClick={() => { const next = !stimulusPausedRef.current; stimulusPausedRef.current = next; setStimulusPaused(next); recordAudit(next ? "stimulus.paused" : "stimulus.resumed"); }} aria-pressed={stimulusPaused}>{stimulusPaused ? <><IconPlay size={14} /> Lanjutkan</> : "Jeda"}</button><button onClick={restart} aria-label="Hentikan stimulus"><IconArrowLeft size={14} /> Hentikan</button></div>}
           <div className={`stimulusCanvas phase-${stimulusPhase?.id ?? "ready"}`} aria-label="Adegan perhatian bersama dengan wajah dan dua mainan">
-            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} geoprefSource={geoprefAsset.path} geometricSide={geoprefLayout(profile.childId || "NG-0000").geometricSide} />
+            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} geoprefSource={geoprefAsset.path} geometricSide={geoprefLayout(counterbalanceKey ?? "NG-0000").geometricSide} />
             {!busy && progress === 0 && <div className={`stimulusIntro ${isEngineeringStudy ? "gateA" : "child"}`}>
               <span className="stimulusAudience">{introCopy.audience}</span>
               <strong>{introCopy.task}</strong>

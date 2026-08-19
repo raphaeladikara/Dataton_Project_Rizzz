@@ -7,7 +7,7 @@
  * signal. Prints the lembar_sesi.csv row so nothing is transcribed by hand.
  */
 import { readFileSync } from "node:fs";
-import { checkPositiveControlLog, SHEET_HEADER } from "../src/positive/checkLog";
+import { checkPositiveControlLog, findDuplicateSessions, SHEET_HEADER } from "../src/positive/checkLog";
 import type { SessionAuditLog } from "../src/audit/sessionLog";
 
 const paths = process.argv.slice(2).filter((argument) => !argument.startsWith("--"));
@@ -18,6 +18,7 @@ if (!paths.length) {
 
 let anyFailed = false;
 const rows: string[] = [];
+const loaded: { path: string; log: SessionAuditLog }[] = [];
 
 for (const path of paths) {
   let log: SessionAuditLog;
@@ -29,6 +30,7 @@ for (const path of paths) {
     continue;
   }
 
+  loaded.push({ path, log });
   const result = checkPositiveControlLog(log);
   console.log(`\n${path}`);
   console.log(`  ${result.ok ? "LULUS" : "DITOLAK"}`);
@@ -36,6 +38,17 @@ for (const path of paths) {
   for (const line of result.warnings) console.log(`  ! ${line}`);
   if (result.ok) rows.push(result.sheetRow);
   if (!result.ok) anyFailed = true;
+}
+
+const duplicates = findDuplicateSessions(loaded);
+if (duplicates.length) {
+  anyFailed = true;
+  console.log("\nBerkas yang tidak dapat dibedakan satu sama lain:");
+  for (const duplicate of duplicates) {
+    console.log(`  ✗ ${duplicate.reason}`);
+    for (const path of duplicate.paths) console.log(`      ${path}`);
+  }
+  console.log("  Satu rekaman harus menghasilkan satu berkas. Hapus salinannya, atau rekam ulang kalau tidak jelas mana yang mana.");
 }
 
 if (rows.length) {

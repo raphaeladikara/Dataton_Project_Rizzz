@@ -16,6 +16,12 @@ export type Quality = {
   sampleCount: number;
   coverage?: number;
   phaseCoverage?: number;
+  /**
+   * Share of samples the calibration pushed onto a screen edge. Reported even
+   * when it passes, because it is the one number that separates "the
+   * participant looked there" from "the mapping had nowhere left to put it".
+   */
+  gazeSaturationRate?: number;
   oodMaxRobustZ?: number;
   oodFlaggedFeatures?: string[];
   reasons: string[];

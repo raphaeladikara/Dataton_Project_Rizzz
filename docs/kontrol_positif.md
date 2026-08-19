@@ -26,6 +26,23 @@ apakah model itu pantas dihubungkan ke keluaran sesi sama sekali.
 
 ---
 
+## Sudah dijalankan
+
+Direkam 19 Agustus 2026: 12 peserta di tiga perangkat, 23 rekaman berbeda, 15 lolos
+kriteria mutu. **Instrumen ini merespons.** Kedua sinyal memisahkan kedua kondisi
+tanpa satu pun sesi bertumpang tindih, dan aturan komposit — dalam mode demonstrasi —
+menyala pada 4 dari 6 sesi pola-diproduksi dan **0 dari 9** sesi menonton-biasa.
+
+Angka lengkapnya, confound-nya, dan cara menjalankan ulang analisisnya:
+[`research/hasil/kontrol_positif/README.md`](../research/hasil/kontrol_positif/README.md).
+
+Catatan ini tetap ditulis sebagai instruksi menjalankan sesi, karena perekaman
+berikutnya akan menjalankannya lagi. Yang berubah sesudah putaran pertama ada di
+[Yang ditemukan perekaman pertama](#yang-ditemukan-perekaman-pertama) di bawah, dan
+sebagian di antaranya mengubah apa yang harus diperiksa sebelum sesi dimulai.
+
+---
+
 ## Apa yang dibuktikan dan tidak dibuktikan
 
 **Dibuktikan:** sinyal keputusan di `app/src/outcome/referralRecommendation.ts`
@@ -355,6 +372,10 @@ Sesi dipakai untuk analisis kalau seluruhnya terpenuhi:
 - Galat kalibrasi ≤ 3,0°
 - Laju frame valid ≥ 0,85
 - Dropout gaze ≤ 0,20
+- **Pandangan menempel di tepi layar ≤ 25%** — kriteria ini tidak ada di putaran
+  pertama karena tidak ada yang mengukurnya, dan ia yang menahan delapan dari 23
+  rekaman. Kalibrasi yang memetakan sesi ke luar layar membuat setiap AOI tidak
+  mungkin terkena, sementara sesinya tetap terbaca bersih di kolom lain
 - Gerbang validitas sesi tidak menolak fase mana pun
 - Kondisi 2: peserta benar-benar menjalankan kedua butir (penilaian operator, dicatat
   sebagai kolom terpisah — kalau operator ragu, tandai dan jangan diam-diam pakai)
@@ -421,22 +442,138 @@ Ditambah pernyataan lingkup di setiap tempat angka itu muncul:
 - pola diproduksi sengaja, bukan diamati;
 - hasilnya responsivitas instrumen, bukan akurasi skrining.
 
-Bentuk akhir yang dituju adalah tabel sesederhana ini, dan tabel ini yang naik ke
-panggung:
+Tabel yang naik ke panggung, dari perekaman 19 Agustus 2026:
 
 | | Aturan komposit menyala | Tidak menyala |
 |---|---:|---:|
-| Menonton biasa | 0 | 8 |
-| Pola diproduksi | 7 | 1 |
+| Menonton biasa | **0** | 9 |
+| Pola diproduksi | **4** | 2 |
 
-Baris atas adalah yang penting. Kalau kolom kiri baris atas tidak nol, aturannya
-terlalu longgar dan angkanya harus diterbitkan apa adanya — itu temuan, bukan
-kegagalan. Yang tidak boleh terjadi adalah tabel ini tidak pernah dibuat.
+Baris atas kolom kiri adalah yang penting, dan ia nol. Kalau suatu saat ia tidak nol,
+aturannya terlalu longgar dan angkanya harus diterbitkan apa adanya — itu temuan,
+bukan kegagalan. Yang tidak boleh terjadi adalah tabel ini tidak pernah dibuat.
 
-Kalau peserta yang terkumpul mencapai delapan orang atau lebih, regresi logistik pada
-ketiga sinyal dengan GroupKFold per orang boleh dilatih dan dilaporkan berdampingan
-sebagai analisis sensitivitas. Di bawah itu, jangan dilatih — laporkan kontrol
-positifnya saja. Aturan transparan tetap menjadi jalur keputusan apa pun hasilnya.
+**Tabel itu mode demonstrasi, dan itu harus disebut setiap kali ia ditampilkan.**
+Aturan sebagaimana dikirim tidak menyala pada kondisi mana pun dan tidak akan pernah
+bisa: ia menuntut dua sinyal menyimpang, dan preferensi geometrik berstatus
+`tidak_dapat_dinilai` selama klip lebih pendek daripada protokol tempat ambang 69%
+diturunkan. Tabel di atas menerapkan ambang itu pada klip pendek semata supaya
+pertanyaan "apakah aturannya merespons" punya jawaban. Ia bukan rujukan.
+
+Dua sesi produksi yang tidak menyala gagal pada prasyarat perhatian, bukan pada
+perilakunya — tidak ada bukti pesertanya sedang menatap model saat isyarat
+disampaikan, jadi sinyal isyaratnya ditahan. Tidak mengikuti dan tidak pernah melihat
+adalah dua klaim berbeda.
+
+Peserta melewati delapan orang, jadi regresi logistik dengan GroupKFold dilatih dan
+dilaporkan berdampingan sebagai analisis sensitivitas: AUC luar-lipatan 1,00 pada 13
+sesi dengan **perangkat** sebagai grup, bukan orang — karena identitas peserta tidak
+terekam. Aturan transparan tetap menjadi jalur keputusan, dan bobot yang dipasang pada
+orang dewasa yang mengikuti naskah mempelajari naskahnya.
+
+---
+
+## Yang ditemukan perekaman pertama
+
+Kontrol positif dirancang untuk menguji instrumennya. Ia melakukannya, dan yang
+ditemukannya bukan hanya bahwa instrumen itu merespons: sembilan cacat muncul, dan
+tidak satu pun sempat terlihat sebagai galat pada saat perekaman. Sesinya tampak
+bersih, lolos setiap gerbang, dan tidak melaporkan apa-apa.
+
+Enam pertama datang dari rekamannya. Tiga terakhir baru muncul ketika rekaman nyata
+pertama didaftarkan ke jalur demo — sesuatu yang tidak pernah bisa dilakukan sebelum
+kontrol positif ada, karena tidak ada rekaman nyata untuk didaftarkan.
+
+Semuanya sudah diperbaiki dan bertes regresi. Empat yang pertama saling berkaitan
+lewat satu baris kode.
+
+**1. Proyeksi kalibrasi dijepit ke dalam layar di sumbernya.** `applyCalibration`
+mengembalikan koordinat yang sudah di-`clamp` ke [0, 1], sehingga tiga penjaga yang
+berbeda memeriksa angka yang sudah tidak bisa melanggar batas: galat kalibrasi diukur
+terhadap target yang selalu di dalam layar, jadi prediksi yang dijepit tampak lebih
+dekat daripada yang sebenarnya; `offScreenRate` menghitung sampel di luar [0, 1] dan
+karenanya tidak pernah menghitung satu pun, membuat `OFF_SCREEN_DOMINANT` tidak
+terjangkau; dan `rejectedBounds` bernilai 0 di seluruh 24 rekaman. Sesi yang
+kalibrasinya melempar 57% baterainya ke atas layar tidak bisa dibedakan dari sesi
+yang jatuh tepat di panel.
+
+**2. `DOES_NOT_FOLLOW` tidak pernah bisa dicapai.** Peserta yang tidak pernah masuk ke
+AOI target mendapat lift = 0 di setiap percobaan, karena tatapan pra-isyarat dan
+pasca-isyaratnya sama-sama nol. Uji tanda membaca itu sebagai seri lalu menyebutnya
+tidak dapat dinilai — sehingga non-following terkuat yang mungkin, orang yang menonton
+model lalu tidak bergerak ke mana pun, justru satu-satunya pola yang tidak bisa
+dilaporkan aturannya. Dua belas dari dua belas sesi produksi mendarat di sana.
+Kriteria lantai yang menggantikannya menuntut bukti perhatian: peserta harus terlihat
+menatap model saat isyarat disampaikan, di mayoritas percobaan.
+
+**3. `sessionId` dicetak di layar persetujuan, bukan per rekaman.** Operator yang
+menjalankan baterai lagi tanpa kembali melewati persetujuan menghasilkan rekaman kedua
+yang membawa `sessionId` dan `createdAt` rekaman pertama. Lima tabrakan seperti itu ada
+di himpunan ini, dan dua berkas adalah rekaman yang sama diunduh dua kali — dari
+lognya saja, tidak bisa dibedakan dari dua rekaman dua orang.
+
+**4. Kedua skema counterbalancing di-key ke kolom identitas.** `geoprefLayout` dan
+`sessionStimulusPhases` sama-sama membaca `profile.childId`, meskipun docstring
+keduanya menyebut session id. Kolom itu diisi `GA-20260819-01` di 22 dari 24 berkas,
+jadi **panel geometrik ada di kanan pada seluruh 24 sesi dan urutan isyaratnya identik
+pada seluruhnya.** Preferensi geometrik dan kebiasaan melirik ke kanan tidak terpisah
+di data itu, dan tidak ada perbaikan kode yang bisa menyembuhkan rekaman yang sudah
+ada — confound itu terbit bersama angkanya.
+
+**5. Dua nilai dibaca dari state di dalam fungsi yang baru saja mengubahnya.**
+Skoring geopref di `runStimulus` membaca `stageAspect` dan kunci counterbalance dari
+state React, padahal fungsi yang sama menuliskannya beberapa ratus baris di atas — jadi
+yang terbaca adalah nilai render sebelumnya: sisi panel rekaman sebelumnya, dan pada
+run pertama, nilai awal state alih-alih rasio panggung tempat klip benar-benar
+di-letterbox. Panel laporan dan log audit bisa menyebut angka berbeda untuk sesi yang
+sama.
+
+**6. Empat berkas tidak bertanda kontrol positif.** Direkam sebelum jenis sesi dipilih
+di layar persetujuan, jadi `kp:check` menolaknya dan kondisinya hanya bisa diambil dari
+nama folder operator.
+
+### Tiga lagi, dari jalur demo
+
+Sebelum ini "Demo cepat" memutar lintasan Lissajous sintetis yang memang di luar
+distribusi, jadi laporannya selalu ditahan dan tidak ada satu pun jalankan yang pernah
+membawa angka nyata. Mendaftarkan dua rekaman kontrol positif membuka tiga hal
+sekaligus.
+
+**7. Penjaga OOD model warisan menahan seluruh laporan.** Penjaga itu dibangun untuk
+memutuskan apakah keluaran model Carette boleh dibaca. Bendera-benderanya diumpankan ke
+gerbang mutu, sehingga ia memutuskan hal yang sama sekali lain: apakah sesinya layak
+dilaporkan sama sekali. Rekaman nyata pertama yang didaftarkan kembali sebagai kegagalan
+kamera — sambil menampilkan kalimat "rekaman cukup baik untuk dianalisis" di panel yang
+sama. Penjaga sekarang menggerbangi inferensi model yang memang miliknya, dan tidak lebih;
+skor modelnya tetap ditahan, termasuk di log audit.
+
+**8. Angka yang menganimasi naik dari nol berhenti di nol.** `requestAnimationFrame` tidak
+berjalan di tab tersembunyi, jadi laporan yang dibuka lalu ditinggalkan di latar merender
+setiap indeks sebagai 0 dan bertahan di sana. Untuk angka seperti "0% waktu pada pola
+geometrik" itu bukan nilai yang jelas hilang, melainkan nilai yang masuk akal — dan
+judulnya menyebut 19% di tampilan yang sama.
+
+**9. Replay mengundi ulang sisi panelnya.** Kunci counterbalance dicetak baru tiap
+jalankan, termasuk saat memutar rekaman. Akibatnya rekaman yang sama kembali sebagai 81%
+geometrik pada satu jalankan dan 19% pada jalankan berikutnya — komplemennya, dari
+menghitung panel yang satunya. Replay sekarang mewarisi kunci rekamannya.
+
+### Yang berubah karena itu
+
+- `npm run kp:check` sekarang menolak berkas yang tidak dapat dibedakan satu sama lain,
+  dan memperingatkan log yang tidak mencatat saturasi maupun penugasan counterbalance.
+  Jalankan pada **seluruh** berkas hari itu sekaligus, bukan satu per satu — duplikat
+  tidak terlihat dari satu berkas.
+- Log sekarang membawa `gaze.counterbalance`: sisi panel, urutan isyarat, dan kunci
+  yang menurunkannya. Penugasannya dapat diperiksa dari berkas, bukan direkonstruksi
+  dari source pada versi yang menghasilkannya.
+- Kriteria mutu bertambah satu, dan ia yang paling banyak menahan sesi.
+- Demo cepat memutar rekaman nyata dan merender laporan berisi angka nyata. Skor model
+  warisan tetap ditahan penjaga OOD, sebagaimana seharusnya.
+- **Isi kolom identitas dengan kode peserta yang berbeda untuk tiap orang.** Ini bukan
+  lagi soal kerapian arsip: kolom itu tidak lagi menentukan counterbalancing, tapi ia
+  tetap satu-satunya tempat identitas peserta tercatat, dan tanpanya tidak ada analisis
+  berpasangan dan tidak ada GroupKFold per orang.
 
 ---
 

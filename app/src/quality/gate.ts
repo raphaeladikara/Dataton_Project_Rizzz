@@ -17,6 +17,14 @@ export function evaluateQuality(input: Omit<Quality, "reasons" | "passed">): Qua
     reasons.push(`Sampel tatapan ${input.sampleCount}; minimal 100.`);
   if (input.coverage !== undefined && input.coverage < 1)
     reasons.push(`Cakupan fitur ${(input.coverage * 100).toFixed(0)}%; semua fitur wajib tersedia.`);
+  // Every AOI in the atlas begins at least 0.14 in from the nearest edge, so a
+  // sample the calibration pinned to an edge cannot land in one. Below this
+  // share the edge samples are plausible looking-away; above it the vertical or
+  // horizontal mapping has run out of range and the session measures nothing —
+  // which is exactly what it looked like before this gate existed, because the
+  // projection was clamped before any gate could see it.
+  if (input.gazeSaturationRate !== undefined && input.gazeSaturationRate > 0.25)
+    reasons.push(`Pandangan menempel di tepi layar pada ${(input.gazeSaturationRate * 100).toFixed(0)}% sampel; batas 25%. Kalibrasi memetakan sesi ini keluar layar, jadi tidak ada AOI yang dapat terkena.`);
   if (input.phaseCoverage !== undefined && input.phaseCoverage < 1)
     reasons.push(`Cakupan fase stimulus ${(input.phaseCoverage * 100).toFixed(0)}%; setiap fase perlu minimal 8 sampel.`);
   if (input.oodFlaggedFeatures?.length)
