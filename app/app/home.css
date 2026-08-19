@@ -1248,3 +1248,18 @@
   gap: 8px;
   justify-items: stretch;
 }
+
+/* The demo controls, now on the guide page rather than the landing page.
+   They keep the scenario-card and aside styling but drop the full-bleed
+   treatment the home sections use: the guide is a narrow workspace column, and
+   a band that breaks out of it reads as a different page. */
+.guideDemoSection {
+  margin-top: clamp(32px, 5vw, 56px);
+  padding-top: clamp(28px, 4vw, 44px);
+  border-top: 1px solid rgba(9, 106, 92, 0.14);
+}
+
+.guideDemoSection .sectionHead {
+  margin-bottom: clamp(24px, 3vw, 36px);
+  text-align: left;
+}

@@ -301,15 +301,15 @@ test("demonstration mode never reaches the child path and never emits a referral
   // and gates it on replay or the adult purpose, so no argument turns it on for
   // `target_population_research` — the one purpose that means a child is in
   // front of the tablet.
-  assert.match(page, /modeChoice === "replay" \|\| purpose === "gate_a_adult"/);
+  assert.match(page, /modeChoice === "replay" \|\| purpose === "stage_demo"/);
   assert.ok(
     !/purpose === "target_population_research"[^\n]*demonstration/i.test(page),
     "the child purpose must never appear on a path that enables demonstration mode",
   );
   assert.match(page, /startQuickDemo\(\{ demonstration: true \}\)/);
-  // Live stage demonstration exists, and it is a separate control from the
-  // field entry point so the two cannot be confused under time pressure.
-  assert.match(page, /start\("live", scenario, "gate_a_adult", \{ demonstration: true \}\)/);
+  // Live stage demonstration runs under its own purpose, from a control that
+  // lives behind the guide rather than beside the field entry point.
+  assert.match(page, /start\("live", scenario, "stage_demo", \{ demonstration: true \}\)/);
   // The operator-facing banner has to say the threshold was applied on purpose
   // and that the session produces no referral.
   assert.match(page, /MODE DEMONSTRASI/);

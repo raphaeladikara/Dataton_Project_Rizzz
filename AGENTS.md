@@ -124,7 +124,17 @@ Three rules that matter while editing anything public-facing:
 - **Recordings are named by condition, never by number.** `app/public/replay/index.json`
   carries a label per entry and the demo renders one control per recording for exactly
   this reason; both controls used to load the first file in the manifest.
-- **Demonstration mode is reachable from replay and from a live adult session, never
+- **There is one session in the interface: `target_population_research`.** The home
+  page carries exactly one control for it. Every demo path — three fixed scenarios,
+  one control per registered recording, and the live stage demonstration — lives
+  behind "Panduan & demo", because two buttons producing similar-looking reports is a
+  choice the operator should never have to make with a child waiting.
+- **`gate_a_adult` and `gate_b_bridge` are archived.** No control starts one; Gate B
+  remains reachable only by passing `initialPurpose` from the admin capture route.
+  They stay in the `purpose` union because the canonical evidence carries them and a
+  log that will not parse is a log that cannot be checked. Do not add entry points
+  back — the gates they served are closed.
+- **Demonstration mode is reachable from replay and from `stage_demo`, never
   from `target_population_research`.** The live stage control is separate from the field
   entry point on purpose. `RULE_IN_DEMONSTRATION` hard-codes `emitsReferral: false`, the
   banner stays on screen and on the report, and the mode is written to the audit log.

@@ -88,7 +88,7 @@ sekadar menonton harus melewati dua hal yang tidak mungkin sekaligus: seluruh se
 preferensi geometriknya di atas 69%, **dan** kegagalan mengikuti isyarat yang terukur
 sementara ia terbukti menatap model.
 
-Jalankan **Peragakan · Pola diproduksi** di bagian "Demo tanpa kamera".
+Jalankan **Peragakan · Pola diproduksi** di tab **Panduan & demo**.
 
 Setelah laporan muncul, **sebut bannernya lebih dulu**, sebelum juri membacanya sendiri:
 
@@ -337,9 +337,13 @@ diam-diam. Kalau harus memakai rekan tim, sebutkan bahwa dia rekan tim.
 
 **Ambang GeoPref tidak menyala.** Memang tidak akan, di lapangan. Klip yang tersedia
 16,75 detik dan protokol terbitnya 60–90 detik, jadi ambangnya ditahan. Untuk
-menunjukkan bentuk laporan rujukan, pakai **Peragakan · Pola diproduksi** di bagian
-"Demo tanpa kamera" pada beranda. Laporannya membawa banner mode demonstrasi dan tetap
-tidak mengeluarkan rujukan.
+menunjukkan bentuk laporan rujukan, pakai **Peragakan · Pola diproduksi** di tab
+**Panduan & demo**. Laporannya membawa banner mode demonstrasi dan tetap tidak
+mengeluarkan rujukan.
+
+**Tidak menemukan tombol demonya.** Beranda sekarang hanya punya satu tombol, dan itu
+sesi sungguhan. Seluruh jalur demo pindah ke tab **Panduan & demo**, di bawah panduan
+operator.
 
 **Salah menekan tombol peragaan.** Kedua tombol memuat labelnya masing-masing dan
 laporannya mencetak ID sesi yang diputar. Kalau yang terbuka kondisi yang salah,

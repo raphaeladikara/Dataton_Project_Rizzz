@@ -32,9 +32,18 @@ terukur tanpa rujuk, protokol dipersingkat, atau ditahan.
   daripada protokol yang ambangnya divalidasi, sehingga ambang 69% belum berlaku dan sesi
   hanya melaporkan persentase terukur.
 - Ringkasan satu halaman dapat dicetak untuk diserahkan ke Puskesmas.
-- Demo cepat memakai pipeline yang sama dan selalu melabeli laporannya sebagai rekaman atau
-  simulasi.
-- Gate A dan B adalah validasi alat ukur, bukan validasi klinis.
+- **Beranda hanya punya satu tombol, dan itu sesi sungguhan.** Seluruh jalur demo ada di
+  tab "Panduan & demo". Semuanya memakai pipeline yang sama dan selalu melabeli laporannya
+  sebagai rekaman, simulasi, atau peragaan.
+- **Bila laporan membawa banner mode peragaan,** ambang 69% sedang diterapkan pada klip
+  yang lebih pendek daripada protokol terbitnya. Angka itu tidak sah untuk keputusan apa
+  pun, dan sesinya tidak mengeluarkan rujukan. Banner itu tidak pernah muncul pada sesi
+  anak.
+- **Ambang dibandingkan terhadap selang kepercayaan sesi**, bukan terhadap satu angka.
+  Sesi yang persentasenya di atas 69% tetapi selangnya melintasi ambang dilaporkan tidak
+  dapat dinilai, bukan menyimpang.
+- Gate A dan B adalah validasi alat ukur, bukan validasi klinis. Keduanya sudah selesai
+  dan tidak lagi dapat dijalankan dari aplikasi.
 - Keputusan layanan tetap berada pada tenaga kesehatan dan protokol klinis yang berlaku,
   dan hasil ini dibaca berdampingan dengan SDIDTK, bukan menggantikannya.
 

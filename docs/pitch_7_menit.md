@@ -78,7 +78,7 @@ Yang diperagakan adalah pola terukur, bukan seseorang. Ini bukan soal kehalusan 
 mengarikaturkan perilaku autistik di depan panel yang mungkin punya kaitan personal
 dengan ASD merusak setiap hal lain yang dibangun.
 
-Jalankan **Peragakan · Pola diproduksi** dari bagian "Demo tanpa kamera".
+Buka tab **Panduan & demo**, lalu jalankan **Peragakan · Pola diproduksi**.
 
 Setelah laporan muncul, sebut bannernya lebih dulu — sebelum juri membacanya sendiri:
 
