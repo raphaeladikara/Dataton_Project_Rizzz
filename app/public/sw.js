@@ -1,4 +1,18 @@
-const CACHE = "neurogaze-shell-v18-unified-stimulus";
+// Bump this whenever a precached file's CONTENT changes, not only when the file
+// list does. Skipping that bump on d3f3aad left browsers pinned to a model.json
+// with no operating points, and the only trace was an error nobody logged.
+const CACHE = "neurogaze-shell-v19-model-operating-points";
+
+/**
+ * Paths whose correctness outweighs their size, served network-first with the
+ * cache as an offline fallback.
+ *
+ * Models and stimuli decide what a session measures and what version it claims
+ * to be. A stale copy of either produces recordings that are not comparable and
+ * says nothing about it, which is worse than a slower first paint. Everything
+ * else — the wasm runtime above all — stays cache-first.
+ */
+const ALWAYS_FRESH = ["/models/", "/stimuli/"];
 const CORE = [
   "/",
   "/manifest.webmanifest",
@@ -55,6 +69,19 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => caches.match("/")),
+    );
+    return;
+  }
+  const path = new URL(event.request.url).pathname;
+  if (ALWAYS_FRESH.some((prefix) => path.startsWith(prefix))) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
     );
     return;
   }
