@@ -89,3 +89,29 @@ test("held copy is plain-language and identifies non-result", () => {
   assert.match(result.userMessage, /bukan hasil risiko anak/i);
   assert.doesNotMatch(result.userMessage, /RMSE|degree|derajat/i);
 });
+
+/**
+ * A session with no scoring model has no feature contract to violate. Holding it
+ * as a system fault reports "Terjadi masalah pada aplikasi" over a recording
+ * that is entirely fine, and it does so on Gate A too — a lane that never
+ * scores and therefore never needed the model in the first place.
+ */
+test("a session with no scoring model loaded is not held as a feature contract mismatch", () => {
+  const result = evaluateSessionValidity(valid({
+    scoringModelAvailable: false,
+    featureContractMatches: false,
+    missingFeatures: ["model"],
+  }));
+  assert.equal(result.primaryReasonCode, null);
+  assert.equal(result.canScore, true);
+});
+
+test("a loaded model with a broken feature still fails the contract", () => {
+  const result = evaluateSessionValidity(valid({
+    scoringModelAvailable: true,
+    featureContractMatches: false,
+    missingFeatures: ["span_x"],
+  }));
+  assert.equal(result.primaryReasonCode, "FEATURE_CONTRACT_MISMATCH");
+  assert.equal(result.canScore, false);
+});

@@ -1,5 +1,11 @@
 import type { GeoprefOutcome } from "../geopref/score";
-import type { ReferralRecommendation, ReferralSignalId, SignalStatus } from "../outcome/referralRecommendation";
+import {
+  buildReferralRecommendation,
+  type ReferralInput,
+  type ReferralRecommendation,
+  type ReferralSignalId,
+  type SignalStatus,
+} from "../outcome/referralRecommendation";
 
 /**
  * The positive control (docs/kontrol_positif.md).
@@ -21,12 +27,22 @@ export type PositiveControlMeta = {
  */
 export const MAX_POSITIVE_CONTROL_ATTEMPTS = 3;
 
-export function positiveControlBlockers(meta: PositiveControlMeta): string[] {
+export function positiveControlBlockers(
+  meta: PositiveControlMeta,
+  session: { callName: string },
+): string[] {
   if (!Number.isInteger(meta.attempt) || meta.attempt < 1) {
     return ["Nomor percobaan harus 1, 2, atau 3"];
   }
   if (meta.attempt > MAX_POSITIVE_CONTROL_ATTEMPTS) {
     return [`Percobaan maksimal ${MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi`];
+  }
+  // Without a name the call falls through to a vibration, which a tablet on a
+  // stand does not deliver and a laptop ignores outright. The session still
+  // scores response_to_name, so a silent call reads as no response: a false
+  // deviation in condition 1, and nothing to withhold in condition 2.
+  if (!session.callName.trim()) {
+    return ["Nama panggilan peserta belum diisi; tanpa itu panggilan nama tidak berbunyi"];
   }
   return [];
 }
@@ -67,6 +83,32 @@ export function summarizePositiveControl(input: {
     emitsReferral: false,
     scope: "instrument_response_adult_produced_pattern",
   };
+}
+
+/**
+ * The block written into the audit log at the end of a session.
+ *
+ * Takes the session's own products rather than anything read off component
+ * state: the audit is committed inside the same call that captures the points,
+ * so the memos feeding the report still describe the session that had not
+ * started yet. Reading those yields three unassessable signals and a null
+ * outcome for every session ever recorded.
+ */
+export function positiveControlFromSession(input: {
+  meta: PositiveControlMeta;
+  geopref: ReferralInput["geopref"];
+  jointAttention: ReferralInput["jointAttention"];
+  responseToName: ReferralInput["responseToName"];
+}): PositiveControlSummary {
+  return summarizePositiveControl({
+    meta: input.meta,
+    referral: buildReferralRecommendation({
+      geopref: input.geopref,
+      jointAttention: input.jointAttention,
+      responseToName: input.responseToName,
+    }),
+    geoprefOutcome: input.geopref?.outcome ?? null,
+  });
 }
 
 export type StimulusIntroCopy = {

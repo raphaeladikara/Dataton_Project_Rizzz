@@ -35,6 +35,12 @@ export type SessionAuditLog = {
     reducedMotion: boolean;
   };
   modelVersion?: string;
+  /**
+   * Why no scoring model was loaded, when none was. A missing model no longer
+   * holds the session, so nothing on screen announces it; this line is the only
+   * trace it leaves.
+   */
+  modelError?: string;
   study?: GateBStudyMeta;
   /**
    * Present only on positive-control sessions. The condition is the axis the
@@ -68,6 +74,7 @@ export function createSessionAudit(input: {
   profile: { childId: string; age: string; site: string; operator: string };
   researchConsent: boolean;
   modelVersion?: string;
+  modelError?: string;
   study?: GateBStudyMeta;
   positiveControl?: PositiveControlMeta;
   viewingGeometry?: ViewingGeometry;
@@ -108,6 +115,7 @@ export function createSessionAudit(input: {
       reducedMotion: typeof window === "undefined" ? false : window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     },
     modelVersion: input.modelVersion,
+    ...(input.modelError ? { modelError: input.modelError } : {}),
     ...(input.study ? { study: input.study } : {}),
     ...(input.positiveControl ? { positiveControl: input.positiveControl } : {}),
     ...(input.viewingGeometry ? { viewingGeometry: input.viewingGeometry } : {}),

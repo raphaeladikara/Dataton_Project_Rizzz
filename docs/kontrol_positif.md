@@ -203,19 +203,27 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
    - Lokasi: `Lab` atau nama ruangan; nilai ini juga masuk sebagai `deviceId`
    - Operator: inisial
    - Jarak mata–layar: `500` (atau angka yang benar-benar diukur)
-4. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
-5. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
+   - Nama panggilan peserta: **wajib.** Tanpa ini panggilan nama tidak berbunyi dan
+     sinyal `response_to_name` terbaca 0/3 pada kedua kondisi — menyimpang palsu di
+     kondisi 1, dan tidak ada yang bisa ditahan di kondisi 2. Kolomnya tidak disimpan,
+     tidak masuk log, dan hilang saat sesi selesai.
+4. **Naikkan volume dan pastikan panggilannya terdengar.** Suara keluar lewat speaker
+   tablet dengan `speechSynthesis`. Uji sekali sebelum peserta pertama: kalau perangkat
+   tidak punya suara bahasa Indonesia, ia memakai suara bawaan — itu tetap sah, yang
+   penting peserta mendengar namanya.
+5. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
+6. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
    dengan `CALIBRATION_STABILITY`, `CALIBRATION_COVERAGE`, atau `CALIBRATION_RANGE_*`,
    perbaiki penyebab yang disebut pesannya lalu ulangi. **Jangan lanjut dengan
    kalibrasi yang lolos paksa** — galat kalibrasi masuk ke seluruh angka sesudahnya.
-6. **Bacakan instruksi kondisi** persis seperti naskah di atas, lalu diam.
-7. **Jalankan baterai 80 detik.** Operator tidak bicara, tidak menunjuk layar, tidak
+7. **Bacakan instruksi kondisi** persis seperti naskah di atas, lalu diam.
+8. **Jalankan baterai 80 detik.** Operator tidak bicara, tidak menunjuk layar, tidak
    berdiri di sisi kiri atau kanan peserta. Berdirilah di belakang tablet.
-8. **Laporan muncul.** Catat isinya ke lembar sesi (kolomnya di bawah).
-9. **Unduh log audit.** Tombol **Unduh log audit JSON** di bawah laporan. Karena sesi ini
+9. **Laporan muncul.** Catat isinya ke lembar sesi (kolomnya di bawah).
+10. **Unduh log audit.** Tombol **Unduh log audit JSON** di bawah laporan. Karena sesi ini
    ditandai kontrol positif, berkasnya sudah turun dengan nama yang benar —
    `kp-03-biasa-1.json` — jadi tidak ada yang perlu diganti namanya.
-10. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`.
+11. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`.
 
 Antara kondisi 1 dan 2, beri jeda ~1 menit dan kalibrasi ulang. Kalibrasi tidak
 diwariskan antar sesi.

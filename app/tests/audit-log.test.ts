@@ -56,3 +56,28 @@ test("a session without a positive control keeps the generic audit filename", ()
   assert.equal(log.positiveControl, undefined);
   assert.match(auditFilename(log), /^neurogaze-audit-GA-01-/);
 });
+
+/**
+ * A missing scoring model no longer holds the session, so nothing on screen
+ * announces it any more. The log has to, or the next occurrence is as
+ * undiagnosable as the first one was.
+ */
+test("a session recorded without a scoring model says so in the log", () => {
+  const log = createSessionAudit({
+    appVersion: "test", stimulusVersion: "test", mode: "live", purpose: "gate_a_adult",
+    profile: { childId: "KP-01", age: "", site: "Lab", operator: "RA" }, researchConsent: true,
+    modelError: "Model tidak tersedia",
+  });
+  assert.equal(log.modelVersion, undefined);
+  assert.equal(log.modelError, "Model tidak tersedia");
+});
+
+test("a session with a model loaded carries no model error", () => {
+  const log = createSessionAudit({
+    appVersion: "test", stimulusVersion: "test", mode: "live", purpose: "gate_a_adult",
+    profile: { childId: "KP-01", age: "", site: "Lab", operator: "RA" }, researchConsent: true,
+    modelVersion: "neurogaze-gaze-lr-1.0.0",
+  });
+  assert.equal(log.modelError, undefined);
+  assert.equal(log.modelVersion, "neurogaze-gaze-lr-1.0.0");
+});
