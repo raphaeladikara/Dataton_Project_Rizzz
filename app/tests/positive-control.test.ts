@@ -4,6 +4,7 @@ import {
   MAX_POSITIVE_CONTROL_ATTEMPTS,
   positiveControlBlockers,
   positiveControlFileName,
+  positiveControlFromSession,
   stimulusIntroCopy,
   summarizePositiveControl,
   type PositiveControlMeta,
@@ -38,15 +39,15 @@ test("a participant code with spaces or stray case still yields one canonical fi
 
 test("a fourth attempt is refused rather than silently recorded", () => {
   assert.equal(MAX_POSITIVE_CONTROL_ATTEMPTS, 3);
-  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 3 }), []);
-  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 4 }), [
+  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 3 }, { callName: "Rafa" }), []);
+  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 4 }, { callName: "Rafa" }), [
     "Percobaan maksimal 3 per peserta per kondisi",
   ]);
 });
 
 test("an attempt that is zero, negative, or fractional is refused", () => {
   for (const attempt of [0, -1, 1.5]) {
-    assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt }), [
+    assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt }, { callName: "Rafa" }), [
       "Nomor percobaan harus 1, 2, atau 3",
     ]);
   }
@@ -127,4 +128,60 @@ test("the child lane is untouched by the positive control branch", () => {
   const copy = stimulusIntroCopy({ engineering: false, positiveControl: null });
   assert.match(copy.audience.toLowerCase(), /pengasuh/);
   assert.equal(copy.steps.length, 3);
+});
+
+/**
+ * The audit is committed inside the same call that captures the points, before
+ * React has recomputed the memos the report reads. Deriving the block from
+ * those memos therefore describes the session that had not started yet: every
+ * signal unassessable, every outcome null, no matter what the participant did.
+ * The block has to be built from the freshly captured session products.
+ */
+test("the block is built from the session that just ran, not from pre-session state", () => {
+  const summary = positiveControlFromSession({
+    meta: biasa,
+    geopref: { percentGeometric: 0.34, threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE" },
+    jointAttention: { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 7, pValue: 0.035 },
+    responseToName: { callsDelivered: 3, responses: 3, proportion: 1, medianLatencyMs: 640, latenciesMs: [600, 640, 680] },
+  });
+  assert.equal(summary.geoprefOutcome, "NO_GEOMETRIC_PREFERENCE");
+  assert.deepEqual(summary.signals.map((item) => item.status), ["normal", "normal", "normal"]);
+});
+
+/**
+ * The exact shape a stale read produces. If a real log ever carries this while
+ * gaze.processedPoints holds geopref samples, the wiring has regressed.
+ */
+test("an empty session is the one case that yields three unassessable signals", () => {
+  const summary = positiveControlFromSession({
+    meta: biasa,
+    geopref: null,
+    jointAttention: null,
+    responseToName: { callsDelivered: 0, responses: 0, proportion: null, medianLatencyMs: null, latenciesMs: [] },
+  });
+  assert.deepEqual(summary.signals.map((item) => item.status), [
+    "tidak_dapat_dinilai", "tidak_dapat_dinilai", "tidak_dapat_dinilai",
+  ]);
+  assert.equal(summary.geoprefOutcome, null);
+});
+
+/**
+ * The name-call field is hidden on the engineering lane, so a positive control
+ * ran with nothing to call: speakChildName fell through to a vibration the
+ * laptop ignored, all three calls logged spoken:false, and response_to_name
+ * scored 0/3. That reads as menyimpang in condition 1, where the participant
+ * would have answered, and it makes condition 2's third item untestable —
+ * there is nothing to withhold a response to.
+ */
+test("a positive control without a name to call is refused", () => {
+  assert.deepEqual(positiveControlBlockers(biasa, { callName: "" }), [
+    "Nama panggilan peserta belum diisi; tanpa itu panggilan nama tidak berbunyi",
+  ]);
+  assert.deepEqual(positiveControlBlockers(biasa, { callName: "   " }), [
+    "Nama panggilan peserta belum diisi; tanpa itu panggilan nama tidak berbunyi",
+  ]);
+});
+
+test("a positive control with a name to call passes", () => {
+  assert.deepEqual(positiveControlBlockers(biasa, { callName: "Rafa" }), []);
 });

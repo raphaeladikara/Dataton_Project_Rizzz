@@ -35,6 +35,13 @@ export type SessionValidityInput = {
   cameraInterrupted: boolean;
   orientationChanged: boolean;
   calibrationPassed: boolean;
+  /**
+   * Whether a scoring model was loaded at all. Defaults to true so existing
+   * callers keep their behaviour. When false there is no contract to check:
+   * the features were never going to be handed to anything, and the two fields
+   * below say nothing about the recording.
+   */
+  scoringModelAvailable?: boolean;
   featureContractMatches: boolean;
   timestampsSynchronized: boolean;
   faceRate: number;
@@ -118,7 +125,11 @@ export function evaluateSessionValidity(input: SessionValidityInput): SessionVal
     missingFeatures: input.missingFeatures ?? [],
   };
 
-  if (!input.featureContractMatches || (input.missingFeatures?.length ?? 0) > 0)
+  // Only meaningful once a model exists to have a contract with. A session
+  // recorded without one is still a valid recording; it simply produces no
+  // score, which the engineering lanes never wanted and the child report
+  // already has its own "estimate unavailable" state for.
+  if (input.scoringModelAvailable !== false && (!input.featureContractMatches || (input.missingFeatures?.length ?? 0) > 0))
     return held("FEATURE_CONTRACT_MISMATCH", evidence, ["pemeriksaan sistem"]);
   if (input.cameraInterrupted) return held("CAMERA_STREAM_INTERRUPTED", evidence);
   if (!input.sessionComplete) return held("SESSION_INCOMPLETE", evidence);

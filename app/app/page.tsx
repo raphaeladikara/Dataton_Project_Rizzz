@@ -62,7 +62,7 @@ import {
   MAX_POSITIVE_CONTROL_ATTEMPTS,
   positiveControlBlockers,
   stimulusIntroCopy,
-  summarizePositiveControl,
+  positiveControlFromSession,
   type PositiveControlMeta,
 } from "../src/positive/control";
 import { loadFirstRecording, type RecordedSession } from "../src/replay/recording";
@@ -556,6 +556,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [positiveControl, setPositiveControl] = useState<PositiveControlMeta | null>(null);
   /** Measured once per rig with a tape measure, then typed in. */
   const [viewingDistanceMm, setViewingDistanceMm] = useState(500);
+  /** Mirrors callNameRef so the consent gate can see it; the name itself stays in the ref. */
+  const [callNamePresent, setCallNamePresent] = useState(false);
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -737,6 +739,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       profile,
       researchConsent,
       modelVersion: model?.model_version,
+      modelError: model ? undefined : modelError ?? "Model lokal belum selesai dimuat saat sesi dimulai.",
       study: isGateB ? bridgeMeta : undefined,
       positiveControl: positiveControl ?? undefined,
       // Shaped for research/recompute_gate_b.py: degrees cannot be recomputed
@@ -838,8 +841,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     bridge: sessionPurpose === "gate_b_bridge" ? bridgeMeta : null,
   }), [sessionPurpose, profile.childId, profile.age, consented, researchConsent, bridgeMeta]);
   const consentIssues = useMemo(
-    () => [...consentBaseIssues, ...(positiveControl ? positiveControlBlockers(positiveControl) : [])],
-    [consentBaseIssues, positiveControl],
+    () => [
+      ...consentBaseIssues,
+      ...(positiveControl ? positiveControlBlockers(positiveControl, { callName: callNamePresent ? "ada" : "" }) : []),
+    ],
+    [consentBaseIssues, positiveControl, callNamePresent],
   );
 
   const geoprefAsset = useMemo(() => activeGeoprefAsset(), []);
@@ -928,6 +934,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPoints([]);
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
+    setCallNamePresent(false);
     frameTraceRef.current.reset();
     setProgress(0);
     setStage("consent");
@@ -1542,12 +1549,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStimulusPhase(null);
     setStimulusCueActive(false);
     setPoints(captured);
-    setPhenotype(buildPhenotypeProfile({
+    // Kept as a local as well as state: the audit is committed further down in
+    // this same call, before any memo reading `points` or `phenotype` has
+    // recomputed. Anything the log needs has to come from these locals.
+    const nextPhenotype = buildPhenotypeProfile({
       frames: frameTraceRef.current.samples(),
       nameCalls: NAME_CALLS,
       socialPhases: SOCIAL_PHASE_IDS,
       nonsocialPhases: [GEOPREF_PHASE_ID],
-    }));
+    });
+    setPhenotype(nextPhenotype);
     const frameRate = faceFrames / Math.max(attemptedFrames, 1);
     const dropout =
       mode === "replay"
@@ -1557,6 +1568,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const nextOod = oodReference ? assessFeatureOod(features, oodReference) : null;
     const phaseTargets = scoredPhaseTargets();
     const nextCueSummary = cueFeatures(captured, phaseTargets);
+    const capturedGeoprefPoints = captured.filter((point) => point.phase === GEOPREF_PHASE_ID);
+    const nextGeopref = capturedGeoprefPoints.length
+      ? scoreGeopref(capturedGeoprefPoints, {
+          ...geoprefLayout(profile.childId || "NG-0000"),
+          validatedProtocol: geoprefAsset.validatedProtocol,
+          demonstrationMode,
+          viewportAspect: stageAspect,
+        })
+      : null;
     const baseQuality = evaluateQuality({
       faceRate: frameRate,
       gazeDropout: dropout,
@@ -1597,6 +1617,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       cameraInterrupted: mode === "live" && !streamRef.current,
       orientationChanged: Boolean(deviceDiagnostics && deviceDiagnostics.landscape !== window.matchMedia("(orientation: landscape)").matches),
       calibrationPassed: calibration.errorDeg <= calibrationLimitDeg,
+      scoringModelAvailable: Boolean(model),
       featureContractMatches: Boolean(model && model.feature_order.every((feature) => Number.isFinite(features[feature]))),
       timestampsSynchronized: STIMULUS_PHASES.every((phase) => {
         const phasePoints = captured.filter((point) => point.phase === phase.id);
@@ -1654,10 +1675,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             // Every column lembar_sesi.csv asks for, written by the app rather
             // than transcribed off the screen by an operator at a lab table.
             ...(positiveControl ? {
-              positiveControl: summarizePositiveControl({
+              positiveControl: positiveControlFromSession({
                 meta: positiveControl,
-                referral,
-                geoprefOutcome: geoprefResult?.outcome ?? null,
+                geopref: nextGeopref,
+                jointAttention: summarizeJointAttention(nextCueSummary),
+                responseToName: nextPhenotype.responseToName,
               }),
             } : {}),
           };
@@ -1742,6 +1764,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPoints([]);
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
+    setCallNamePresent(false);
     frameTraceRef.current.reset();
     setCalibration(null);
     setCalibrationMessage(null);
@@ -2076,7 +2099,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {positiveControl && <label><span><IconTimer size={14} />Jarak mata–layar (mm)</span><input type="number" min="200" max="1200" value={viewingDistanceMm} onChange={(event) => setViewingDistanceMm(Number(event.target.value))} /><small>Diukur sekali dengan meteran, bukan ditaksir.</small></label>}
               <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
               <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
-              {!isEngineeringStudy && <label className="transientField"><span><IconTimer size={14} />Nama panggilan anak</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. Kosongkan bila Anda ingin memanggil sendiri.</small></label>}
+              {/* A positive control scores response_to_name, so it needs a name
+                  to call just as much as the child lane does. Still transient:
+                  it never reaches profile, the log, or the network. */}
+              {(!isEngineeringStudy || positiveControl) && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {positiveControl ? "peserta" : "anak"}</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Wajib diisi: tanpa nama, panggilan tidak berbunyi dan sinyal respons nama tidak terukur." : "Kosongkan bila Anda ingin memanggil sendiri."}</small></label>}
             </div>
             {isGateB && <div className="bridgeSetup" aria-label="Metadata pasangan Gate B">
               <div className="bridgeSetupHead"><div><strong>Kontrak pasangan</strong><small>Nilai ini harus identik pada aliran Neurogaze dan WebGazer.</small></div><span>Gate B · riset</span></div>
