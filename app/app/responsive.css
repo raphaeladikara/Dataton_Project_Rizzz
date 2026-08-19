@@ -223,6 +223,13 @@
   .footerGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+  .demoAside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .demoAside .secondary {
+    width: 100%;
+    white-space: normal;
+  }
   .footerBase > div {
     justify-content: flex-start;
   }

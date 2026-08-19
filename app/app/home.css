@@ -1204,3 +1204,38 @@
   .featureArtWatch .artToyGroup, .featureArtWatch .artGazeArc,
   .artFaceCorner, .visual-character .artToy, .artBadgeReady { animation: none !important; }
 }
+
+/* ── Demonstration aside — the one demo that force-applies the threshold ───
+   Deliberately quieter than the scenario cards: it is a caveat with a button
+   attached, not a fourth report state. */
+
+.demoAside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px 26px;
+  margin-top: 16px;
+  padding: 18px 20px;
+  border: 1px dashed var(--slate-200);
+  border-radius: var(--r-lg);
+  background: var(--slate-50);
+}
+
+.demoAside strong {
+  display: block;
+  font-size: 14.5px;
+  letter-spacing: -0.015em;
+  color: var(--ink-800);
+}
+
+.demoAside p {
+  max-width: 68ch;
+  margin: 6px 0 0;
+  font-size: 12.8px;
+  line-height: 1.6;
+  color: var(--ink-500);
+}
+
+.demoAside .secondary {
+  white-space: nowrap;
+}

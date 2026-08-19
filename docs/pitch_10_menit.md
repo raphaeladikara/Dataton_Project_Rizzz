@@ -196,5 +196,6 @@ laporan.
 
 **Ambang GeoPref tidak menyala.** Memang tidak akan, di lapangan. Klip yang tersedia
 16,75 detik dan protokol terbitnya 60–90 detik, jadi ambangnya ditahan. Untuk
-menunjukkan bentuk laporan rujukan, pakai **Peragakan bentuk laporan rujukan** —
-laporannya akan membawa banner mode demonstrasi dan tetap tidak mengeluarkan rujukan.
+menunjukkan bentuk laporan rujukan, pakai **Peragakan bentuk laporan rujukan** — tombolnya
+ada di bawah tiga kartu demo di bagian "Demo tanpa kamera" pada beranda. Laporannya akan
+membawa banner mode demonstrasi dan tetap tidak mengeluarkan rujukan.

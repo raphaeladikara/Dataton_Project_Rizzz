@@ -2587,3 +2587,68 @@ dd {
   .printFooter { margin-top: 22pt; font-size: 10pt; }
   @page { margin: 14mm; }
 }
+
+/* ── Positive control readout — the session sheet, rendered ────────────────
+   Deliberately plain: these are values an operator copies into a CSV, not a
+   result about the adult sitting there. */
+
+.positiveControlReadout {
+  margin: 20px 0 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--sand-50);
+}
+
+.positiveControlHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.positiveControlHead strong { display: block; font-size: .96rem; }
+.positiveControlHead small { color: var(--text-muted); font-size: .78rem; }
+
+.positiveControlHead > span {
+  color: var(--ink-400);
+  font-size: .7rem;
+  font-weight: 750;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.positiveControlReadout dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.positiveControlReadout dl > div {
+  padding: 11px 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 11px;
+  background: var(--paper);
+}
+
+.positiveControlReadout dt {
+  font-family: var(--font-mono-stack);
+  font-size: .7rem;
+  color: var(--ink-400);
+}
+
+.positiveControlReadout dd {
+  margin: 5px 0 0;
+  font-size: .9rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.positiveControlReadout > p {
+  margin: 14px 0 0;
+  color: var(--ink-700);
+  font-size: .82rem;
+  line-height: 1.6;
+}
