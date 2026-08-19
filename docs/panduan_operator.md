@@ -16,7 +16,7 @@ Jika aplikasi meminta pengulangan, perbaiki satu penyebab yang ditampilkan terle
 ## Membaca hasil
 
 Laporan memuat satu kalimat hasil, persentase fiksasi geometrik, lima indeks perilaku,
-dan lajur rekomendasi komposit berisi tiga sinyal. Empat kemungkinan hasilnya: rujuk,
+dan lajur rekomendasi komposit berisi dua sinyal (respons nama dikarantina). Empat kemungkinan hasilnya: rujuk,
 terukur tanpa rujuk, protokol dipersingkat, atau ditahan.
 
 - **Tidak ada skor risiko ASD.** Tidak ada angka gabungan, tidak ada persentase

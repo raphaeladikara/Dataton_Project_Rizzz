@@ -28,8 +28,16 @@ apakah model itu pantas dihubungkan ke keluaran sesi sama sekali.
 
 ## Apa yang dibuktikan dan tidak dibuktikan
 
-**Dibuktikan:** tiga sinyal keputusan di `app/src/outcome/referralRecommendation.ts`
+**Dibuktikan:** sinyal keputusan di `app/src/outcome/referralRecommendation.ts`
 bergerak ke arah yang benar ketika pola yang dicari benar-benar diproduksi.
+
+**Sejak v2, sinyalnya dua, bukan tiga.** Respons nama dikarantina: paradigma terbitnya
+memanggil dari belakang anak dan mengkode putaran kepala, sedangkan speaker tablet
+menaruh suaranya di depan tempat tidak ada arah yang harus dicari. Speaker di belakang
+peserta memulihkannya di lab tetapi tidak realistis di meja Posyandu, jadi sinyal itu
+tidak dapat dikumpulkan sebagaimana ia divalidasi. Ia tetap dilaporkan sebagai indeks
+deskriptif. Kontrol positif ini karenanya membuktikan **dua** sinyal, dan itu harus
+disebut apa adanya.
 
 **Tidak dibuktikan:** apa pun tentang autisme. Peserta adalah orang dewasa yang
 memproduksi pola secara sengaja. Ini bukan sensitivitas, bukan spesifisitas, dan
@@ -88,7 +96,7 @@ pola terukur — arah pandangan, respons isyarat, putaran kepala — bukan seseo
 Kedua, mengkarikaturkan perilaku autistik di depan panel yang mungkin punya kaitan
 personal dengan ASD akan merusak setiap hal lain yang dibangun proyek ini.
 
-Sebutkan protokol tiga butir di bawah **sebelum** sesi dimulai, supaya penonton tahu
+Sebutkan protokol dua butir di bawah **sebelum** sesi dimulai, supaya penonton tahu
 ini prosedur tertulis, bukan improvisasi.
 
 ---
@@ -102,12 +110,11 @@ ini prosedur tertulis, bukan improvisasi.
 | Jarak | 500 mm mata–layar, diukur sekali dengan meteran | Angka yang sama dimasukkan ke kolom jarak pandang di aplikasi |
 | Tinggi | Pusat layar sejajar mata peserta | Kalau layar terlalu rendah, rentang vertikal kalibrasi gagal |
 | Cahaya | Ruangan terang merata, tanpa jendela di belakang peserta | Backlight membuat iris tidak terbaca |
-| Speaker | Speaker kabel 3,5 mm, digantung di sandaran kursi **di belakang** peserta | Wajib. Alasannya di bawah; tanpa ini sinyal ketiga mati |
 | Peserta | 8–10 orang dewasa | Di bawah 8, jangan latih model apa pun; laporkan kontrol positifnya saja |
 | Browser | Chrome/Edge di `localhost` atau HTTPS | Kamera tidak jalan di HTTP non-lokal |
 | Waktu | ~12 menit per peserta untuk dua kondisi | 8 peserta ≈ satu setengah jam kerja |
 
-**Kenapa speakernya harus di belakang.** Yang diukur `response_to_name` bukan "bereaksi
+**Kenapa respons nama dikarantina.** Yang diukur `response_to_name` bukan "bereaksi
 terhadap suara", melainkan **berorientasi ke arah orang yang memanggil dari luar bidang
 pandang** — Perochon dkk. 2023 menulisnya lugas: *"their name was called three times by an
 examiner standing behind them"*, dan yang dikode adalah putaran kepala dari facial
@@ -116,13 +123,16 @@ peserta, dan selama fase itu layar menampilkan wajah tokoh vektor — jadi yang 
 tampak ada di layar. Respons yang benar berubah menjadi *tetap menatap layar*, yang tidak
 bisa dibedakan dari tidak merespons sama sekali.
 
-Sesi uji pertama membuktikannya: `|yaw|` maksimum sepanjang 1.585 frame hanya 0,118,
-sementara ambang tolehan 0,28. Tidak satu frame pun mendekat. Speaker kabel di belakang
-mengembalikan paradigmanya tanpa mengubah satu baris kode dan tanpa orang kedua —
-presisi waktunya tetap, karena yang bicara tetap aplikasi.
+Dua sesi uji membuktikan keduanya. Dengan suara dari tablet, `|yaw|` maksimum sepanjang
+1.585 frame hanya 0,118 terhadap ambang tolehan 0,28 — tidak satu frame pun mendekat.
+Dengan speaker kabel di belakang kursi, tolehannya kembali muncul (maksimum 1,572, empat
+belas frame melewati ambang). Paradigmanya memang pulih.
 
-Pastikan speakernya **tidak terlihat** peserta. Kalau terlihat, ia menjadi target visual
-alih-alih sumber yang harus dicari.
+Tetapi speaker di belakang peserta tidak realistis di meja Posyandu, dan memvalidasi
+sinyal pada konfigurasi yang tidak akan pernah dipakai kader berarti membuktikan sesuatu
+yang produknya tidak bisa lakukan. Karena itu sinyal ini **dikarantina**: tetap direkam,
+tetap dilaporkan sebagai indeks deskriptif, dan tidak masuk aturan komposit. Daftar
+karantina beserta alasannya ada di `QUARANTINED_SIGNALS`.
 
 **Prasyarat versi.** Protokol stimulus harus sudah final sebelum perekaman pertama.
 Rekaman pada versi stimulus lama tidak sebanding dan harus diulang. Catat
@@ -169,27 +179,27 @@ mana yang menarik. Operator diam sepanjang 80 detik.
 
 ### Kondisi 2 — pola diproduksi
 
-Tiga butir. Tiap butir memetakan ke tepat satu sinyal keputusan.
+Dua butir. Tiap butir memetakan ke tepat satu sinyal keputusan yang masih dihitung.
 
 | # | Yang dilakukan peserta | Sinyal yang disasar | Dasar arah |
 |---|---|---|---|
 | 1 | Selama blok pilihan tontonan, pandangan diarahkan ke panel geometrik | `geometric_preference` | Wen dkk. 2022, *Scientific Reports* 12:4253, n=1.863, usia 12–48 bulan |
 | 2 | Tidak mengikuti arah mata maupun tunjukan model; pandangan tetap di tengah | `cue_following` | Paradigma responding joint attention, Billeci dkk. 2019 |
-| 3 | Tidak menoleh saat nama dipanggil | `response_to_name` | Nadig dkk. 2007; Perochon dkk. 2023, *Nature Medicine* |
 
 Naskah instruksi yang dibacakan utuh sebelum kondisi 2, tanpa improvisasi:
 
-> "Sesi kedua ini kamu memproduksi tiga pola secara sengaja. Satu: waktu ada dua
+> "Sesi kedua ini kamu memproduksi dua pola secara sengaja. Satu: waktu ada dua
 > panel bersebelahan, pandangi terus panel yang isinya bentuk-bentuk geometris
 > bergerak, jangan panel yang isinya orang. Dua: setelah itu akan muncul tokoh yang
 > melihat atau menunjuk ke kiri atau ke kanan — jangan ikuti; tahan pandangan di
-> tengah layar. Tiga: kalau ada suara memanggil nama, jangan menoleh. Tetap
-> menghadap layar sepanjang sesi."
+> tengah layar. Tetap menghadap layar sepanjang sesi."
 
-Butir ketiga punya jebakan yang harus disebut: **tetap menghadap layar.** Kalau
-peserta menunduk atau memalingkan wajah untuk "menghindari" panggilan, indeks
-menghadap-ke-depan ikut jatuh dan gerbang mutu bisa menahan sesinya. Yang diminta
-adalah tidak *menoleh ke arah suara*, bukan menghilang dari kamera.
+**Tetap menghadap layar** harus disebut. Kalau peserta menunduk atau memalingkan wajah,
+indeks menghadap-ke-depan ikut jatuh dan gerbang mutu bisa menahan sesinya.
+
+Nama peserta tetap akan dipanggil selama sesi — fase itu bagian dari baterai 80 detik
+dan tidak dihapus. Peserta tidak diberi instruksi apa pun tentangnya, di kedua kondisi,
+karena sinyalnya dikarantina dan hanya dicatat sebagai angka deskriptif.
 
 **Kedipan sengaja tidak ikut.** Versi sebelumnya memasukkan diferensial kedipan sosial
 vs non-sosial sebagai butir keempat. Itu dicabut karena dua alasan yang berdiri
@@ -225,24 +235,19 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
      sinyal `response_to_name` terbaca 0/3 pada kedua kondisi — menyimpang palsu di
      kondisi 1, dan tidak ada yang bisa ditahan di kondisi 2. Kolomnya tidak disimpan,
      tidak masuk log, dan hilang saat sesi selesai.
-4. **Pasang speaker di belakang peserta dan uji dengar.** Colokkan speaker kabel,
-   gantung di sandaran kursi di luar pandangan peserta, naikkan volume sampai terdengar
-   jelas tanpa mengagetkan. Kalau perangkat tidak punya suara bahasa Indonesia,
-   `speechSynthesis` memakai suara bawaan — itu tetap sah, yang penting peserta mendengar
-   namanya datang dari belakang.
-5. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
-6. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
+4. **Persetujuan** dicentang sesuai yang sudah disampaikan lisan.
+5. **Kalibrasi.** Peserta mengikuti titik yang berpindah. Kalau aplikasi menolak
    dengan `CALIBRATION_STABILITY`, `CALIBRATION_COVERAGE`, atau `CALIBRATION_RANGE_*`,
    perbaiki penyebab yang disebut pesannya lalu ulangi. **Jangan lanjut dengan
    kalibrasi yang lolos paksa** — galat kalibrasi masuk ke seluruh angka sesudahnya.
-7. **Bacakan instruksi kondisi** persis seperti naskah di atas, lalu diam.
-8. **Jalankan baterai 80 detik.** Operator tidak bicara, tidak menunjuk layar, tidak
+6. **Bacakan instruksi kondisi** persis seperti naskah di atas, lalu diam.
+7. **Jalankan baterai 80 detik.** Operator tidak bicara, tidak menunjuk layar, tidak
    berdiri di sisi kiri atau kanan peserta. Berdirilah di belakang tablet.
-9. **Laporan muncul.** Catat isinya ke lembar sesi (kolomnya di bawah).
-10. **Unduh log audit.** Tombol **Unduh log audit JSON** di bawah laporan. Karena sesi ini
+8. **Laporan muncul.** Catat isinya ke lembar sesi (kolomnya di bawah).
+9. **Unduh log audit.** Tombol **Unduh log audit JSON** di bawah laporan. Karena sesi ini
    ditandai kontrol positif, berkasnya sudah turun dengan nama yang benar —
    `kp-03-biasa-1.json` — jadi tidak ada yang perlu diganti namanya.
-11. **Periksa berkasnya sebelum difilekan.**
+10. **Periksa berkasnya sebelum difilekan.**
 
     ```bash
     cd app && npm run kp:check -- ~/Downloads/kp-03-biasa-1.json
@@ -250,10 +255,9 @@ Langkah demi langkah. Sekali hafal, satu sesi memakan ~6 menit.
 
     Ia menolak sesi yang tidak layak, memperingatkan yang mencurigakan, dan mencetak baris
     `lembar_sesi.csv` siap tempel sehingga tidak ada angka yang disalin dengan tangan.
-    **Jalankan ini pada sesi pertama hari itu:** peringatan *"Kondisi 1 tetapi tidak ada
-    tolehan"* berarti speakernya belum bekerja, dan itu harus ketahuan sebelum delapan
-    orang terlanjur direkam.
-12. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`, lalu tempel barisnya
+    **Jalankan ini pada sesi pertama hari itu**, supaya sesi yang di bawah batas mutu
+    ketahuan sebelum delapan orang terlanjur direkam.
+11. **Pindahkan** berkasnya ke `research/hasil/kontrol_positif/sesi/`, lalu tempel barisnya
     ke `lembar_sesi.csv`.
 
 Antara kondisi 1 dan 2, beri jeda ~1 menit dan kalibrasi ulang. Kalibrasi tidak
@@ -326,7 +330,7 @@ Sesi dipakai untuk analisis kalau seluruhnya terpenuhi:
 - Laju frame valid ≥ 0,85
 - Dropout gaze ≤ 0,20
 - Gerbang validitas sesi tidak menolak fase mana pun
-- Kondisi 2: peserta benar-benar menjalankan ketiga butir (penilaian operator, dicatat
+- Kondisi 2: peserta benar-benar menjalankan kedua butir (penilaian operator, dicatat
   sebagai kolom terpisah — kalau operator ragu, tandai dan jangan diam-diam pakai)
 
 Maksimal **tiga percobaan** per peserta per kondisi. Kalau tiga-tiganya gagal, catat
@@ -341,14 +345,14 @@ kontrol positif menjadi seleksi hasil.
 
 ```csv
 peserta,kondisi,percobaan,perangkat,berkas,galat_kalibrasi_deg,laju_frame_valid,dropout,outcome,sinyal_geopref,sinyal_isyarat,sinyal_nama,komposit_menyala,butir_dijalankan,catatan
-KP-01,biasa,1,tab-a,kp-01-biasa-1.json,2.10,0.94,0.06,MEASURED_PROTOCOL_ABBREVIATED,tidak_dapat_dinilai,normal,normal,tidak,-,
-KP-01,produksi,1,tab-a,kp-01-produksi-1.json,2.35,0.92,0.08,MEASURED_PROTOCOL_ABBREVIATED,tidak_dapat_dinilai,menyimpang,menyimpang,ya,3/3,
-KP-02,biasa,1,tab-a,kp-02-biasa-1.json,4.80,0.61,0.34,WITHHELD,-,-,-,-,-,cahaya jendela di belakang peserta
-KP-02,biasa,2,tab-a,kp-02-biasa-2.json,2.02,0.95,0.05,MEASURED_PROTOCOL_ABBREVIATED,tidak_dapat_dinilai,normal,normal,tidak,-,tirai ditutup
+KP-01,biasa,1,tab-a,kp-01-biasa-1.json,2.10,0.94,0.06,MEASURED_PROTOCOL_ABBREVIATED,tidak_dapat_dinilai,normal,dikarantina,tidak,-,
+KP-01,produksi,1,tab-a,kp-01-produksi-1.json,2.35,0.92,0.08,MEASURED_PROTOCOL_ABBREVIATED,tidak_dapat_dinilai,menyimpang,dikarantina,tidak,2/2,geopref ditahan protokol dipersingkat
+KP-02,biasa,1,tab-a,kp-02-biasa-1.json,4.80,0.61,0.34,WITHHELD,-,-,dikarantina,-,-,cahaya jendela di belakang peserta
+KP-02,biasa,2,tab-a,kp-02-biasa-2.json,2.02,0.95,0.05,MEASURED_PROTOCOL_ABBREVIATED,tidak_dapat_dinilai,normal,dikarantina,tidak,-,tirai ditutup
 ```
 
 Kolom `sinyal_*` disalin apa adanya dari lajur rekomendasi di laporan. Kolom
-`butir_dijalankan` hanya untuk kondisi `produksi`.
+`butir_dijalankan` hanya untuk kondisi `produksi`, dan sekarang di luar dua, bukan tiga. Kolom `sinyal_nama` selalu berisi `dikarantina`.
 
 ---
 
@@ -383,7 +387,7 @@ daripada tangkapan layar lama; itu perbaikan ukuran sudut, bukan aset yang berbe
 
 ## Yang dilaporkan
 
-Untuk tiap sesi: kondisi, status ketiga sinyal, dan apakah aturan komposit menyala.
+Untuk tiap sesi: kondisi, status kedua sinyal yang dihitung, indeks respons nama sebagai angka deskriptif, dan apakah aturan komposit menyala.
 Ditambah pernyataan lingkup di setiap tempat angka itu muncul:
 
 - jumlah peserta dan jumlah sesi, apa adanya, termasuk yang ditahan;

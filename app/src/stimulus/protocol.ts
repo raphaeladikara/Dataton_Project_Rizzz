@@ -175,6 +175,24 @@ export function phaseAtElapsed(elapsedMs: number, phases: readonly StimulusPhase
   return null;
 }
 
+/**
+ * When each name call lands, measured from the start of the battery.
+ *
+ * NAME_CALL_OFFSETS_MS are offsets inside the name-call phase, while the frame
+ * trace is stamped from the start of the whole battery. Anything comparing the
+ * two needs this to put them on one clock. The cue order is counterbalanced per
+ * session, so the phase does not start at a fixed time and the session's own
+ * phase list has to be passed in.
+ */
+export function nameCallTimeline(phases: readonly StimulusPhase[] = STIMULUS_PHASES) {
+  let startMs = 0;
+  for (const phase of phases) {
+    if (phase.id === NAME_CALL_PHASE_ID) break;
+    startMs += phase.durationMs;
+  }
+  return NAME_CALL_OFFSETS_MS.map((offsetMs, index) => ({ index, offsetMs: startMs + offsetMs }));
+}
+
 export function scoredPhaseTargets(phases: readonly StimulusPhase[] = STIMULUS_PHASES) {
   return Object.fromEntries(phases.filter((phase) => phase.scored && phase.target !== "none").map((phase) => [phase.id, phase.target])) as Record<string, "left" | "right" | "center">;
 }

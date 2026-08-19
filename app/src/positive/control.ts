@@ -27,23 +27,16 @@ export type PositiveControlMeta = {
  */
 export const MAX_POSITIVE_CONTROL_ATTEMPTS = 3;
 
-export function positiveControlBlockers(
-  meta: PositiveControlMeta,
-  session: { callName: string },
-): string[] {
+export function positiveControlBlockers(meta: PositiveControlMeta): string[] {
   if (!Number.isInteger(meta.attempt) || meta.attempt < 1) {
     return ["Nomor percobaan harus 1, 2, atau 3"];
   }
   if (meta.attempt > MAX_POSITIVE_CONTROL_ATTEMPTS) {
     return [`Percobaan maksimal ${MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi`];
   }
-  // Without a name the call falls through to a vibration, which a tablet on a
-  // stand does not deliver and a laptop ignores outright. The session still
-  // scores response_to_name, so a silent call reads as no response: a false
-  // deviation in condition 1, and nothing to withhold in condition 2.
-  if (!session.callName.trim()) {
-    return ["Nama panggilan peserta belum diisi; tanpa itu panggilan nama tidak berbunyi"];
-  }
+  // The name is deliberately not required. Response to name is quarantined out
+  // of the rule (see QUARANTINED_SIGNALS), so leaving it blank only empties a
+  // descriptive index — not a reason to stop a session at a Posyandu table.
   return [];
 }
 
@@ -98,14 +91,12 @@ export function positiveControlFromSession(input: {
   meta: PositiveControlMeta;
   geopref: ReferralInput["geopref"];
   jointAttention: ReferralInput["jointAttention"];
-  responseToName: ReferralInput["responseToName"];
 }): PositiveControlSummary {
   return summarizePositiveControl({
     meta: input.meta,
     referral: buildReferralRecommendation({
       geopref: input.geopref,
       jointAttention: input.jointAttention,
-      responseToName: input.responseToName,
     }),
     geoprefOutcome: input.geopref?.outcome ?? null,
   });
