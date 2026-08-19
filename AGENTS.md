@@ -7,7 +7,11 @@ Three layers. Do not blur them.
 - **A — GeoPref.** The only automatic referral trigger. Percent geometric fixation
   against the published 69% cutoff (Wen et al. 2022, *Scientific Reports*, n=1863,
   ages 12–48 months, sensitivity 17%, specificity 98%, PPV 81%, NPV 65%).
-  Implemented in `app/src/geopref/`.
+  Implemented in `app/src/geopref/`. **The cutoff is compared against the session's
+  95% moving-block interval, never against the point estimate** — a straddling
+  interval leaves the signal unassessed, the same standard cue following is held to.
+  Do not reintroduce a bare `percentGeometric >= threshold` comparison; the reasoning
+  and the operating characteristics are in `docs/ambang_selang_kepercayaan.md`.
 - **B — Multi-index profile.** Descriptive only, no combined score. Facing-forward,
   head movement, blink rate, response to name, cue following. Modelled on the index
   family in Perochon et al. 2023, *Nature Medicine* (SenseToKnow: tablet front
@@ -31,6 +35,18 @@ Three layers. Do not blur them.
 - [2026-08-17] `research/hasil/evidence_manifest.json` records byte sizes and
   SHA-256 hashes for all 130 raw Gate A/B files.
 - [2026-08-17] Gate A and Gate B validate technical measurement only.
+- [2026-08-19] Positive control is canonical at `research/hasil/kontrol_positif`:
+  12 adults, 23 sessions, 3 devices, 15 passing quality. All three decision signals
+  separate the two conditions with AUC 1.00 and no overlap; the composite rule fires on
+  0 of 9 ordinary-viewing sessions in demonstration mode. Quote the nearest-gap column,
+  not the AUC — AUC 1.00 only says no pair is out of order. This is the only evidence
+  here whose provenance is complete from camera to number, so lead with it.
+- [2026-08-19] The panel-side confound in the positive control does not defeat the
+  claim, and the rebuttal is in the data: the layout was identical across both arms, so
+  a rightward gaze habit is a constant rather than a discriminator; ordinary viewers
+  median 0.34, i.e. two thirds of dwell on the social panel, which is the opposite of
+  what a rightward bias predicts; and two of the three signals are measured in the
+  vector block, which has no panels at all. Re-recording is not required.
 
 ## Working rules
 
@@ -74,14 +90,42 @@ Three layers. Do not blur them.
 
 ## Known gaps
 
-- No recording is shipped in `app/public/replay/` yet, so the quick demo falls back
-  to synthetic points, the layer-B indices stay empty, and the demo report is
-  withheld. `app/src/replay/recording.ts` loads a session as soon as one is
-  registered; the live audit export already carries `processedPoints` and `frames`.
-  Register with `npm run replay:register -- <audit-log.json> --as session-a.json`
-  rather than copying by hand — `inspectAuditLog` refuses a log with no frame trace
-  and says so, which is the failure that would otherwise pass silently.
 - The Gate B known-target block is analysed (`accuracy_against_targets`) and the
-  viewing geometry is exported, but no session records the nine targets yet.
+  viewing geometry is exported, but no session records the nine targets yet. Until one
+  does, no absolute-accuracy comparison against WebGazer is a head-to-head: the 4.17°
+  figure was measured on different hardware under a different protocol, and
+  `gate_a_summary.json` says so in `angleConventionCorrection`.
+- The likelihood-ratio layer in `docs/model_rujukan.md` is designed and not built.
+  `REFERRAL_DEVIANT_THRESHOLD = 2` still ships. The Cilia et al. dataset has not been
+  downloaded. **Never write about either in the past tense.**
 - No toddler appears in any evidence here, and no instrument used here has been
   validated in Indonesia.
+- No practitioner has been interviewed and no kader has touched the application.
+  `docs/wawancara_praktisi.md` holds the protocol for the first; the second is the
+  cheapest test left and is still undone.
+- `docs/screenshots/neurogaze-v3/` does not match the running application and
+  `08-refer-report.png` shows an output the current code cannot produce. Do not use
+  that set in the deck or the paper.
+- `paper/Rizzz_Paper_Final.pdf` is older than `paper/sumber/paper_final.tex`, and
+  neither carries the positive control. Recompile before submitting.
+
+## Pitch and framing
+
+The direction, the sentences that must not be said, and why the running order follows
+the rubric weights rather than the project's own priorities: `docs/arah_pitch.md`.
+Three rules that matter while editing anything public-facing:
+
+- **No past-tense claim for work that is not done.** This is the easiest rule to break
+  by accident when writing a script, and breaking it damages the project's premise more
+  than any admitted limitation does.
+- **Recording a child is not framed as inherently unethical.** Every threshold here came
+  from studies that recorded children. What we lack is the ethics review that makes a
+  proxy decision legitimate, and that distinction keeps Gate C reachable.
+- **Recordings are named by condition, never by number.** `app/public/replay/index.json`
+  carries a label per entry and the demo renders one control per recording for exactly
+  this reason; both controls used to load the first file in the manifest.
+- **Demonstration mode is reachable from replay and from a live adult session, never
+  from `target_population_research`.** The live stage control is separate from the field
+  entry point on purpose. `RULE_IN_DEMONSTRATION` hard-codes `emitsReferral: false`, the
+  banner stays on screen and on the report, and the mode is written to the audit log.
+  `app/tests/child-flow-contract.test.ts` guards all of it.

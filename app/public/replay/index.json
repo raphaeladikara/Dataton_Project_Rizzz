@@ -1,8 +1,16 @@
 {
-  "schema": "neurogaze-replay-manifest-v1",
-  "note": "Daftar rekaman sesi nyata yang boleh diputar ulang oleh Demo cepat. Ekspor log audit sesi kamera, letakkan berkasnya di folder ini, lalu tambahkan nama berkasnya di sini. Selama daftar ini kosong, Demo cepat memakai simulasi dan mengatakannya di laporan.",
+  "schema": "neurogaze-replay-manifest-v2",
+  "note": "Daftar rekaman sesi nyata yang boleh diputar ulang oleh Demo cepat. Ekspor log audit sesi kamera, lalu daftarkan dengan `npm run replay:register -- <berkas> --as <nama>.json --label \"<judul>\"`. Entri boleh berupa nama berkas saja; label dipakai di layar supaya penyaji menyebut kondisi yang benar. Selama daftar ini kosong, Demo cepat memakai simulasi dan mengatakannya di laporan.",
   "recordings": [
-    "sesi-biasa.json",
-    "sesi-produksi.json"
+    {
+      "file": "sesi-biasa.json",
+      "label": "Menonton biasa",
+      "condition": "biasa"
+    },
+    {
+      "file": "sesi-produksi.json",
+      "label": "Pola diproduksi",
+      "condition": "produksi"
+    }
   ]
 }

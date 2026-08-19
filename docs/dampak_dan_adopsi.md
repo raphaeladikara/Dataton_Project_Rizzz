@@ -173,21 +173,26 @@ daripada menyebutnya sebagai kemampuan.
 
 ## Urutan yang masuk akal
 
-| Tahap | Yang dikerjakan | Prasyarat |
-|---|---|---|
-| Sekarang | Cabut kekeliruan absence-of-evidence pada `cueSignal` | Tidak ada |
-| Sekarang | Kontrol positif, 8–10 dewasa | Tidak ada |
-| Sekarang | Kalibrasi likelihood-ratio menggantikan ambang `= 2` | Ekstraksi titik operasi dari makalah |
-| Sekarang | Unduh dan audit data terbit Cilia dkk., pasang bobot antar indeks | Tidak ada — CC BY 4.0 |
-| Sekarang | Uji kegunaan dengan 3 kader sungguhan | Akses ke satu Posyandu |
-| Berikutnya | Lajur komposit dipromosikan jadi lajur rujukan | Kontrol positif lolos kriteria |
-| Berikutnya | Permintaan stimulus GeoPref penuh ke UCSD | Surat sudah didraf |
-| Berikutnya | Antrean sinkronisasi luring untuk log audit | Keputusan desain privasi |
-| Gate C | Pita normatif balita + studi prospektif dengan hasil klinis | Persetujuan etik, mitra klinis |
-| Gate D | Implementasi lapangan dengan kader | Gate C lolos |
+| Tahap | Yang dikerjakan | Prasyarat | Status |
+|---|---|---|---|
+| — | Cabut kekeliruan absence-of-evidence pada `cueSignal` | Tidak ada | **Selesai** |
+| — | Kontrol positif, 8–10 dewasa | Tidak ada | **Selesai** — 12 dewasa, 19 Agu 2026 |
+| Sekarang | Wawancara praktisi ASD dan tenaga Puskesmas | Tidak ada | [`wawancara_praktisi.md`](wawancara_praktisi.md) |
+| Sekarang | Uji kegunaan dengan 3 kader sungguhan | Akses ke satu Posyandu | Belum |
+| Sekarang | Kirim permintaan stimulus GeoPref penuh ke UCSD | Surat sudah didraf | **Belum dikirim** |
+| Sekarang | Selang kepercayaan pada persentase GeoPref | Tidak ada | Belum |
+| Sekarang | Kalibrasi likelihood-ratio menggantikan ambang `= 2` | Ekstraksi titik operasi dari makalah | Belum |
+| Berikutnya | Blok target diketahui Gate B, dua aliran | Rig Gate B | Belum |
+| Berikutnya | Unduh dan audit data terbit Cilia dkk., pasang bobot antar indeks | Tidak ada — CC BY 4.0 | Belum |
+| Berikutnya | Lajur komposit dipromosikan jadi lajur rujukan | Stimulus penuh | Belum |
+| Berikutnya | Antrean sinkronisasi luring untuk log audit | Keputusan desain privasi | Belum |
+| Gate C | Pita normatif balita + studi prospektif dengan hasil klinis | Persetujuan etik, mitra klinis | Belum |
+| Gate D | Implementasi lapangan dengan kader | Gate C lolos | Belum |
 
-Lima baris pertama tidak menunggu siapa pun dan bisa selesai dalam hitungan hari.
-Itu yang membedakan rencana dari harapan.
+Baris bertanda "Sekarang" tidak menunggu siapa pun dan bisa selesai dalam hitungan hari.
+Itu yang membedakan rencana dari harapan. Dua di antaranya — wawancara praktisi dan uji
+kader — adalah satu-satunya cara proyek ini memperoleh bukti yang menyentuh konteks
+Indonesia sebelum Gate C, karena seluruh angka lain dipinjam dari populasi lain.
 
 Perhatikan di mana pita normatif duduk: ia turun ke Gate C, bukan karena sulit
 dibangun, melainkan karena membangunnya menuntut merekam balita dan itu menuntut kaji

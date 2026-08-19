@@ -296,11 +296,20 @@ test("the quick demo runs the real pipeline and says what produced the report", 
   assert.match(page, /SIMULASI — bukan sesi langsung/);
 });
 
-test("demonstration mode is reachable only from replay and never emits a referral", () => {
-  // The flag cannot survive a live session: start() recomputes it and gates it
-  // on the replay mode, so there is no argument that turns it on in the field.
-  assert.match(page, /setDemonstrationMode\(modeChoice === "replay" && Boolean\(options\.demonstration\)\)/);
+test("demonstration mode never reaches the child path and never emits a referral", () => {
+  // The flag cannot survive a child session: start() recomputes it every time
+  // and gates it on replay or the adult purpose, so no argument turns it on for
+  // `target_population_research` — the one purpose that means a child is in
+  // front of the tablet.
+  assert.match(page, /modeChoice === "replay" \|\| purpose === "gate_a_adult"/);
+  assert.ok(
+    !/purpose === "target_population_research"[^\n]*demonstration/i.test(page),
+    "the child purpose must never appear on a path that enables demonstration mode",
+  );
   assert.match(page, /startQuickDemo\(\{ demonstration: true \}\)/);
+  // Live stage demonstration exists, and it is a separate control from the
+  // field entry point so the two cannot be confused under time pressure.
+  assert.match(page, /start\("live", scenario, "gate_a_adult", \{ demonstration: true \}\)/);
   // The operator-facing banner has to say the threshold was applied on purpose
   // and that the session produces no referral.
   assert.match(page, /MODE DEMONSTRASI/);

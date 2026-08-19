@@ -13,19 +13,23 @@
 import { copyFile, readFile, writeFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { inspectAuditLog, type RecordedSession } from "../src/replay/recording";
+import {
+  inspectAuditLog,
+  normaliseRecordingEntries,
+  type RecordedSession,
+  type RecordingEntry,
+} from "../src/replay/recording";
 
 const REPLAY_DIR = fileURLToPath(new URL("../public/replay/", import.meta.url));
 const MANIFEST = `${REPLAY_DIR}index.json`;
 
-type Manifest = { schema?: string; note?: string; recordings: string[] };
+type Manifest = { schema?: string; note?: string; recordings: RecordingEntry[] };
 
 async function readManifest(): Promise<Manifest> {
   const parsed: unknown = JSON.parse(await readFile(MANIFEST, "utf8"));
   if (typeof parsed !== "object" || parsed === null) throw new Error("index.json bukan objek JSON.");
-  const manifest = parsed as Partial<Manifest>;
-  const listed = Array.isArray(manifest.recordings) ? manifest.recordings : [];
-  return { ...manifest, recordings: listed.filter((item): item is string => typeof item === "string") };
+  const manifest = parsed as Partial<Manifest> & { recordings?: unknown };
+  return { ...manifest, recordings: normaliseRecordingEntries(manifest.recordings) };
 }
 
 function summarise(name: string, recording: RecordedSession) {
@@ -47,7 +51,8 @@ async function check(): Promise<number> {
     return 0;
   }
   let broken = 0;
-  for (const name of manifest.recordings) {
+  for (const entry of manifest.recordings) {
+    const name = entry.file;
     let inspection;
     try {
       inspection = inspectAuditLog(JSON.parse(await readFile(`${REPLAY_DIR}${name}`, "utf8")), name);
@@ -61,7 +66,7 @@ async function check(): Promise<number> {
       broken += 1;
       continue;
     }
-    summarise(name, inspection.recording);
+    summarise(`${name}  —  ${entry.label}`, inspection.recording);
   }
   console.log(
     broken === 0
@@ -71,7 +76,7 @@ async function check(): Promise<number> {
   return broken === 0 ? 0 : 1;
 }
 
-async function register(source: string, as: string | null): Promise<number> {
+async function register(source: string, as: string | null, label: string | null): Promise<number> {
   const name = as ?? basename(source);
   if (!name.endsWith(".json")) {
     console.error(`Nama berkas harus berakhiran .json, bukan "${name}".`);
@@ -95,7 +100,15 @@ async function register(source: string, as: string | null): Promise<number> {
 
   await copyFile(resolve(source), `${REPLAY_DIR}${name}`);
   const manifest = await readManifest();
-  if (!manifest.recordings.includes(name)) manifest.recordings.push(name);
+  const existing = manifest.recordings.findIndex((entry) => entry.file === name);
+  // Re-registering the same filename replaces its entry rather than adding a
+  // second one, so a corrected export does not leave the old label behind.
+  const entry: RecordingEntry = {
+    file: name,
+    label: label ?? (existing === -1 ? name.replace(/\.json$/i, "") : manifest.recordings[existing].label),
+  };
+  if (existing === -1) manifest.recordings.push(entry);
+  else manifest.recordings[existing] = { ...manifest.recordings[existing], ...entry };
   await writeFile(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
   console.log("Terdaftar:");
@@ -106,8 +119,11 @@ async function register(source: string, as: string | null): Promise<number> {
 
 function usage(): void {
   console.log("Pemakaian:");
-  console.log("  npx tsx scripts/register-recording.ts <audit-log.json> [--as session-a.json]");
+  console.log("  npx tsx scripts/register-recording.ts <audit-log.json> [--as session-a.json] [--label \"Menonton biasa\"]");
   console.log("  npx tsx scripts/register-recording.ts --check");
+  console.log("");
+  console.log("--label adalah nama yang muncul di layar. Sebutkan kondisinya, bukan nomor sesinya:");
+  console.log("penyaji yang salah menyebut kondisi rekaman menyesatkan ruangan tanpa bermaksud.");
 }
 
 async function main(): Promise<number> {
@@ -128,14 +144,20 @@ async function main(): Promise<number> {
     console.error("--as butuh nama berkas.");
     return 1;
   }
-  // asIndex === -1 would otherwise skip argument 0, which is the usual call.
-  const valueIndex = asIndex === -1 ? -1 : asIndex + 1;
-  const source = args.find((arg, index) => !arg.startsWith("--") && index !== valueIndex);
+  const labelIndex = args.indexOf("--label");
+  const label = labelIndex === -1 ? null : (args[labelIndex + 1] ?? null);
+  if (labelIndex !== -1 && label === null) {
+    console.error("--label butuh teks.");
+    return 1;
+  }
+  // Without this, the value of a flag would be read as the source path.
+  const valueIndexes = new Set([asIndex, labelIndex].filter((index) => index !== -1).map((index) => index + 1));
+  const source = args.find((arg, index) => !arg.startsWith("--") && !valueIndexes.has(index));
   if (source === undefined) {
     usage();
     return 1;
   }
-  return register(source, as);
+  return register(source, as, label);
 }
 
 process.exit(await main());

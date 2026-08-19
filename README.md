@@ -18,19 +18,35 @@ tired, socially primed child.
 | **B2 — Composite recommendation** | A readable rule over the signals that need no toddler norm: the published GeoPref cutoff, plus one within-subject contrast (cue following). Response to name is quarantined — its paradigm needs a caller behind the child, which a tablet speaker cannot provide | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it. Cannot fire while the licensed GeoPref clip is shorter than the published protocol |
 | **C — Combined weighted model** | Being replaced rather than built. No toddler will be recorded by this team before ethics approval, so the layer is assembled from published operating points and weights fitted on an openly licensed labelled dataset instead | Not yet |
 
+The published cutoff is compared against the session's 95% confidence interval rather
+than against its point estimate. A session measuring 71% on a 16.75-second excerpt
+cannot be told apart from one measuring 67%, so an interval that straddles 69% leaves
+the signal unassessed — the same standard cue following has always been held to, where
+a non-significant sign test is unassessed rather than counted as a deficit. The
+estimator, the two that failed before it, and the operating characteristics against the
+old point rule are in
+[`docs/ambang_selang_kepercayaan.md`](docs/ambang_selang_kepercayaan.md).
+
 Layer B2 exists because the combining layer was empty and the product could therefore
 recommend nothing. It is not a fitted score: `combinedScore` is still `null` and no
 code path can fill it. The one invented parameter, how many signals must deviate, is
 typed as `design_choice_not_validated_cutoff` and says so on screen and on paper.
 
-That parameter is being withdrawn rather than defended. Its replacement is a sum of
-log likelihood ratios whose every term carries a citation, with any signal that has no
-published operating point — and any signal the session could not assess — contributing
-LR = 1 and therefore moving nothing. The relative weighting between signals is fitted
-on 59 labelled children from an openly licensed published dataset (Cilia et al. 2022,
-CC BY 4.0), because no child is recorded by this team. What transfers is the relative
-weighting, not the operating point. The design, the four audits that gate it, and the
-criteria for rejecting it outright are in [`docs/model_rujukan.md`](docs/model_rujukan.md).
+That parameter is to be withdrawn rather than defended, and the replacement is designed
+rather than built. **It is not in the code yet, and nothing below should be read as
+shipped.** The design: a sum of log likelihood ratios whose every term carries a
+citation, with any signal that has no published operating point — and any signal the
+session could not assess — contributing LR = 1 and therefore moving nothing. A second,
+independent layer would fit the relative weighting between signals on 59 labelled
+children from an openly licensed published dataset (Cilia et al. 2022, CC BY 4.0),
+because no child is recorded by this team; that dataset has not been downloaded. What
+would transfer is the relative weighting, not the operating point. The design, the four
+audits that gate it, and the criteria for rejecting it outright are in
+[`docs/model_rujukan.md`](docs/model_rujukan.md).
+
+What ships today is still `REFERRAL_DEVIANT_THRESHOLD = 2` in
+[`app/src/outcome/referralRecommendation.ts`](app/src/outcome/referralRecommendation.ts),
+typed `design_choice_not_validated_cutoff` and labelled as such on screen.
 
 Three indices are deliberately excluded from the rule. Facing-forward and head movement
 carry precedent AUCs but no transferable cutoff, so scoring them would mean inventing a
@@ -59,6 +75,18 @@ transfer. It runs only behind an out-of-distribution guard in the research panel
 
 ## Evidence status
 
+The strongest evidence here is not the gate table. It is the positive control: 12
+consenting adults, 23 sessions, three devices, recorded 19 August 2026 through the
+shipped application. All three decision signals separate the two behavioural conditions
+with no session of one overlapping the other, and the composite rule fires on **0 of 9**
+ordinary-viewing sessions. It is also the first evidence in this project whose chain is
+complete from camera to number, which is why it leads.
+[`research/hasil/kontrol_positif/README.md`](research/hasil/kontrol_positif/README.md)
+carries the numbers, the confounds, and the nine defects the recordings exposed.
+
+What it does not show is anything about autism: the participants are adults following a
+script, so there is no sensitivity, specificity, or accuracy in it.
+
 | Gate | Status | Canonical result |
 |---|---|---|
 | A | **Passed** | 100 sessions, 25 participants, 3 devices; 94% completion, 2.207° median calibration error, 96.4% mean valid-frame rate, 3.6% mean dropout |
@@ -77,6 +105,15 @@ Every published pair metric is rederived from the raw coordinates by
 [`research/recompute_gate_b.py`](research/recompute_gate_b.py). Distances reproduce to
 0.001 px; AOI agreement does not, on 4 of 27 pairs, and the difference is published in
 `gate_b_summary.json` rather than reconciled away.
+
+**One link in the Gate A/B chain cannot be checked from inside this repository.** The
+sessions were run and are photographed, but the recording harness lived outside the
+repository and is gone, and the shipped export path does not write files that round the
+way these do. The summaries are still an honest function of the raw files and the hashes
+still verify; what rests on the data owner's word is that the raw files came from a
+camera. Stated in full, with the checks a sceptical reader would run, in
+[`docs/provenance/harness_gate_a_b.md`](docs/provenance/harness_gate_a_b.md). The
+positive control is the first evidence collected under the rule that closes this gap.
 
 ### What a live session outputs
 
@@ -124,12 +161,17 @@ The reasoning behind these decisions is recorded in
 ### Known gaps
 
 - Replay plays two real recordings, one per positive-control condition, registered
-  from `research/hasil/kontrol_positif/sesi/`. Before that it played a synthetic
-  Lissajous path that the OOD guard correctly flagged and the quality gate correctly
-  refused to score, which meant the demo report was withheld every time and no run of
-  it ever carried real numbers. Registration refuses a log with no frame trace, so a
-  replay export cannot be registered as a recording:
-  `npm run replay:register -- <audit-log.json> --as session-a.json`.
+  from `research/hasil/kontrol_positif/sesi/` and each carrying the label of the
+  condition it recorded. Before that it played a synthetic Lissajous path that the OOD
+  guard correctly flagged and the quality gate correctly refused to score, which meant
+  the demo report was withheld every time and no run of it ever carried real numbers.
+  Registration refuses a log with no frame trace, so a replay export cannot be
+  registered as a recording:
+  `npm run replay:register -- <audit-log.json> --as session-a.json --label "Menonton biasa"`.
+  Both demo controls used to load whichever recording was listed first, so the control
+  that applies the threshold replayed the ordinary-viewing session while a presenter
+  could describe the other one over it. There is now one control per registered
+  recording, named after its condition.
 - The pipeline separates two behavioural conditions, and that is now measured rather
   than assumed. Twelve consenting adults recorded 23 sessions on 19 August 2026, half
   watching ordinarily and half producing the pattern on instruction; both decision
@@ -148,12 +190,20 @@ The reasoning behind these decisions is recorded in
 - The Gate B known-target block (nine targets, absolute accuracy for both streams)
   is implemented on the analysis side but no session has recorded one yet.
 - No toddler appears in any evidence in this repository, and none will before ethics
-  approval. Recording a child requires parental consent, and parental consent is not
-  valid without an ethics review that states what is being asked; recording an autistic
-  child requires more than that again. Five institutions were approached and all five
-  declined, which was the right call at this stage of evidence. The constraint, what it
-  rules out, what is permitted instead, and the answers to the questions a panel will
-  ask are in [`docs/etika_perekaman.md`](docs/etika_perekaman.md).
+  approval. This is not a claim that research with autistic children is unethical —
+  every threshold this system uses came from studies that recorded them, with the
+  permissions they held. It is that a toddler cannot consent, so someone else decides
+  on their behalf, and the structure that supervises that decision is an ethics review.
+  We do not have one. Five institutions were approached and all five declined, which was
+  the right call at this stage of evidence. The constraint, what it rules out, what is
+  permitted instead, and the answers to the questions a panel will ask are in
+  [`docs/etika_perekaman.md`](docs/etika_perekaman.md).
+
+- No practitioner interview has been recorded yet. It is the only primary research that
+  would touch the Indonesian context — every other number here is borrowed from
+  English-language literature on other populations. The protocol, the questions, and the
+  rule that keeps them from being unfalsifiable are in
+  [`docs/wawancara_praktisi.md`](docs/wawancara_praktisi.md).
 
 ## Run the application
 

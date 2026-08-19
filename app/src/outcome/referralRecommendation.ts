@@ -93,7 +93,12 @@ export type ReferralSignal = {
 };
 
 export type ReferralInput = {
-  geopref: { percentGeometric: number | null; threshold: number; outcome: GeoprefOutcome } | null;
+  geopref: {
+    percentGeometric: number | null;
+    percentGeometricCi?: readonly [number, number] | null;
+    threshold: number;
+    outcome: GeoprefOutcome;
+  } | null;
   jointAttention: { verdict: JointAttentionVerdict; trialsScored: number; trialsFollowed: number; pValue: number | null } | null;
 };
 
@@ -123,28 +128,44 @@ function geometricSignal(geopref: ReferralInput["geopref"]): ReferralSignal {
   // clip the comparison is not the one Wen et al. validated, so the signal is
   // unassessed. Calling it normal would be reading reassurance into a
   // measurement that was never made.
-  if (!geopref || geopref.percentGeometric === null || geopref.outcome === "MEASURED_PROTOCOL_ABBREVIATED" || geopref.outcome === "WITHHELD_INSUFFICIENT_LOOKING") {
+  if (
+    !geopref
+    || geopref.percentGeometric === null
+    || geopref.outcome === "MEASURED_PROTOCOL_ABBREVIATED"
+    || geopref.outcome === "MEASURED_INTERVAL_STRADDLES_THRESHOLD"
+    || geopref.outcome === "WITHHELD_INSUFFICIENT_LOOKING"
+  ) {
+    const interval = geopref?.percentGeometricCi;
     return {
       ...base,
       status: "tidak_dapat_dinilai",
-      measured: geopref?.percentGeometric === null || !geopref ? "tidak terukur" : `${percent(geopref.percentGeometric)} waktu pada pola geometrik`,
+      measured: geopref?.percentGeometric === null || !geopref
+        ? "tidak terukur"
+        : `${percent(geopref.percentGeometric)} waktu pada pola geometrik${interval ? ` (95% CI ${percent(interval[0])}–${percent(interval[1])})` : ""}`,
       reason: !geopref || geopref.percentGeometric === null
         ? "Waktu tatap pada kedua panel tidak cukup untuk dihitung."
-        : "Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang 69% tidak berlaku pada sesi ini.",
+        : geopref.outcome === "MEASURED_INTERVAL_STRADDLES_THRESHOLD"
+          ? `Selang kepercayaan sesi ini melintasi ambang ${percent(geopref.threshold)}, jadi angkanya tidak cukup pasti untuk diletakkan di salah satu sisi. Ini batas panjang pengukuran, bukan temuan tentang anak.`
+          : "Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang 69% tidak berlaku pada sesi ini.",
     };
   }
-  const deviant = geopref.percentGeometric >= geopref.threshold;
+  const interval = geopref.percentGeometricCi ?? null;
+  // Deviant means the whole interval sits above the cutoff, not the point
+  // estimate alone. Reading a 71% session as deviant while its interval runs
+  // from 62 to 79 asserts a difference the measurement cannot carry.
+  const deviant = interval ? interval[0] >= geopref.threshold : geopref.percentGeometric >= geopref.threshold;
   const demonstration = isDemonstrationOutcome(geopref.outcome);
   const caveat = demonstration
     ? " Ambang diterapkan dalam mode demonstrasi pada klip yang lebih pendek daripada protokol terbit, jadi angka ini tidak sah untuk keputusan apa pun."
     : "";
+  const spread = interval ? ` (95% CI ${percent(interval[0])}–${percent(interval[1])})` : "";
   return {
     ...base,
     status: deviant ? "menyimpang" : "normal",
-    measured: `${percent(geopref.percentGeometric)} waktu pada pola geometrik`,
+    measured: `${percent(geopref.percentGeometric)} waktu pada pola geometrik${spread}`,
     reason: (deviant
-      ? `Di atas ambang terbit ${percent(geopref.threshold)}. Pola ini jarang muncul pada anak tanpa ASD (spesifisitas 98%).`
-      : `Di bawah ambang terbit ${percent(geopref.threshold)}. Ambang ini melewatkan sebagian besar anak ASD, jadi hasil ini bukan tanda aman.`) + caveat,
+      ? `Seluruh selang kepercayaan berada di atas ambang terbit ${percent(geopref.threshold)}. Pola ini jarang muncul pada anak tanpa ASD (spesifisitas 98%).`
+      : `Seluruh selang kepercayaan berada di bawah ambang terbit ${percent(geopref.threshold)}. Ambang ini melewatkan sebagian besar anak ASD, jadi hasil ini bukan tanda aman.`) + caveat,
   };
 }
 

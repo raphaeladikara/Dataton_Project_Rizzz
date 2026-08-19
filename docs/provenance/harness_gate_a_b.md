@@ -84,18 +84,58 @@ penjelasan. Nilainya tetap diterbitkan apa adanya.
 
 ---
 
+## Dokumentasi foto
+
+Sesi Gate A dan Gate B benar-benar dijalankan, dan ada dokumentasi fotonya: peserta
+mencoba aplikasi di tablet, dan rig perbandingan Gate B dengan kedua aliran berjalan
+bersamaan. Foto-foto itu dipakai di deck presentasi.
+
+Yang dijawab foto dan yang tidak, dinyatakan terpisah supaya tidak tertukar:
+
+- **Dijawab:** apakah sesinya terjadi, siapa pesertanya, dan di perangkat apa. Itu
+  pertanyaan pertama yang muncul dan sekarang punya jawaban.
+- **Tidak dijawab:** apakah berkas JSON di repositori ini adalah keluaran sesi-sesi itu.
+  Sidik jari pembulatan di tabel sebelumnya tetap berlaku, dan foto tidak berbicara
+  tentang berkas.
+
+Karena itu foto bukan pengganti catatan ini, melainkan tambahan padanya. Menjawab
+pertanyaan tentang provenance berkas dengan foto peserta adalah menjawab pertanyaan
+yang berbeda, dan itu akan terbaca seperti mengelak.
+
+**Foto peserta adalah data pribadi.** Izin tertulis dari tiap orang yang wajahnya
+tampak, dan slide yang memuatnya menyebutkan bahwa foto dipakai dengan izin. Proyek
+yang seluruh premisnya adalah consent tidak boleh longgar pada consent-nya sendiri.
+
+### Yang menutup celahnya, dan biayanya kecil
+
+Rekam ulang 5–8 sesi Gate A lewat aplikasi yang dikirim sekarang (`purpose:
+gate_a_adult`), ekspor apa adanya, commit bersama pembaruan manifest. Berkas baru itu
+presisi penuh dan jalur ekspornya sama dengan yang dilihat pembaca di layar. Set lama
+tetap dipakai untuk angka terbit; set kecil yang baru membuktikan bahwa alat ini memang
+menghasilkan berkas seperti itu. Sesudah dikerjakan, tambahkan barisnya ke tabel di
+bawah dan sebutkan tanggalnya.
+
+---
+
 ## Bagaimana klaim Gate A/B harus dibaca
 
 | Klaim | Status |
 |---|---|
+| Sesinya dijalankan pada peserta sungguhan | **Terdokumentasi** — foto, dipakai dengan izin |
 | Ringkasan diturunkan dari berkas mentah | **Dapat diperiksa** — jalankan generatornya |
 | Integritas berkas mentah sejak masuk repo | **Dapat diperiksa** — manifest SHA-256 |
 | Metrik Gate B diturunkan dari koordinat, bukan field jadi | **Dapat diperiksa** — `recompute_gate_b.py` |
-| Berkas mentah berasal dari sesi kamera sungguhan | **Tidak dapat diperiksa dari repositori ini** |
+| Berkas mentah adalah keluaran sesi-sesi itu | **Tidak dapat diperiksa dari repositori ini** |
 
 Baris terakhir adalah alasan catatan ini ada. Gate A dan Gate B tetap dilaporkan
 sebagai lulus terhadap kriteria yang dinyatakan, dan pembacanya berhak tahu bahwa satu
 mata rantai bersandar pada pernyataan pemilik data, bukan pada artefak.
+
+Konsekuensi untuk presentasi, dan alasannya ada di
+[`../arah_pitch.md`](../arah_pitch.md): Gate A dan Gate B disebut sebagai pemeriksaan
+instrumen dalam satu kalimat, bukan sebagai bukti utama. Memimpin dengan keduanya
+berarti memimpin dengan satu-satunya bagian bukti yang bisa dipertanyakan, sementara
+kontrol positif berdiri di atas rantai yang lengkap.
 
 ---
 
