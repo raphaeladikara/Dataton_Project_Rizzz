@@ -17,7 +17,17 @@ export type SessionAuditLog = {
   appVersion: string;
   stimulusVersion: string;
   mode: "replay" | "live";
-  purpose: "demo_replay" | "gate_a_adult" | "gate_b_bridge" | "target_population_research";
+  /**
+   * `gate_a_adult` and `gate_b_bridge` are archived: the gates they served are
+   * closed, and no control in the application starts one any more. They stay in
+   * the union because the canonical evidence under `research/hasil` carries
+   * them, and a log that cannot be parsed is a log that cannot be checked.
+   *
+   * `stage_demo` is a consenting adult running the shipped session so the held
+   * threshold can be applied on a stage. It is a demonstration and says so
+   * everywhere: banner, report, and this field.
+   */
+  purpose: "demo_replay" | "stage_demo" | "gate_a_adult" | "gate_b_bridge" | "target_population_research";
   profile: { childId: string; ageMonths: number | null; site: string; operator: string };
   privacy: {
     rawMediaStored: false;

@@ -33,14 +33,19 @@ export type ConsentInput = {
  */
 export function consentBlockers(input: ConsentInput): string[] {
   const isEngineering = input.purpose === "gate_a_adult" || input.purpose === "gate_b_bridge";
+  // A stage demonstration runs the child flow on a consenting adult, so it
+  // wants every gate the real session has except the one that asks the
+  // participant to be a toddler. Typing an invented age to get past that field
+  // would put a false number in the audit log for the sake of a demo.
+  const isAdultParticipant = isEngineering || input.purpose === "stage_demo";
   const blockers: string[] = [];
 
   if (!input.childId.trim()) {
-    blockers.push(isEngineering ? "ID peserta pseudonim belum diisi" : "ID anak pseudonim belum diisi");
+    blockers.push(isAdultParticipant ? "ID peserta pseudonim belum diisi" : "ID anak pseudonim belum diisi");
   }
   if (!input.consented) blockers.push("Persetujuan layanan belum dicentang");
 
-  if (!isEngineering) {
+  if (!isAdultParticipant) {
     const age = Number(input.ageMonths);
     if (!input.ageMonths.trim() || !Number.isFinite(age) || age < CHILD_AGE_MIN_MONTHS || age > CHILD_AGE_MAX_MONTHS) {
       blockers.push(`Usia harus antara ${CHILD_AGE_MIN_MONTHS} dan ${CHILD_AGE_MAX_MONTHS} bulan`);

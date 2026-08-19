@@ -1,5 +1,13 @@
 "use client";
 
+/* eslint-disable react-hooks/purity -- Every site this rule flags here is a
+   `performance.now()` or a setState inside an async event handler:
+   runCalibration, runSanityCheck, runStimulus. None of them runs during render.
+   The rule stayed quiet until this component shrank enough for the React
+   Compiler to stop bailing out on it, so the warnings are newly visible rather
+   than newly true. Re-enable and fix for real if these functions ever move out
+   of the component body. */
+
 import {
   useEffect,
   useMemo,
@@ -595,6 +603,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [viewingDistanceMm, setViewingDistanceMm] = useState(500);
   /** Mirrors callNameRef so the consent gate can see it; the name itself stays in the ref. */
   const [callNamePresent, setCallNamePresent] = useState(false);
+  /**
+   * Whether the tablet calls the child by name at all.
+   *
+   * It used to be inferred from whether the field had text in it, which gave
+   * the operator no way to say "I will call the child myself" other than
+   * leaving a box mysteriously blank. Declared instead: unchecking clears the
+   * name, and the report records that the calls were not delivered rather than
+   * that the child did not respond.
+   */
+  const [callNameEnabled, setCallNameEnabled] = useState(false);
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -936,6 +954,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   }), [geoprefResult, jointAttention]);
   const isGateA = sessionPurpose === "gate_a_adult";
   const isGateB = sessionPurpose === "gate_b_bridge";
+  /** Consenting adult running the shipped child flow so the threshold can be shown. */
+  const isStageDemo = sessionPurpose === "stage_demo";
+  /** Wording only: an adult is in the chair, so "anak" would be wrong on screen. */
+  const isAdultParticipant = isGateA || isGateB || isStageDemo;
   const introCopy = stimulusIntroCopy({ engineering: isGateA || isGateB, positiveControl, gateB: isGateB });
   const isEngineeringStudy = isGateA || isGateB;
   const useTechnicalCalibration = isEngineeringStudy || technicalCalibration;
@@ -967,9 +989,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     // means a child is in front of the tablet is the one that must never apply
     // a threshold its protocol does not license. Every path here keeps the
     // banner on screen and `emitsReferral` false.
+    //
+    // `stage_demo` runs the same child flow, same calibration, same gates — the
+    // participant is a consenting adult and the threshold is applied so the
+    // report's shape is visible. It exists because the shipped session cannot
+    // reach the threshold at all while the licensed clip is short, which left
+    // no way to show on stage that the instrument responds.
     setDemonstrationMode(
       Boolean(options.demonstration)
-      && (modeChoice === "replay" || purpose === "gate_a_adult"),
+      && (modeChoice === "replay" || purpose === "stage_demo"),
     );
     // Opted into per session on the Gate A consent screen, never carried over.
     setPositiveControl(null);
@@ -983,7 +1011,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       ? { childId: `GA-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-01`, age: "", site: "Pilot perangkat", operator: "Operator-01" }
       : purpose === "gate_b_bridge"
         ? { childId: `GB-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-P01`, age: "", site: "Lab validasi", operator: "Peneliti-01" }
-      : { childId: "NG-0042", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
+        // Age stays empty: the participant is an adult, and the field is not
+        // required for this purpose precisely so nobody types 24 to get past it.
+        : purpose === "stage_demo"
+          ? { childId: `PERAGA-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-01`, age: "", site: "Peragaan panggung", operator: "Penyaji-01" }
+          : { childId: "NG-0042", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
     setDeviceStatus("idle");
     setDeviceDiagnostics(null);
     setCalibration(null);
@@ -1006,6 +1038,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
     setCallNamePresent(false);
+    setCallNameEnabled(false);
     frameTraceRef.current.reset();
     setProgress(0);
     setStage("consent");
@@ -1912,6 +1945,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
     setCallNamePresent(false);
+    setCallNameEnabled(false);
     frameTraceRef.current.reset();
     setCalibration(null);
     setCalibrationMessage(null);
@@ -1981,15 +2015,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <p className="lead" style={{ "--i": 2 } as CSSProperties}>
                 Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi.
               </p>
+              {/* One action, and it is the real session.
+                  Every demo path now lives behind "Panduan & demo". A second
+                  button here made the operator choose between two things that
+                  produce reports that look alike, with a child waiting — and the
+                  choice never belonged to them. */}
               <div className="heroActions" style={{ "--i": 3 } as CSSProperties}>
                 <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}>
                   Mulai observasi kamera <span aria-hidden="true"><IconArrowRight size={16} /></span>
-                </button>
-                {/* One real action, one demo. The step-by-step replay lives on the
-                    scenario cards below and the demonstration variant next to them;
-                    neither belongs in a row the operator reads with a child waiting. */}
-                <button className="secondary" onClick={() => void startQuickDemo()}>
-                  <IconPlay size={14} /> Demo cepat: langsung ke laporan
                 </button>
               </div>
               <div className="trustList" aria-label="Perlindungan data utama" style={{ "--i": 4 } as CSSProperties}>
@@ -2054,75 +2087,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </ol>
           </section>
 
-          <section className="homeSection replaySection" aria-labelledby="replay-heading">
-            <div className="sectionHead">
-              <span className="sectionPill" data-tone="amber"><IconPlay size={11} /> Demo tanpa kamera</span>
-              <h2 id="replay-heading">Pratinjau tiga keadaan laporan.</h2>
-              <p>Simulasi dengan hasil tetap untuk menguji alur, bahasa rekomendasi, dan keputusan yang ditahan. Berbeda dengan Demo cepat, ketiganya dijalani langkah demi langkah dari layar persetujuan.</p>
-            </div>
-            <div className="scenarioGrid">
-              {SCENARIOS.map((item, index) => {
-                const ScenarioIcon = SCENARIO_ICON[item.id as keyof typeof SCENARIO_ICON] ?? IconScanpathFocus;
-                return (
-                  <button
-                    className={`scenarioCard ${item.id}`}
-                    key={item.id}
-                    style={{ "--i": index } as CSSProperties}
-                    onClick={() => start("replay", item)}
-                  >
-                    <span className="scenarioIndex">0{index + 1}</span>
-                    <span className={`scenarioVisual ${item.id}`} aria-hidden="true"><ScenarioIcon size={38} /></span>
-                    <strong>{item.title.replace("Contoh: ", "")}</strong>
-                    <small>{item.id === "refer" ? "Pemeriksaan kualitas lulus · arahan rujuk" : item.id === "withheld" ? "Mutu tidak cukup · skor ditahan" : "Pemeriksaan kualitas lulus · pantau rutin"}</small>
-                    <span className="scenarioLink">Telusuri alur <IconArrowRight size={14} /></span>
-                  </button>
-                );
-              })}
-            </div>
-            {/* The threshold is held on every path above, so the referral layout
-                never appears there. This is the one control that applies it, and
-                it has to say why before anyone clicks it. */}
-            <div className="demoAside">
-              <div>
-                <strong>Perlu melihat bentuk laporan rujukan?</strong>
-                <p>Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang GeoPref 69% ditahan di ketiga demo di atas. Peragaan menerapkannya sekali supaya tata letak laporan rujukan terlihat. Sesinya tetap tidak mengeluarkan rujukan, dan laporannya membawa banner mode demonstrasi.</p>
-                {recordingEntries.length > 1 && (
-                  <p>Pilih rekaman yang diputar. Keduanya sesi kamera sungguhan dari kontrol positif, dan laporannya menyebut yang mana.</p>
-                )}
-                <p>Peragaan kamera langsung menjalankan sesi sungguhan dengan ambang yang sama diterapkan, untuk peserta dewasa. Ia tidak tersedia pada jalur anak.</p>
-              </div>
-              {/* One button per registered recording rather than a single control
-                  that silently plays whichever file is first. The presenter has
-                  to pick the condition out loud, which is the only thing keeping
-                  an ordinary-viewing session from being narrated as the other. */}
-              <div className="demoAsideActions">
-                {recordingEntries.length > 1 ? (
-                  recordingEntries.map((entry) => (
-                    <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
-                      <IconResearch size={15} /> Peragakan · {entry.label}
-                    </button>
-                  ))
-                ) : (
-                  <button className="secondary" onClick={() => void startQuickDemo({ demonstration: true })}>
-                    <IconResearch size={15} /> Peragakan bentuk laporan rujukan
-                  </button>
-                )}
-                {/* Live camera, adult purpose, threshold applied under the same
-                    banner. Separate from "Mulai observasi kamera" so the field
-                    path cannot reach it by mistake. */}
-                <button
-                  className="secondary"
-                  onClick={() => {
-                    recordAudit("session.demonstration_mode", { enabled: true, live: true, reason: "peragaan_panggung_kamera_langsung" }, "warning");
-                    start("live", scenario, "gate_a_adult", { demonstration: true });
-                  }}
-                >
-                  <IconCamera size={15} /> Peragakan · kamera langsung
-                </button>
-              </div>
-            </div>
-          </section>
-
           <section className="homeSection evidenceSection" id="evidence" aria-labelledby="evidence-heading">
             <div className="sectionHead">
               <span className="sectionPill" data-tone="slate"><IconShieldCheck size={12} /> Bukti, batas, privasi</span>
@@ -2162,9 +2126,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <div className="ctaActions">
                   <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}>
                     Mulai observasi kamera <span aria-hidden="true"><IconArrowRight size={16} /></span>
-                  </button>
-                  <button className="secondary" onClick={() => start("replay", SCENARIOS[1])}>
-                    <IconPlay size={14} /> Coba replay pantau
                   </button>
                 </div>
               </div>
@@ -2230,17 +2191,85 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <details className="operatorGuideDetails">
             <summary><IconBook size={16} /> Petunjuk teknis untuk operator</summary>
             <div className="operatorGuideGrid">
-              <p><strong>Pilih mode yang tepat.</strong> Replay untuk demo, Observasi kamera untuk sesi anak tanpa skor, dan Gate A untuk uji perangkat pada orang dewasa.</p>
-              <p><strong>Jangan berikan kalibrasi 9 titik kepada anak.</strong> Alur anak memakai lima pemancing perhatian pasif. Hasil ditahan jika kualitas sinyal tidak cukup.</p>
-              <p><strong>Batasi percobaan.</strong> Untuk Gate A, berhenti setelah dua kalibrasi gagal dan unduh log audit.</p>
+              <p><strong>Hanya ada satu sesi.</strong> Observasi kamera adalah alur yang dipakai di Posyandu. Demo di halaman ini menjalankan kode yang sama; yang berbeda hanya asal pandangannya — rekaman, simulasi, atau kamera.</p>
+              <p><strong>Alur anak memakai lima pemancing perhatian pasif</strong>, bukan kalibrasi sembilan titik. Hasil ditahan jika kualitas sinyal tidak cukup.</p>
+              <p><strong>Berhenti setelah dua kalibrasi gagal</strong> dan unduh log auditnya. Mengulang terus-menerus melelahkan anak dan tidak memperbaiki sinyalnya.</p>
               <p><strong>Baca status sebelum angka.</strong> “Ditahan” berarti data belum cukup; status ini tidak menilai perkembangan anak.</p>
             </div>
           </details>
           <div className="cardActions guideActions">
-            <button className="primary" onClick={() => start("live", scenario, "gate_a_adult")}><IconCamera size={16} /> Mulai Gate A sekarang</button>
-            <button className="secondary" onClick={() => start("replay", SCENARIOS[0])}><IconPlay size={14} /> Uji replay dulu</button>
+            <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}><IconCamera size={16} /> Mulai observasi kamera</button>
           </div>
-          <p className="guideFootnote"><IconInfo size={15} /> Gate A hanya menguji kinerja perangkat. Tahap ini tidak menilai ASD.</p>
+          <p className="guideFootnote"><IconInfo size={15} /> Satu alur, dan itu sesi sungguhan. Demo di bawah memakai kode yang sama; bedanya hanya dari mana pandangannya datang.</p>
+          <section className="guideDemoSection" aria-labelledby="replay-heading">
+            <div className="sectionHead">
+              <span className="sectionPill" data-tone="amber"><IconPlay size={11} /> Demo tanpa kamera</span>
+              <h2 id="replay-heading">Pratinjau tiga keadaan laporan.</h2>
+              <p>Simulasi dengan hasil tetap untuk menguji alur, bahasa rekomendasi, dan keputusan yang ditahan. Ketiganya dijalani langkah demi langkah dari layar persetujuan, seperti sesi sungguhan.</p>
+            </div>
+            <div className="scenarioGrid">
+              {SCENARIOS.map((item, index) => {
+                const ScenarioIcon = SCENARIO_ICON[item.id as keyof typeof SCENARIO_ICON] ?? IconScanpathFocus;
+                return (
+                  <button
+                    className={`scenarioCard ${item.id}`}
+                    key={item.id}
+                    style={{ "--i": index } as CSSProperties}
+                    onClick={() => start("replay", item)}
+                  >
+                    <span className="scenarioIndex">0{index + 1}</span>
+                    <span className={`scenarioVisual ${item.id}`} aria-hidden="true"><ScenarioIcon size={38} /></span>
+                    <strong>{item.title.replace("Contoh: ", "")}</strong>
+                    <small>{item.id === "refer" ? "Pemeriksaan kualitas lulus · arahan rujuk" : item.id === "withheld" ? "Mutu tidak cukup · skor ditahan" : "Pemeriksaan kualitas lulus · pantau rutin"}</small>
+                    <span className="scenarioLink">Telusuri alur <IconArrowRight size={14} /></span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* The threshold is held on every path above, so the referral layout
+                never appears there. This is the one control that applies it, and
+                it has to say why before anyone clicks it. */}
+            <div className="demoAside">
+              <div>
+                <strong>Perlu melihat bentuk laporan rujukan?</strong>
+                <p>Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang GeoPref 69% ditahan di ketiga demo di atas. Peragaan menerapkannya sekali supaya tata letak laporan rujukan terlihat. Sesinya tetap tidak mengeluarkan rujukan, dan laporannya membawa banner mode demonstrasi.</p>
+                {recordingEntries.length > 1 && (
+                  <p>Pilih rekaman yang diputar. Keduanya sesi kamera sungguhan dari kontrol positif, dan laporannya menyebut yang mana.</p>
+                )}
+                <p>Peragaan kamera langsung menjalankan sesi sungguhan dengan ambang yang sama diterapkan, untuk peserta dewasa. Ia tidak tersedia pada jalur anak.</p>
+              </div>
+              {/* One button per registered recording rather than a single control
+                  that silently plays whichever file is first. The presenter has
+                  to pick the condition out loud, which is the only thing keeping
+                  an ordinary-viewing session from being narrated as the other. */}
+              <div className="demoAsideActions">
+                {recordingEntries.length > 1 ? (
+                  recordingEntries.map((entry) => (
+                    <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
+                      <IconResearch size={15} /> Peragakan · {entry.label}
+                    </button>
+                  ))
+                ) : (
+                  <button className="secondary" onClick={() => void startQuickDemo({ demonstration: true })}>
+                    <IconResearch size={15} /> Peragakan bentuk laporan rujukan
+                  </button>
+                )}
+                {/* Live camera, adult purpose, threshold applied under the same
+                    banner. Separate from "Mulai observasi kamera" so the field
+                    path cannot reach it by mistake. */}
+                <button
+                  className="secondary"
+                  onClick={() => {
+                    recordAudit("session.demonstration_mode", { enabled: true, live: true, reason: "peragaan_panggung_kamera_langsung" }, "warning");
+                    start("live", scenario, "stage_demo", { demonstration: true });
+                  }}
+                >
+                  <IconCamera size={15} /> Peragakan · kamera langsung
+                </button>
+              </div>
+            </div>
+          </section>
+
         </section>
       )}
 
@@ -2251,13 +2280,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       {stage === "consent" && (
         <section className="workspace">
           <div className="sectionHeading">
-            <span className="eyebrow">Langkah 1 · {isGateB ? "Gate B WebGazer" : isGateA ? "Gate A engineering" : "profil pseudonim"}</span>
-            <h1>{isGateB ? "Siapkan satu sesi pembanding WebGazer." : isGateA ? "Siapkan satu sesi uji perangkat." : "Persetujuan sebelum pengukuran."}</h1>
-            <p>{isGateB ? "Gunakan ID pseudonim dan ID pasangan yang sama pada dua aliran browser. Sesi ini mengukur agreement, bukan ASD." : isGateA ? "Gunakan peserta dewasa dan ID pseudonim. Sesi ini hanya mengukur kinerja kamera, bukan ASD." : "Jangan masukkan nama lengkap, NIK, alamat, atau foto identitas."}</p>
+            <span className="eyebrow">Langkah 1 · {isGateB ? "Gate B WebGazer" : isGateA ? "Gate A engineering" : isStageDemo ? "peragaan panggung" : "profil pseudonim"}</span>
+            <h1>{isGateB ? "Siapkan satu sesi pembanding WebGazer." : isGateA ? "Siapkan satu sesi uji perangkat." : isStageDemo ? "Siapkan peragaan panggung." : "Persetujuan sebelum pengukuran."}</h1>
+            <p>{isGateB ? "Gunakan ID pseudonim dan ID pasangan yang sama pada dua aliran browser. Sesi ini mengukur agreement, bukan ASD." : isGateA ? "Gunakan peserta dewasa dan ID pseudonim. Sesi ini hanya mengukur kinerja kamera, bukan ASD." : isStageDemo ? "Peserta dewasa yang menyetujui untuk dirinya sendiri. Alur, kalibrasi, dan gerbangnya sama persis dengan sesi Posyandu; bedanya ambang 69% diterapkan supaya bentuk laporannya terlihat, dan sesinya tetap tidak mengeluarkan rujukan." : "Jangan masukkan nama lengkap, NIK, alamat, atau foto identitas."}</p>
           </div>
           <div className="formCard">
             <div className="formGrid">
-              <label><span><IconChild size={14} />{isEngineeringStudy ? "ID peserta pseudonim" : "ID anak pseudonim"}</span><input value={profile.childId} onChange={(event) => setProfile({ ...profile, childId: event.target.value })} /></label>
+              <label><span><IconChild size={14} />{isAdultParticipant ? "ID peserta pseudonim" : "ID anak pseudonim"}</span><input value={profile.childId} onChange={(event) => setProfile({ ...profile, childId: event.target.value })} /></label>
               {isGateB
                 ? <label><span><IconResearch size={14} />Jenis sesi</span><input value="Gate B · WebGazer agreement" disabled /></label>
                 : isGateA
@@ -2271,9 +2300,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                       <option value="kp-biasa">Kontrol positif · kondisi 1 menonton biasa</option>
                       <option value="kp-produksi">Kontrol positif · kondisi 2 pola diproduksi</option>
                     </select></label>
+                  : isStageDemo ? null
                   : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
               {positiveControl && <label><span><IconResearch size={14} />Percobaan ke-</span><input type="number" min="1" max={MAX_POSITIVE_CONTROL_ATTEMPTS} value={positiveControl.attempt} onChange={(event) => setPositiveControl({ ...positiveControl, attempt: Number(event.target.value) })} /><small>Maksimal {MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi. Sesudah itu peserta dicatat tidak dapat dinilai.</small></label>}
-              {positiveControl && <label className="checkField"><span><IconResearch size={14} />Pakai speaker di belakang peserta</span><input type="checkbox" checked={Boolean(positiveControl.speakerBehind)} onChange={(event) => { const on = event.target.checked; if (!on) { callNameRef.current = ""; setCallNamePresent(false); } setPositiveControl({ ...positiveControl, speakerBehind: on }); }} /><small>Tanpa ini panggilan nama tidak dibunyikan sama sekali dan indeksnya dicatat tidak terukur. Sinyalnya dikarantina dari aturan komposit di kedua mode.</small></label>}
+              {positiveControl && <label className="checkField"><span><IconResearch size={14} />Pakai speaker di belakang peserta</span><input type="checkbox" checked={Boolean(positiveControl.speakerBehind)} onChange={(event) => { const on = event.target.checked; if (!on) { callNameRef.current = ""; setCallNamePresent(false); setCallNameEnabled(false); } setPositiveControl({ ...positiveControl, speakerBehind: on }); }} /><small>Tanpa ini panggilan nama tidak dibunyikan sama sekali dan indeksnya dicatat tidak terukur. Sinyalnya dikarantina dari aturan komposit di kedua mode.</small></label>}
               {positiveControl && <label><span><IconTimer size={14} />Jarak mata–layar (mm)</span><input type="number" min="200" max="1200" value={viewingDistanceMm} onChange={(event) => setViewingDistanceMm(Number(event.target.value))} /><small>Diukur sekali dengan meteran, bukan ditaksir.</small></label>}
               <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
               <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
@@ -2281,7 +2311,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   is still reported, so a positive control may still supply a
                   name. Transient either way: it never reaches profile, the log,
                   or the network. */}
-              {(!isEngineeringStudy || positiveControl?.speakerBehind) && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {positiveControl ? "peserta" : "anak"}</span><input key={String(positiveControl?.speakerBehind)} defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Dipakai untuk membunyikan panggilan lewat speaker; hasilnya tetap indeks deskriptif, bukan sinyal keputusan." : "Kosongkan bila Anda ingin memanggil sendiri."}</small></label>}
+              {(!isEngineeringStudy || positiveControl?.speakerBehind) && <>
+                <label className="checkField"><span><IconTimer size={14} />Panggil nama {isAdultParticipant ? "peserta" : "anak"} lewat tablet</span><input type="checkbox" checked={callNameEnabled} onChange={(event) => { const on = event.target.checked; setCallNameEnabled(on); if (!on) { callNameRef.current = ""; setCallNamePresent(false); } }} /><small>Biarkan mati bila Anda ingin memanggil sendiri. Panggilan tetap dicatat sebagai tidak dibunyikan, bukan sebagai anak yang tidak menoleh.</small></label>
+                {callNameEnabled && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {isAdultParticipant ? "peserta" : "anak"}</span><input key={String(positiveControl?.speakerBehind)} defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Dipakai untuk membunyikan panggilan lewat speaker; hasilnya tetap indeks deskriptif, bukan sinyal keputusan." : "Nama hanya hidup di memori selama sesi berjalan."}</small></label>}
+              </>}
             </div>
             {isGateB && <div className="bridgeSetup" aria-label="Metadata pasangan Gate B">
               <div className="bridgeSetupHead"><div><strong>Kontrak pasangan</strong><small>Nilai ini harus identik pada aliran Neurogaze dan WebGazer.</small></div><span>Gate B · riset</span></div>
@@ -2299,7 +2332,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </div>}
             <label className="checkRow">
               <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
-              <span><strong>{isEngineeringStudy ? "Persetujuan peserta diberikan." : "Persetujuan layanan diberikan."}</strong> {isGateB ? "Peserta menyetujui perekaman dua aliran gaze browser dan dapat menghentikan studi kapan saja." : isGateA ? "Peserta memahami bahwa sesi hanya mengaudit perangkat dan dapat dihentikan kapan saja." : "Pengasuh memahami bahwa Neurogaze bukan diagnosis dan persetujuan dapat ditarik."}</span>
+              <span><strong>{isAdultParticipant ? "Persetujuan peserta diberikan." : "Persetujuan layanan diberikan."}</strong> {isGateB ? "Peserta menyetujui perekaman dua aliran gaze browser dan dapat menghentikan studi kapan saja." : isGateA ? "Peserta memahami bahwa sesi hanya mengaudit perangkat dan dapat dihentikan kapan saja." : isStageDemo ? "Peserta dewasa menyetujui untuk dirinya sendiri, memahami bahwa ini peragaan dan bukan penilaian atas dirinya, dan dapat berhenti kapan saja." : "Pengasuh memahami bahwa Neurogaze bukan diagnosis dan persetujuan dapat ditarik."}</span>
             </label>
             <label className="checkRow optional">
               <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchConsent(event.target.checked)} />
@@ -2313,7 +2346,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             )}
             <div className="cardActions">
               <button className="secondary" onClick={() => { if (isAdminCapture) window.location.href = "/admin"; else goHome(); }}>Batal</button>
-              <button className="primary" disabled={consentIssues.length > 0} aria-describedby={consentIssues.length ? "consent-blockers" : undefined} onClick={beginAuditedSession}>{isEngineeringStudy ? "Lanjut periksa perangkat" : "Lanjut persiapan anak"} <IconArrowRight size={16} /></button>
+              <button className="primary" disabled={consentIssues.length > 0} aria-describedby={consentIssues.length ? "consent-blockers" : undefined} onClick={beginAuditedSession}>{isGateA || isGateB ? "Lanjut periksa perangkat" : isStageDemo ? "Lanjut peragaan" : "Lanjut persiapan anak"} <IconArrowRight size={16} /></button>
             </div>
           </div>
         </section>
