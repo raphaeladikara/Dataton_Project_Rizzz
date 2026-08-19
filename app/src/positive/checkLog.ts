@@ -54,11 +54,11 @@ export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCh
 
   const calls = log.events.filter((event) => event.type === "stimulus.name_called");
   const silent = calls.filter((event) => (event.data as { spoken?: boolean } | undefined)?.spoken !== true);
-  if (!calls.length) {
-    failures.push("Tidak ada panggilan nama yang terekam sama sekali.");
-  } else if (silent.length) {
-    failures.push(
-      `${silent.length} dari ${calls.length} panggilan nama tidak berbunyi. Isi kolom nama panggilan dan periksa volume.`,
+  // Response to name is quarantined out of the rule, so a silent call empties a
+  // descriptive index rather than invalidating the session.
+  if (silent.length) {
+    warnings.push(
+      `${silent.length} dari ${calls.length} panggilan nama tidak berbunyi, jadi indeks respons nama kosong. Sinyal ini dikarantina, sesi tetap sah.`,
     );
   }
 
@@ -79,19 +79,6 @@ export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCh
     failures.push("Blok assessment.positiveControl tidak ada; laporan tidak membaca sesi yang baru berjalan.");
   }
 
-  const nameStatus = status(summary, "response_to_name");
-  // The check that catches a speaker still sitting in front of the participant.
-  // An adult told to respond naturally turns towards a voice behind them; nobody
-  // turns towards one coming out of the screen they are already watching.
-  if (meta?.condition === "biasa" && nameStatus === "menyimpang" && !silent.length) {
-    warnings.push(
-      "Kondisi 1 tetapi tidak ada tolehan ke panggilan nama. Periksa penempatan speaker: ia harus di belakang peserta dan tidak terlihat.",
-    );
-  }
-  if (meta?.condition === "produksi" && nameStatus === "normal") {
-    warnings.push("Kondisi 2 tetapi peserta tetap menoleh saat dipanggil. Butir ketiga naskah kemungkinan tidak dijalankan.");
-  }
-
   if (log.modelError) warnings.push(`Model skoring tidak dimuat: ${log.modelError} Sesi tetap sah untuk kontrol positif.`);
   if (!/^kp-/i.test(log.profile.childId.trim()))
     warnings.push(`ID peserta "${log.profile.childId}" tidak mengikuti pola KP-xx, jadi nama berkasnya juga tidak.`);
@@ -108,7 +95,8 @@ export function checkPositiveControlLog(log: SessionAuditLog): PositiveControlCh
     summary?.geoprefOutcome ?? "-",
     status(summary, "geometric_preference"),
     status(summary, "cue_following"),
-    nameStatus,
+    // Measured and reported, never counted. See QUARANTINED_SIGNALS.
+    "dikarantina",
     summary ? (summary.compositeWouldFire ? "ya" : "tidak") : "-",
     meta?.condition === "produksi" ? "" : "-",
     "",

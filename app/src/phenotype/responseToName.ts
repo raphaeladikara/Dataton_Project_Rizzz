@@ -8,7 +8,15 @@ export const BASELINE_WINDOW_MS = 500;
 export type NameCall = { index: number; offsetMs: number };
 
 export type ResponseToNameIndex = {
+  /** Calls that could be scored either way. Skipped calls are not among them. */
   callsDelivered: number;
+  /**
+   * Calls the participant was already turned away for when the name came. They
+   * cannot be scored in either direction, so they leave the denominator rather
+   * than counting as a non-response — deviant means measured, not merely
+   * undemonstrated.
+   */
+  callsSkipped: number;
   responses: number;
   proportion: number | null;
   medianLatencyMs: number | null;
@@ -24,24 +32,30 @@ function median(values: number[]): number | null {
 
 export function responseToNameIndex(frames: FrameSample[], calls: NameCall[]): ResponseToNameIndex {
   if (!calls.length) {
-    return { callsDelivered: 0, responses: 0, proportion: null, medianLatencyMs: null, latenciesMs: [] };
+    return { callsDelivered: 0, callsSkipped: 0, responses: 0, proportion: null, medianLatencyMs: null, latenciesMs: [] };
   }
 
   const latenciesMs: number[] = [];
+  let skipped = 0;
   calls.forEach((call) => {
     const baseline = frames.filter((f) => f.faceDetected && f.t >= call.offsetMs - BASELINE_WINDOW_MS && f.t < call.offsetMs);
     // A child already looking away cannot be scored as turning towards the caller.
-    if (baseline.some((f) => Math.abs(f.yaw) >= TURN_YAW_THRESHOLD)) return;
+    if (baseline.some((f) => Math.abs(f.yaw) >= TURN_YAW_THRESHOLD)) {
+      skipped += 1;
+      return;
+    }
 
     const window = frames.filter((f) => f.faceDetected && f.t >= call.offsetMs && f.t <= call.offsetMs + RESPONSE_WINDOW_MS);
     const turn = window.find((f) => Math.abs(f.yaw) >= TURN_YAW_THRESHOLD);
     if (turn) latenciesMs.push(turn.t - call.offsetMs);
   });
 
+  const scoreable = calls.length - skipped;
   return {
-    callsDelivered: calls.length,
+    callsDelivered: scoreable,
+    callsSkipped: skipped,
     responses: latenciesMs.length,
-    proportion: latenciesMs.length / calls.length,
+    proportion: scoreable ? latenciesMs.length / scoreable : null,
     medianLatencyMs: median(latenciesMs),
     latenciesMs,
   };

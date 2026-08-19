@@ -15,7 +15,7 @@ tired, socially primed child.
 |---|---|---|
 | **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–48 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
 | **B — Behavioural profile** | Facing-forward, head movement, blink rate, response to name, cue following with a within-session sign test | No. Descriptive, read alongside SDIDTK/M-CHAT |
-| **B2 — Composite recommendation** | A readable rule over three signals that need no toddler norm: the published GeoPref cutoff, plus two within-subject contrasts (cue following, response to name) | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it |
+| **B2 — Composite recommendation** | A readable rule over the signals that need no toddler norm: the published GeoPref cutoff, plus one within-subject contrast (cue following). Response to name is quarantined — its paradigm needs a caller behind the child, which a tablet speaker cannot provide | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it. Cannot fire while the licensed GeoPref clip is shorter than the published protocol |
 | **C — Combined weighted model** | Being replaced rather than built. No toddler will be recorded by this team before ethics approval, so the layer is assembled from published operating points and weights fitted on an openly licensed labelled dataset instead | Not yet |
 
 Layer B2 exists because the combining layer was empty and the product could therefore

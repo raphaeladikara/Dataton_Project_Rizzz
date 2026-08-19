@@ -43,33 +43,22 @@ test("a clean condition-1 session passes every check", () => {
   assert.equal(result.ok, true);
 });
 
-test("a silent name call fails outright", () => {
+/**
+ * Response to name is quarantined out of the rule, so a silent call no longer
+ * invalidates a session — it only empties a descriptive index. Refusing the
+ * session over it would block collection for a number that decides nothing.
+ */
+test("a silent name call warns but no longer fails the session", () => {
   const result = checkPositiveControlLog(base({
     events: [{ atMs: 1, type: "stimulus.name_called", level: "info", data: { callIndex: 0, spoken: false } }],
   }));
-  assert.equal(result.ok, false);
-  assert.ok(result.failures.some((line) => /tidak berbunyi/.test(line)), result.failures.join("; "));
+  assert.equal(result.ok, true);
+  assert.ok(result.warnings.some((line) => /tidak berbunyi/.test(line)), result.warnings.join("; "));
 });
 
-/**
- * The check that catches a speaker still sitting in front of the participant.
- * An adult told to respond naturally turns towards a voice behind them; nobody
- * turns towards one coming out of the screen they are already watching.
- */
-test("condition 1 with no response to name warns about speaker placement", () => {
-  const log = base();
-  (log.assessment as never as { positiveControl: { signals: { id: string; status: string }[] } })
-    .positiveControl.signals[2].status = "menyimpang";
-  const result = checkPositiveControlLog(log);
-  assert.ok(result.warnings.some((line) => /speaker/i.test(line)), result.warnings.join("; "));
-});
-
-test("condition 2 with no response to name is expected, not warned about", () => {
-  const log = base({ positiveControl: { condition: "produksi", attempt: 1 } });
-  const assessment = log.assessment as never as { positiveControl: { condition: string; signals: { id: string; status: string }[] } };
-  assessment.positiveControl.condition = "produksi";
-  assessment.positiveControl.signals[2].status = "menyimpang";
-  const result = checkPositiveControlLog(log);
+test("the quarantined signal is recorded as such, not as a verdict", () => {
+  const result = checkPositiveControlLog(base());
+  assert.equal(result.sheetRow.split(",")[11], "dikarantina");
   assert.deepEqual(result.warnings.filter((line) => /speaker/i.test(line)), []);
 });
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildReferralRecommendation,
+  QUARANTINED_SIGNALS,
   REFERRAL_DEVIANT_THRESHOLD,
   type ReferralInput,
 } from "../src/outcome/referralRecommendation";
@@ -12,31 +13,24 @@ const noCueFollowing: ReferralInput["jointAttention"] = { verdict: "DOES_NOT_FOL
 /** Followed most cues without reaching significance — the case eight trials cannot resolve. */
 const cuesInconclusive: ReferralInput["jointAttention"] = { verdict: "NOT_DISTINGUISHABLE", trialsScored: 8, trialsFollowed: 6, pValue: 0.145 };
 
-const nameCalls = (responses: number) => ({
-  callsDelivered: 3,
-  responses,
-  proportion: responses / 3,
-  medianLatencyMs: responses ? 700 : null,
-  latenciesMs: Array.from({ length: responses }, () => 700),
-});
-
-/** Typical viewing: threshold applied and not met, cues followed, name answered. */
+/** Typical viewing: threshold applied and not met, cues followed. */
 const typical: ReferralInput = {
   geopref: { percentGeometric: 0.31, threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE" },
   jointAttention: followsCues,
-  responseToName: nameCalls(3),
 };
+
+/** Above the published 69% cutoff on a full-length protocol: the one deviation the rule can still read externally. */
+const geometricHeld: ReferralInput["geopref"] = { percentGeometric: 0.88, threshold: 0.69, outcome: "GEOMETRIC_PREFERENCE" };
 
 const signal = (input: ReferralInput, id: string) =>
   buildReferralRecommendation(input).signals.find((item) => item.id === id)!;
 
 test("every signal reports a status, what was measured, and where its direction comes from", () => {
   const result = buildReferralRecommendation(typical);
-  assert.equal(result.signals.length, 3);
+  assert.equal(result.signals.length, 2);
   assert.deepEqual(result.signals.map((item) => item.id), [
     "geometric_preference",
     "cue_following",
-    "response_to_name",
   ]);
   for (const item of result.signals) {
     assert.ok(item.source.length > 0, `${item.id} has no source`);
@@ -98,16 +92,9 @@ test("failing to demonstrate cue following is not the same finding as not follow
 });
 
 test("an inconclusive cue signal cannot be the second deviation that triggers a referral", () => {
-  const result = buildReferralRecommendation({ ...typical, jointAttention: cuesInconclusive, responseToName: nameCalls(0) });
+  const result = buildReferralRecommendation({ geopref: geometricHeld, jointAttention: cuesInconclusive });
   assert.equal(result.deviantCount, 1);
   assert.equal(result.recommendsFollowUp, false);
-});
-
-test("response to name is deviant at one call or fewer out of three", () => {
-  assert.equal(signal({ ...typical, responseToName: nameCalls(0) }, "response_to_name").status, "menyimpang");
-  assert.equal(signal({ ...typical, responseToName: nameCalls(1) }, "response_to_name").status, "menyimpang");
-  assert.equal(signal({ ...typical, responseToName: nameCalls(2) }, "response_to_name").status, "normal");
-  assert.equal(signal({ ...typical, responseToName: { ...nameCalls(0), callsDelivered: 0, proportion: null } }, "response_to_name").status, "tidak_dapat_dinilai");
 });
 
 test("typical viewing produces no recommendation", () => {
@@ -117,44 +104,39 @@ test("typical viewing produces no recommendation", () => {
 });
 
 test("one deviant signal is not enough", () => {
-  const result = buildReferralRecommendation({ ...typical, responseToName: nameCalls(0) });
+  const result = buildReferralRecommendation({ geopref: geometricHeld, jointAttention: followsCues });
   assert.equal(result.deviantCount, 1);
   assert.equal(result.recommendsFollowUp, false);
 });
 
 test("two deviant signals recommend follow-up and name which ones", () => {
-  const result = buildReferralRecommendation({ ...typical, jointAttention: noCueFollowing, responseToName: nameCalls(0) });
+  const result = buildReferralRecommendation({ geopref: geometricHeld, jointAttention: noCueFollowing });
   assert.equal(result.deviantCount, REFERRAL_DEVIANT_THRESHOLD);
   assert.equal(result.recommendsFollowUp, true);
   const deviant = result.signals.filter((item) => item.status === "menyimpang").map((item) => item.id);
-  assert.deepEqual(deviant, ["cue_following", "response_to_name"]);
+  assert.deepEqual(deviant, ["geometric_preference", "cue_following"]);
 });
 
 test("the produced-pattern condition trips every assessable signal", () => {
-  // The positive control: geometric panel held, cues not followed, name not
-  // answered, blink rate flat across social and non-social phases.
+  // The positive control's produced pattern, on the two signals the rule still
+  // counts: geometric panel held and cues deliberately not followed.
   const result = buildReferralRecommendation({
     geopref: { percentGeometric: 0.88, threshold: 0.69, outcome: "GEOMETRIC_PREFERENCE" },
     jointAttention: noCueFollowing,
-    responseToName: nameCalls(0),
   });
-  assert.equal(result.assessableCount, 3);
-  assert.equal(result.deviantCount, 3);
+  assert.equal(result.assessableCount, 2);
+  assert.equal(result.deviantCount, 2);
   assert.equal(result.recommendsFollowUp, true);
 });
 
 test("a recommendation is impossible when fewer than two signals can be assessed", () => {
-  const result = buildReferralRecommendation({
-    geopref: null,
-    jointAttention: { verdict: "WITHHELD_TOO_FEW_TRIALS", trialsScored: 0, trialsFollowed: 0, pValue: null },
-    responseToName: nameCalls(0),
-  });
+  const result = buildReferralRecommendation({ geopref: null, jointAttention: noCueFollowing });
   assert.equal(result.assessableCount, 1);
   assert.equal(result.recommendsFollowUp, false);
 });
 
 test("the rule never claims validation it does not have, and never reassures", () => {
-  for (const input of [typical, { ...typical, responseToName: nameCalls(0), jointAttention: noCueFollowing }]) {
+  for (const input of [typical, { geopref: geometricHeld, jointAttention: noCueFollowing }]) {
     const result = buildReferralRecommendation(input);
     assert.equal(result.validatedOnToddlers, false);
     assert.equal(result.reassures, false);
@@ -172,4 +154,43 @@ test("a demonstration outcome makes the geometric signal assessable and says why
   const below = signal({ ...typical, geopref: { percentGeometric: 0.22, threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" } }, "geometric_preference");
   assert.equal(below.status, "normal");
   assert.match(below.reason, /demonstrasi/i);
+});
+
+/**
+ * Response to name is quarantined, not deleted.
+ *
+ * The published paradigm calls the name from behind the child and codes an
+ * orienting head turn. Neurogaze speaks through the tablet, so the voice arrives
+ * from the screen the child is already watching and there is nothing to turn
+ * towards. A rear speaker restores it in a lab and is not realistic on a
+ * Posyandu table, so the signal cannot be collected the way it was validated.
+ * It stays on the report as a descriptive index and stays out of the rule.
+ */
+test("response to name is not one of the signals the rule counts", () => {
+  const result = buildReferralRecommendation(typical);
+  // The id union no longer contains it either, so this is enforced at compile
+  // time as well — a future signal cannot be slipped back in by accident.
+  assert.deepEqual(result.signals.map((item) => item.id), ["geometric_preference", "cue_following"]);
+});
+
+test("the quarantine is recorded with its reason rather than left implicit", () => {
+  const entry = QUARANTINED_SIGNALS.find((item) => item.id === "response_to_name");
+  assert.ok(entry, "response_to_name should be listed as quarantined");
+  assert.match(entry!.reason.toLowerCase(), /belakang|posyandu/);
+});
+
+/**
+ * With two signals left and the threshold still at two, the rule needs both to
+ * deviate, and geometric preference is unassessable on the shortened clip. The
+ * composite therefore cannot fire until a full-length licensed clip exists —
+ * deliberate, and better stated than discovered.
+ */
+test("two remaining signals mean the rule needs both, and says so when it cannot", () => {
+  const abbreviated = buildReferralRecommendation({
+    geopref: { percentGeometric: 0.42, threshold: 0.69, outcome: "MEASURED_PROTOCOL_ABBREVIATED" },
+    jointAttention: noCueFollowing,
+  });
+  assert.equal(abbreviated.assessableCount, 1);
+  assert.equal(abbreviated.recommendsFollowUp, false);
+  assert.match(abbreviated.headline.toLowerCase(), /terlalu sedikit/);
 });

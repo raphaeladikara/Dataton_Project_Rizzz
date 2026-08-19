@@ -71,6 +71,7 @@ import { geometryFeatures } from "../src/scanpath/features";
 import {
   GEOPREF_PHASE_ID,
   NAME_CALL_OFFSETS_MS,
+  nameCallTimeline,
   NAME_CALL_PHASE_ID,
   phaseAtElapsed,
   scoredPhaseTargets,
@@ -156,7 +157,6 @@ type CalibrationProgress = {
 
 /** Phases that show the social actor; the preferential-looking block is the nonsocial contrast. */
 const SOCIAL_PHASE_IDS = STIMULUS_PHASES.filter((phase) => phase.target !== "none").map((phase) => phase.id);
-const NAME_CALLS = NAME_CALL_OFFSETS_MS.map((offsetMs, index) => ({ index, offsetMs }));
 const EMPTY_PHENOTYPE = buildPhenotypeProfile({
   frames: [], nameCalls: [], socialPhases: SOCIAL_PHASE_IDS, nonsocialPhases: [GEOPREF_PHASE_ID],
 });
@@ -556,8 +556,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [positiveControl, setPositiveControl] = useState<PositiveControlMeta | null>(null);
   /** Measured once per rig with a tape measure, then typed in. */
   const [viewingDistanceMm, setViewingDistanceMm] = useState(500);
-  /** Mirrors callNameRef so the consent gate can see it; the name itself stays in the ref. */
-  const [callNamePresent, setCallNamePresent] = useState(false);
   const [model, setModel] = useState<ModelExport | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
@@ -843,9 +841,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const consentIssues = useMemo(
     () => [
       ...consentBaseIssues,
-      ...(positiveControl ? positiveControlBlockers(positiveControl, { callName: callNamePresent ? "ada" : "" }) : []),
+      ...(positiveControl ? positiveControlBlockers(positiveControl) : []),
     ],
-    [consentBaseIssues, positiveControl, callNamePresent],
+    [consentBaseIssues, positiveControl],
   );
 
   const geoprefAsset = useMemo(() => activeGeoprefAsset(), []);
@@ -873,8 +871,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const referral = useMemo(() => buildReferralRecommendation({
     geopref: geoprefResult,
     jointAttention,
-    responseToName: phenotype.responseToName,
-  }), [geoprefResult, jointAttention, phenotype]);
+  }), [geoprefResult, jointAttention]);
   const isGateA = sessionPurpose === "gate_a_adult";
   const isGateB = sessionPurpose === "gate_b_bridge";
   const introCopy = stimulusIntroCopy({ engineering: isGateA || isGateB, positiveControl, gateB: isGateB });
@@ -934,7 +931,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPoints([]);
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
-    setCallNamePresent(false);
     frameTraceRef.current.reset();
     setProgress(0);
     setStage("consent");
@@ -1554,7 +1550,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     // recomputed. Anything the log needs has to come from these locals.
     const nextPhenotype = buildPhenotypeProfile({
       frames: frameTraceRef.current.samples(),
-      nameCalls: NAME_CALLS,
+      // Anchored to this session's phase order, because the frame trace is
+      // stamped from the start of the battery and the raw offsets are not.
+      nameCalls: nameCallTimeline(orderedPhases),
       socialPhases: SOCIAL_PHASE_IDS,
       nonsocialPhases: [GEOPREF_PHASE_ID],
     });
@@ -1679,7 +1677,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 meta: positiveControl,
                 geopref: nextGeopref,
                 jointAttention: summarizeJointAttention(nextCueSummary),
-                responseToName: nextPhenotype.responseToName,
               }),
             } : {}),
           };
@@ -1764,7 +1761,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setPoints([]);
     setPhenotype(EMPTY_PHENOTYPE);
     callNameRef.current = "";
-    setCallNamePresent(false);
     frameTraceRef.current.reset();
     setCalibration(null);
     setCalibrationMessage(null);
@@ -2099,10 +2095,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {positiveControl && <label><span><IconTimer size={14} />Jarak mata–layar (mm)</span><input type="number" min="200" max="1200" value={viewingDistanceMm} onChange={(event) => setViewingDistanceMm(Number(event.target.value))} /><small>Diukur sekali dengan meteran, bukan ditaksir.</small></label>}
               <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
               <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
-              {/* A positive control scores response_to_name, so it needs a name
-                  to call just as much as the child lane does. Still transient:
-                  it never reaches profile, the log, or the network. */}
-              {(!isEngineeringStudy || positiveControl) && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {positiveControl ? "peserta" : "anak"}</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; setCallNamePresent(event.target.value.trim().length > 0); }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Wajib diisi: tanpa nama, panggilan tidak berbunyi dan sinyal respons nama tidak terukur." : "Kosongkan bila Anda ingin memanggil sendiri."}</small></label>}
+              {/* Response to name is quarantined out of the rule, but the index
+                  is still reported, so a positive control may still supply a
+                  name. Transient either way: it never reaches profile, the log,
+                  or the network. */}
+              {(!isEngineeringStudy || positiveControl) && <label className="transientField"><span><IconTimer size={14} />Nama panggilan {positiveControl ? "peserta" : "anak"}</span><input defaultValue="" placeholder="Untuk dipanggil saat tes" onChange={(event) => { callNameRef.current = event.target.value; }} /><small>Tidak disimpan, tidak masuk log, hilang saat sesi selesai. {positiveControl ? "Opsional: sinyal respons nama dikarantina, jadi kolom ini hanya mengisi indeks deskriptif." : "Kosongkan bila Anda ingin memanggil sendiri."}</small></label>}
             </div>
             {isGateB && <div className="bridgeSetup" aria-label="Metadata pasangan Gate B">
               <div className="bridgeSetupHead"><div><strong>Kontrak pasangan</strong><small>Nilai ini harus identik pada aliran Neurogaze dan WebGazer.</small></div><span>Gate B · riset</span></div>
@@ -2443,7 +2440,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   <dl>
                     <div><dt>sinyal_geopref</dt><dd>{referral.signals.find((item) => item.id === "geometric_preference")?.status ?? "-"}</dd></div>
                     <div><dt>sinyal_isyarat</dt><dd>{referral.signals.find((item) => item.id === "cue_following")?.status ?? "-"}</dd></div>
-                    <div><dt>sinyal_nama</dt><dd>{referral.signals.find((item) => item.id === "response_to_name")?.status ?? "-"}</dd></div>
+                    {/* Descriptive only. The signal is quarantined out of the rule,
+                        so the sheet records what was measured, not a verdict. */}
+                    <div><dt>sinyal_nama</dt><dd>dikarantina{phenotype.responseToName.proportion == null ? "" : ` (${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered})`}</dd></div>
                     <div><dt>komposit_menyala</dt><dd>{referral.recommendsFollowUp ? "ya" : "tidak"}</dd></div>
                     <div><dt>outcome</dt><dd>{geoprefResult?.outcome ?? "-"}</dd></div>
                   </dl>

@@ -73,7 +73,7 @@ Lalu tunjuk tiga hal, berurutan:
 
 1. **Persentase fiksasi geometrik** — satu angka, dengan ambangnya.
 2. **Lima indeks perilaku** — masing-masing membawa sumber referensinya sendiri.
-3. **Lajur komposit** — tiga sinyal, masing-masing dengan nilai terukur dan statusnya.
+3. **Lajur komposit** — dua sinyal, masing-masing dengan nilai terukur dan statusnya. Yang ketiga, respons nama, dikarantina dan alasannya tertulis.
 4. **Kalimat hasil** — rujuk, terukur tanpa rujuk, protokol dipersingkat, atau ditahan.
 
 > Perhatikan yang tidak ada di laporan ini: tidak ada skor gabungan, tidak ada gauge,

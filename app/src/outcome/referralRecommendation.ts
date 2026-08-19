@@ -1,6 +1,5 @@
 import { isDemonstrationOutcome, type GeoprefOutcome } from "../geopref/score";
 import type { JointAttentionVerdict } from "../inference/jointAttention";
-import type { ResponseToNameIndex } from "../phenotype/responseToName";
 
 /**
  * The composite follow-up rule.
@@ -12,27 +11,58 @@ import type { ResponseToNameIndex } from "../phenotype/responseToName";
  * that can be read without a population norm:
  *
  *  - geometric preference has a published external cutoff;
- *  - cue following and response to name are within-subject contrasts — the
- *    child is compared against itself, inside a single stimulus medium.
+ *  - cue following is a within-subject contrast — the child is compared
+ *    against itself, inside a single stimulus medium.
  *
- * Three indices are deliberately absent. facingForward and headMovement carry
- * precedent AUCs but no transferable cutoff, so scoring them would mean making
- * a number up. The blink differential is out for two independent reasons: the
- * only non-actor block in the battery is the preferential-looking clip, so the
- * social/non-social contrast is fully confounded with rendering medium (vector
- * against real video), and a 16.75 s window quantises blink rate at 3.6 per
- * minute, which is coarser than the effect being looked for. All three stay on
- * the report as descriptive measures.
+ * Four indices are deliberately absent, listed in QUARANTINED_SIGNALS below
+ * where the reasons live. All of them stay on the report as descriptive
+ * measures; being unfit to decide is not the same as being unfit to report.
  *
  * What survives is a rule where no number is computed across the seam between
  * the two stimulus media: geometric preference is scored entirely inside the
- * video block, cue following and response to name entirely inside the vector
- * block.
+ * video block, cue following entirely inside the vector block.
+ *
+ * Two signals against a threshold of two means the rule now needs both to
+ * deviate, and geometric preference is unassessable while the licensed clip is
+ * shorter than the published protocol. The composite therefore cannot fire in
+ * the field today. That is the honest state of it, not a defect: the lane is
+ * built, its inputs are not all available yet, and lowering the threshold to
+ * one would turn a single index into a score.
  *
  * This recommends a follow-up examination. It does not diagnose, and a rule
  * that does not fire is not a clean bill of health.
  */
-export const REFERRAL_RULE_VERSION = "neurogaze-referral-rule-v1";
+export const REFERRAL_RULE_VERSION = "neurogaze-referral-rule-v2-name-quarantined";
+
+/**
+ * Measured, reported, and kept out of the decision — with the reason attached,
+ * so nobody has to guess later whether an omission was principled or an
+ * oversight.
+ */
+export const QUARANTINED_SIGNALS: readonly { id: string; label: string; reason: string }[] = [
+  {
+    id: "response_to_name",
+    label: "Respons terhadap panggilan nama",
+    reason:
+      "Paradigma terbitnya memanggil dari belakang anak dan mengkode putaran kepala ke arah pemanggil. Neurogaze bicara lewat speaker tablet, jadi suaranya datang dari layar yang sedang ditatap dan tidak ada arah yang harus dicari. Speaker di belakang peserta memulihkannya di lab tetapi tidak realistis di meja Posyandu, sehingga sinyal ini tidak dapat dikumpulkan sebagaimana ia divalidasi.",
+  },
+  {
+    id: "facing_forward",
+    label: "Menghadap layar",
+    reason: "Membawa AUC preseden tetapi tidak ada ambang yang dapat dipindahkan, jadi menilainya berarti mengarang angka.",
+  },
+  {
+    id: "head_movement",
+    label: "Gerak kepala",
+    reason: "Sama seperti menghadap layar: ada preseden, tidak ada titik operasi.",
+  },
+  {
+    id: "blink_social",
+    label: "Diferensial kedipan",
+    reason:
+      "Satu-satunya blok non-aktor adalah klip pilihan tontonan, sehingga kontras sosial/non-sosial tercampur penuh dengan medium penyajian; dan jendela 16,75 detik mengkuantisasi laju kedip pada 3,6 per menit, lebih kasar daripada efek yang dicari.",
+  },
+];
 
 /**
  * How many assessable signals must deviate before the rule fires.
@@ -48,8 +78,7 @@ export type SignalStatus = "menyimpang" | "normal" | "tidak_dapat_dinilai";
 
 export type ReferralSignalId =
   | "geometric_preference"
-  | "cue_following"
-  | "response_to_name";
+  | "cue_following";
 
 export type ReferralSignal = {
   id: ReferralSignalId;
@@ -66,7 +95,6 @@ export type ReferralSignal = {
 export type ReferralInput = {
   geopref: { percentGeometric: number | null; threshold: number; outcome: GeoprefOutcome } | null;
   jointAttention: { verdict: JointAttentionVerdict; trialsScored: number; trialsFollowed: number; pValue: number | null } | null;
-  responseToName: ResponseToNameIndex | null;
 };
 
 export type ReferralRecommendation = {
@@ -88,7 +116,6 @@ const percent = (value: number) => `${Math.round(value * 100)}%`;
 
 const WEN = "Wen dkk. 2022, Scientific Reports, n=1.863, usia 12–48 bulan";
 const RJA = "Paradigma responding joint attention (Billeci dkk. 2019); uji tanda dalam-subjek";
-const NADIG = "Nadig dkk. 2007; Perochon dkk. 2023, Nature Medicine";
 
 function geometricSignal(geopref: ReferralInput["geopref"]): ReferralSignal {
   const base = { id: "geometric_preference" as const, label: "Preferensi geometrik", source: WEN };
@@ -159,28 +186,10 @@ function cueSignal(profile: ReferralInput["jointAttention"]): ReferralSignal {
   };
 }
 
-function nameSignal(index: ResponseToNameIndex | null): ReferralSignal {
-  const base = { id: "response_to_name" as const, label: "Respons terhadap panggilan nama", source: NADIG };
-  if (!index || index.callsDelivered === 0 || index.proportion === null) {
-    return { ...base, status: "tidak_dapat_dinilai", measured: "tidak terukur", reason: "Tidak ada panggilan yang terekam lengkap dengan jejak pose." };
-  }
-  const measured = `menoleh pada ${index.responses} dari ${index.callsDelivered} panggilan`;
-  const deviant = index.responses <= 1;
-  return {
-    ...base,
-    status: deviant ? "menyimpang" : "normal",
-    measured,
-    reason: deviant
-      ? "Putaran kepala ke arah panggilan terekam paling banyak sekali."
-      : "Putaran kepala ke arah panggilan terekam pada mayoritas panggilan.",
-  };
-}
-
 export function buildReferralRecommendation(input: ReferralInput): ReferralRecommendation {
   const signals: ReferralSignal[] = [
     geometricSignal(input.geopref),
     cueSignal(input.jointAttention),
-    nameSignal(input.responseToName),
   ];
   const assessableCount = signals.filter((item) => item.status !== "tidak_dapat_dinilai").length;
   const deviantCount = signals.filter((item) => item.status === "menyimpang").length;

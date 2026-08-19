@@ -32,11 +32,19 @@ The first is the published GeoPref threshold of 69% geometric fixation (Wen et a
 2022, n=1863, 12–48 months, 98% specificity) — the only cutoff in the system we did
 not choose ourselves, which is exactly why it stays separable.
 
-The second is a composite recommendation: a readable rule over three signals that need
-no toddler norm — the published GeoPref cutoff, plus cue following and response to
-name, both of which compare the child against itself. It recommends a follow-up
-examination, carries its reasoning per signal, and states that it is not validated on
-toddlers. It is not a score and never becomes one.
+The second is a composite recommendation: a readable rule over the signals that need
+no toddler norm — the published GeoPref cutoff, plus cue following, which compares the
+child against itself. It recommends a follow-up examination, carries its reasoning per
+signal, and states that it is not validated on toddlers. It is not a score and never
+becomes one.
+
+Response to name was the third and is quarantined. Its published paradigm calls the
+name from behind the child and codes an orienting head turn; a tablet speaker puts the
+voice in front, where there is nothing to turn towards, and a rear speaker is not
+realistic on a Posyandu table. It stays on the report as a descriptive index. With two
+signals against a threshold of two, and the licensed GeoPref clip shorter than the
+published protocol, the composite lane cannot fire in the field today — stated rather
+than discovered.
 
 Deviant means measured, never merely undemonstrated. A cue-following result that
 points the right way without reaching significance is unassessed, because eight

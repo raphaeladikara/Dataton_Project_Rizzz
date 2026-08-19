@@ -18,14 +18,12 @@ const produksi: PositiveControlMeta = { condition: "produksi", attempt: 1 };
 const naturalViewing: ReferralInput = {
   geopref: { percentGeometric: 0.31, threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE" },
   jointAttention: { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 8, pValue: 0.0039 },
-  responseToName: { callsDelivered: 3, responses: 3, proportion: 1, medianLatencyMs: 700, latenciesMs: [700, 700, 700] },
 };
 
 /** Condition 2: all three patterns produced on purpose, per the read-aloud script. */
 const producedPattern: ReferralInput = {
   geopref: { percentGeometric: 0.82, threshold: 0.69, outcome: "GEOMETRIC_PREFERENCE" },
   jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 1, pValue: 0.98 },
-  responseToName: { callsDelivered: 3, responses: 0, proportion: 0, medianLatencyMs: null, latenciesMs: [] },
 };
 
 test("the evidence filename encodes participant, condition, and attempt", () => {
@@ -39,21 +37,21 @@ test("a participant code with spaces or stray case still yields one canonical fi
 
 test("a fourth attempt is refused rather than silently recorded", () => {
   assert.equal(MAX_POSITIVE_CONTROL_ATTEMPTS, 3);
-  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 3 }, { callName: "Rafa" }), []);
-  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 4 }, { callName: "Rafa" }), [
+  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 3 }), []);
+  assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt: 4 }), [
     "Percobaan maksimal 3 per peserta per kondisi",
   ]);
 });
 
 test("an attempt that is zero, negative, or fractional is refused", () => {
   for (const attempt of [0, -1, 1.5]) {
-    assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt }, { callName: "Rafa" }), [
+    assert.deepEqual(positiveControlBlockers({ condition: "biasa", attempt }), [
       "Nomor percobaan harus 1, 2, atau 3",
     ]);
   }
 });
 
-test("the summary carries all three signal statuses so the session sheet can be filled", () => {
+test("the summary carries every rule signal so the session sheet can be filled", () => {
   const summary = summarizePositiveControl({
     meta: produksi,
     referral: buildReferralRecommendation(producedPattern),
@@ -62,7 +60,6 @@ test("the summary carries all three signal statuses so the session sheet can be 
   assert.deepEqual(summary.signals, [
     { id: "geometric_preference", status: "menyimpang" },
     { id: "cue_following", status: "menyimpang" },
-    { id: "response_to_name", status: "menyimpang" },
   ]);
   assert.equal(summary.geoprefOutcome, "GEOMETRIC_PREFERENCE");
   assert.equal(summary.condition, "produksi");
@@ -85,7 +82,7 @@ test("natural viewing leaves the composite rule silent", () => {
     geoprefOutcome: "NO_GEOMETRIC_PREFERENCE",
   });
   assert.equal(summary.compositeWouldFire, false);
-  assert.deepEqual(summary.signals.map((item) => item.status), ["normal", "normal", "normal"]);
+  assert.deepEqual(summary.signals.map((item) => item.status), ["normal", "normal"]);
 });
 
 test("a firing composite on an adult never becomes a referral", () => {
@@ -142,46 +139,33 @@ test("the block is built from the session that just ran, not from pre-session st
     meta: biasa,
     geopref: { percentGeometric: 0.34, threshold: 0.69, outcome: "NO_GEOMETRIC_PREFERENCE" },
     jointAttention: { verdict: "FOLLOWS_CUES", trialsScored: 8, trialsFollowed: 7, pValue: 0.035 },
-    responseToName: { callsDelivered: 3, responses: 3, proportion: 1, medianLatencyMs: 640, latenciesMs: [600, 640, 680] },
   });
   assert.equal(summary.geoprefOutcome, "NO_GEOMETRIC_PREFERENCE");
-  assert.deepEqual(summary.signals.map((item) => item.status), ["normal", "normal", "normal"]);
+  assert.deepEqual(summary.signals.map((item) => item.status), ["normal", "normal"]);
 });
 
 /**
  * The exact shape a stale read produces. If a real log ever carries this while
  * gaze.processedPoints holds geopref samples, the wiring has regressed.
  */
-test("an empty session is the one case that yields three unassessable signals", () => {
+test("an empty session is the one case that yields only unassessable signals", () => {
   const summary = positiveControlFromSession({
     meta: biasa,
     geopref: null,
     jointAttention: null,
-    responseToName: { callsDelivered: 0, responses: 0, proportion: null, medianLatencyMs: null, latenciesMs: [] },
   });
   assert.deepEqual(summary.signals.map((item) => item.status), [
-    "tidak_dapat_dinilai", "tidak_dapat_dinilai", "tidak_dapat_dinilai",
+    "tidak_dapat_dinilai", "tidak_dapat_dinilai",
   ]);
   assert.equal(summary.geoprefOutcome, null);
 });
 
 /**
- * The name-call field is hidden on the engineering lane, so a positive control
- * ran with nothing to call: speakChildName fell through to a vibration the
- * laptop ignored, all three calls logged spoken:false, and response_to_name
- * scored 0/3. That reads as menyimpang in condition 1, where the participant
- * would have answered, and it makes condition 2's third item untestable —
- * there is nothing to withhold a response to.
+ * The name is no longer required. Response to name is quarantined out of the
+ * rule, so blocking a session over a field that feeds nothing but a descriptive
+ * index would add friction at a Posyandu table for no decision value.
  */
-test("a positive control without a name to call is refused", () => {
-  assert.deepEqual(positiveControlBlockers(biasa, { callName: "" }), [
-    "Nama panggilan peserta belum diisi; tanpa itu panggilan nama tidak berbunyi",
-  ]);
-  assert.deepEqual(positiveControlBlockers(biasa, { callName: "   " }), [
-    "Nama panggilan peserta belum diisi; tanpa itu panggilan nama tidak berbunyi",
-  ]);
+test("a positive control without a name to call is allowed", () => {
+  assert.deepEqual(positiveControlBlockers(biasa), []);
 });
 
-test("a positive control with a name to call passes", () => {
-  assert.deepEqual(positiveControlBlockers(biasa, { callName: "Rafa" }), []);
-});
