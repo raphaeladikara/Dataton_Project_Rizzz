@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { inspectAuditLog, loadFirstRecording, recordingFromAuditLog } from "../src/replay/recording";
+import {
+  inspectAuditLog,
+  loadFirstRecording,
+  loadRecording,
+  normaliseRecordingEntries,
+  recordingFromAuditLog,
+} from "../src/replay/recording";
 
 const frame = (index: number) => ({
   t: index * 33.3,
@@ -121,4 +127,45 @@ test("the shipped manifest is valid and honest about being empty", async () => {
   );
   assert.ok(Array.isArray(manifest.recordings));
   assert.match(manifest.note, /simulasi/i);
+});
+
+test("manifest entries may be a filename or an object, and both carry a label", () => {
+  const entries = normaliseRecordingEntries([
+    "sesi-biasa.json",
+    { file: "sesi-produksi.json", label: "Pola diproduksi", condition: "produksi" },
+    { label: "no file" },
+    42,
+  ]);
+  assert.deepEqual(entries, [
+    { file: "sesi-biasa.json", label: "Sesi biasa" },
+    { file: "sesi-produksi.json", label: "Pola diproduksi", condition: "produksi" },
+  ]);
+});
+
+test("a named recording is loaded instead of whichever file is listed first", async () => {
+  const asked: string[] = [];
+  const fetcher = (async (url: string) => {
+    asked.push(url);
+    return { ok: true, json: async () => auditLog() };
+  }) as unknown as typeof fetch;
+  const recording = await loadRecording("sesi-produksi.json", fetcher);
+  assert.equal(recording?.id, "sesi-produksi.json");
+  assert.deepEqual(asked, ["/replay/sesi-produksi.json"]);
+});
+
+/**
+ * The defect this guards: both demo controls called loadFirstRecording, so the
+ * button that applies the threshold replayed the ordinary-viewing session. A
+ * presenter narrating the produced-pattern condition over it would have been
+ * describing the wrong recording, with nothing on screen to contradict them.
+ */
+test("every shipped recording is listed with a label that names its condition", async () => {
+  const { readFileSync } = await import("node:fs");
+  const manifest = JSON.parse(
+    readFileSync(new URL("../public/replay/index.json", import.meta.url), "utf8"),
+  );
+  for (const entry of normaliseRecordingEntries(manifest.recordings)) {
+    assert.ok(entry.label.length > 3, `${entry.file} tidak punya label yang bisa dibaca`);
+    assert.ok(!/\.json$/i.test(entry.label), `${entry.file} memakai nama berkas sebagai label`);
+  }
 });

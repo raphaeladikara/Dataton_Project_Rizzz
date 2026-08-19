@@ -67,7 +67,13 @@ import {
   sessionNameCalls,
   type PositiveControlMeta,
 } from "../src/positive/control";
-import { loadFirstRecording, type RecordedSession } from "../src/replay/recording";
+import {
+  loadFirstRecording,
+  loadRecording,
+  loadRecordingManifest,
+  type RecordedSession,
+  type RecordingEntry,
+} from "../src/replay/recording";
 import { SCENARIOS, syntheticSessionPoints } from "../src/replay/scenarios";
 import { geometryFeatures } from "../src/scanpath/features";
 import {
@@ -565,6 +571,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   // until then the quick demo falls back and says on screen that it did.
   const [recording, setRecording] = useState<RecordedSession | null>(null);
   const recordingRef = useRef<RecordedSession | null>(null);
+  /**
+   * What the replay manifest lists, so the demo can name the condition it is
+   * about to play instead of silently taking whichever file happens to be
+   * first. Two recordings that differ only by filename read as interchangeable,
+   * and one of them is a person producing the pattern on instruction.
+   */
+  const [recordingEntries, setRecordingEntries] = useState<RecordingEntry[]>([]);
   const [demoRun, setDemoRun] = useState<"idle" | "calibrating" | "measuring" | "done">("idle");
   /**
    * Stage demonstration of the full rule-in report. Reachable only from the
@@ -720,6 +733,19 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [stage]);
+
+  // Read once. An empty list is not a failure: it means no recording is
+  // registered and the quick demo falls back to the synthetic path, which the
+  // report already labels as a simulation.
+  useEffect(() => {
+    let cancelled = false;
+    void loadRecordingManifest().then((entries) => {
+      if (!cancelled) setRecordingEntries(entries);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (stage !== "calibration" || !calibrationVideoRef.current || !streamRef.current) return;
@@ -932,8 +958,19 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     recordingRef.current = null;
     setRecording(null);
     setDemoRun("idle");
-    // Replay only. There is no argument that reaches this from a live session.
-    setDemonstrationMode(modeChoice === "replay" && Boolean(options.demonstration));
+    // Replay, or a live adult session started from the stage control.
+    //
+    // A live camera run could not enter demonstration mode at all, which meant
+    // the threshold was unreachable on stage no matter what the participant did
+    // — there was no way to show, live, that the instrument responds. It is
+    // still barred from `target_population_research`: the one purpose that
+    // means a child is in front of the tablet is the one that must never apply
+    // a threshold its protocol does not license. Every path here keeps the
+    // banner on screen and `emitsReferral` false.
+    setDemonstrationMode(
+      Boolean(options.demonstration)
+      && (modeChoice === "replay" || purpose === "gate_a_adult"),
+    );
     // Opted into per session on the Gate A consent screen, never carried over.
     setPositiveControl(null);
     setCallNamePresent(false);
@@ -1152,11 +1189,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
    * the stimulus block, the quality gate, and the same outcome resolver a live
    * session uses. The only difference is where the gaze comes from.
    */
-  async function startQuickDemo(options: { demonstration?: boolean } = {}) {
+  async function startQuickDemo(options: { demonstration?: boolean; entry?: RecordingEntry } = {}) {
     start("replay", SCENARIOS[0], "demo_replay", options);
     setProfile({ childId: options.demonstration ? "NG-PERAGA-01" : "NG-DEMO-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
     if (options.demonstration) recordAudit("session.demonstration_mode", { enabled: true, reason: "ambang_69_diterapkan_pada_protokol_dipersingkat" }, "warning");
-    const found = await loadFirstRecording();
+    // Naming the recording in the log matters more than it looks: the report
+    // says which condition it replayed, so a screenshot cannot be captioned as
+    // the other one after the fact.
+    if (options.entry) recordAudit("replay.recording_selected", { file: options.entry.file, label: options.entry.label, condition: options.entry.condition ?? null });
+    const found = options.entry ? await loadRecording(options.entry.file) : await loadFirstRecording();
     recordingRef.current = found;
     setRecording(found);
     setDemoRun("calibrating");
@@ -2045,10 +2086,40 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <div>
                 <strong>Perlu melihat bentuk laporan rujukan?</strong>
                 <p>Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang GeoPref 69% ditahan di ketiga demo di atas. Peragaan menerapkannya sekali supaya tata letak laporan rujukan terlihat. Sesinya tetap tidak mengeluarkan rujukan, dan laporannya membawa banner mode demonstrasi.</p>
+                {recordingEntries.length > 1 && (
+                  <p>Pilih rekaman yang diputar. Keduanya sesi kamera sungguhan dari kontrol positif, dan laporannya menyebut yang mana.</p>
+                )}
+                <p>Peragaan kamera langsung menjalankan sesi sungguhan dengan ambang yang sama diterapkan, untuk peserta dewasa. Ia tidak tersedia pada jalur anak.</p>
               </div>
-              <button className="secondary" onClick={() => void startQuickDemo({ demonstration: true })}>
-                <IconResearch size={15} /> Peragakan bentuk laporan rujukan
-              </button>
+              {/* One button per registered recording rather than a single control
+                  that silently plays whichever file is first. The presenter has
+                  to pick the condition out loud, which is the only thing keeping
+                  an ordinary-viewing session from being narrated as the other. */}
+              <div className="demoAsideActions">
+                {recordingEntries.length > 1 ? (
+                  recordingEntries.map((entry) => (
+                    <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
+                      <IconResearch size={15} /> Peragakan · {entry.label}
+                    </button>
+                  ))
+                ) : (
+                  <button className="secondary" onClick={() => void startQuickDemo({ demonstration: true })}>
+                    <IconResearch size={15} /> Peragakan bentuk laporan rujukan
+                  </button>
+                )}
+                {/* Live camera, adult purpose, threshold applied under the same
+                    banner. Separate from "Mulai observasi kamera" so the field
+                    path cannot reach it by mistake. */}
+                <button
+                  className="secondary"
+                  onClick={() => {
+                    recordAudit("session.demonstration_mode", { enabled: true, live: true, reason: "peragaan_panggung_kamera_langsung" }, "warning");
+                    start("live", scenario, "gate_a_adult", { demonstration: true });
+                  }}
+                >
+                  <IconCamera size={15} /> Peragakan · kamera langsung
+                </button>
+              </div>
             </div>
           </section>
 
@@ -2474,7 +2545,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <div><small>Hasil pengukuran sesi ini</small><h2>{sessionOutcome.headline}</h2><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
               </article>
               <section className="observationMetrics" aria-label="Indeks perilaku sesi">
-                <article><span><IconScanpathSpread size={19} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>Ambang rujukan 69% (Wen dkk., 2022; n=1.863, spesifisitas 98%).</p></article>
+                <article><span><IconScanpathSpread size={19} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>{geoprefResult?.percentGeometricCi
+                  ? `95% CI ${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%. Ambang rujukan 69% dibandingkan terhadap selang ini, bukan terhadap satu angka (Wen dkk., 2022; n=1.863, spesifisitas 98%).`
+                  : "Ambang rujukan 69% (Wen dkk., 2022; n=1.863, spesifisitas 98%)."}</p></article>
                 <article><span><IconJointAttention size={19} /> Isyarat diikuti</span><strong>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</strong><p>{jointAttention?.pValue == null ? "Belum cukup percobaan." : `Uji tanda p = ${jointAttention.pValue.toFixed(3).replace(".", ",")}.`}</p></article>
                 <article><span><IconEye size={19} /> Menghadap layar</span><strong>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</strong><p>Padanan indeks ber-AUC 0,838 pada preseden tablet.</p></article>
                 <article><span><IconRoute size={19} /> Gerak kepala</span><strong>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</strong><p>Padanan indeks ber-AUC 0,864, tertinggi pada preseden.</p></article>
@@ -2674,7 +2747,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             <h2>Angka yang diukur</h2>
             <table>
               <tbody>
-                <tr><th scope="row">Pola geometrik</th><td>{geoprefResult?.percentGeometric == null ? "—" : `${Math.round(geoprefResult.percentGeometric * 100)}%`}</td><td>Ambang rujukan 69% (Wen dkk. 2022, n=1.863, spesifisitas 98%)</td></tr>
+                <tr><th scope="row">Pola geometrik</th><td>{geoprefResult?.percentGeometric == null ? "—" : `${Math.round(geoprefResult.percentGeometric * 100)}%${geoprefResult.percentGeometricCi ? ` (${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%)` : ""}`}</td><td>Ambang rujukan 69% dibandingkan terhadap selang kepercayaan (Wen dkk. 2022, n=1.863, spesifisitas 98%)</td></tr>
                 <tr><th scope="row">Isyarat arah diikuti</th><td>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</td><td>Deskriptif, tanpa ambang tervalidasi</td></tr>
                 <tr><th scope="row">Menghadap layar</th><td>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</td><td>Padanan indeks AUC 0,838 pada preseden tablet</td></tr>
                 <tr><th scope="row">Gerak kepala</th><td>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</td><td>Padanan indeks AUC 0,864 pada preseden tablet</td></tr>

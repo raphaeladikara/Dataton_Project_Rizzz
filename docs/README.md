@@ -5,12 +5,13 @@
 - [`panduan_gate_b_webgazer.md`](panduan_gate_b_webgazer.md): kontrak data dan analisis Gate B.
 - [`panduan_operator.md`](panduan_operator.md): cara menjalankan webapp dengan aman.
 - [`panduan_audit_kalibrasi.md`](panduan_audit_kalibrasi.md): pengambilan dan interpretasi log kalibrasi.
-- [`checkpoint_2026-08-18-lanjutan.md`](checkpoint_2026-08-18-lanjutan.md): status terkini, konsep webapp, batasan, dan urutan kerja berikutnya. **Mulai dari sini.**
-- [`checkpoint_2026-08-18.md`](checkpoint_2026-08-18.md): status penuh setelah Fase 4–6, dan delapan aturan yang tidak boleh dilanggar.
+- [`arah_pitch.md`](arah_pitch.md): bingkai presentasi — apa yang dijual, kalimat yang tidak boleh keluar, dan kenapa urutannya mengikuti bobot rubrik. **Mulai dari sini, dan baca sebelum menyunting naskah mana pun.**
 - [`pitch_7_menit.md`](pitch_7_menit.md): naskah presentasi semifinal beserta peta waktu, jawaban pertanyaan, dan sumber tiap angka.
-- [`pitch_10_menit.md`](pitch_10_menit.md): naskah sesi demo 10 menit, termasuk urutan dua sesi langsung dan bahasa yang wajib dipakai saat memperagakan pola.
+- [`pitch_10_menit.md`](pitch_10_menit.md): naskah sesi demo 10 menit — satu rekaman, satu sesi langsung dari penonton sebagai kontrol negatif, dan bahasa yang wajib dipakai saat memperagakan pola.
+- [`wawancara_praktisi.md`](wawancara_praktisi.md): protokol wawancara guru ASD dan tenaga kesehatan, pertanyaannya, dan aturan yang menjaganya tidak menjadi validasi yang tidak mungkin gagal.
 - [`jalur_rujukan.md`](jalur_rujukan.md): kenapa belum ada rujukan yang bisa keluar, kunci yang menahannya, dan rencana delapan langkah membukanya. **Baca ini sebelum kontrol positif.**
 - [`etika_perekaman.md`](etika_perekaman.md): kenapa tidak ada balita dan tidak ada anak ASD yang direkam tim ini, apa yang sudah dicoba, apa yang boleh dikerjakan sebagai gantinya, dan jawaban untuk pertanyaan juri soal izin. **Baca sebelum sesi perekaman apa pun.**
+- [`ambang_selang_kepercayaan.md`](ambang_selang_kepercayaan.md): kenapa ambang 69% dibandingkan terhadap selang kepercayaan dan bukan terhadap satu angka, penaksir yang dipakai beserta dua yang gagal, dan tabel karakteristik operasi aturan lama versus baru.
 - [`model_rujukan.md`](model_rujukan.md): rancangan model rujukan — kalibrasi likelihood-ratio, bobot dari data terbit CC BY 4.0, empat audit yang menggerbanginya, dan kriteria menolaknya.
 - [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif — alat, peserta, naskah instruksi, penamaan berkas, kriteria mutu, dan cara mendaftarkan rekamannya. **Sudah dijalankan** 19 Agustus 2026; hasilnya, confound-nya, dan sembilan cacat yang dibongkarnya ada di [`research/hasil/kontrol_positif/README.md`](../research/hasil/kontrol_positif/README.md).
 - [`model_dikarantina.md`](model_dikarantina.md): kenapa CNN 0,882 dan CNN wajah 0,932 tidak dipakai, uji berpasangan yang menggantikan argumen "CI bertumpang tindih", dan apakah keduanya bisa dibuat berguna.

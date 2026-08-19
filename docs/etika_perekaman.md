@@ -20,6 +20,28 @@ alasan yang berdiri sendiri kenapa anak itu — bukan orang dewasa — yang haru
 menanggung beban penelitiannya. NeuroGaze tidak punya satu pun dari itu, dan tidak akan
 mengarangnya.
 
+## Yang catatan ini tidak katakan
+
+Ia **tidak** mengatakan bahwa meneliti anak autistik itu tidak etis. Setiap ambang yang
+dipakai sistem ini lahir dari penelitian yang merekam anak autistik: Wen dkk. pada 1.863
+anak, Perochon dkk. pada 475 balita, Steffan dkk. pada 125 anak, Cilia dkk. pada 59
+anak. Penelitian-penelitian itu dikerjakan dengan izin yang mereka punya, dan hasilnya
+dibagikan justru supaya perekamannya tidak perlu diulang.
+
+Perbedaan ini bukan kehalusan bahasa, dan ada dua alasan kenapa ia harus dijaga:
+
+Membingkainya sebagai "meneliti anak autistik itu tidak etis" berarti menuduh seluruh
+basis bukti proyek ini sekaligus — termasuk setiap makalah yang dikutip di layar
+aplikasinya sendiri.
+
+Dan kalau perekaman anak pada dasarnya tidak etis, Gate C tidak punya masa depan dan
+peta jalan di catatan ini omong kosong. Yang benar: perekaman itu menuntut struktur yang
+belum kami punya, dan struktur itu dapat diperoleh. Batasnya adalah tahap bukti kami,
+bukan sifat penelitiannya.
+
+Bingkai yang dipakai di panggung, dan kalimat yang tidak boleh keluar, ada di
+[`arah_pitch.md`](arah_pitch.md).
+
 ---
 
 ## Kenapa ini bukan sekadar urusan administrasi
@@ -129,8 +151,8 @@ Berurutan. Tidak ada yang bisa dilompati.
 
 | # | Prasyarat | Status |
 |---|---|---|
-| 1 | Bukti instrumen merespons dua kondisi perilaku | Kontrol positif, belum dijalankan |
-| 2 | Jalur rujukan yang setiap parameternya punya sumber | Dirancang; [`model_rujukan.md`](model_rujukan.md) |
+| 1 | Bukti instrumen merespons dua kondisi perilaku | **Terpenuhi** — kontrol positif 19 Agustus 2026, 12 dewasa, 23 sesi |
+| 2 | Jalur rujukan yang setiap parameternya punya sumber | Dirancang, belum dipasang; [`model_rujukan.md`](model_rujukan.md) |
 | 3 | Karakteristik operasional dihitung terhadap kapasitas rujukan nyata | Lengan komposit di `prospective_evaluation.py`, belum ada |
 | 4 | Mitra klinis yang bersedia menjadi sponsor kaji etik | Lima lembaga menolak |
 | 5 | Protokol prospektif dengan analisis subgrup dipra-registrasi | Belum didraf |
@@ -165,12 +187,14 @@ anaknya. Kalau kami bersedia melewatinya untuk lomba, tidak ada alasan percaya k
 tidak akan melewatinya untuk hal lain.
 
 **"Lalu model kalian dilatih pakai apa?"**
-Data eye-tracking anak ASD dan TD yang sudah diterbitkan terbuka oleh Cilia dkk. di
-bawah CC BY 4.0 — consent-nya diambil pihak yang punya izinnya. Kami tidak merekam satu
-anak pun. Bobotnya dari sana, arah tiap sinyalnya dari literatur, kalibrasinya dari
-titik operasi yang diterbitkan, dan responsivitas instrumennya diukur pada orang dewasa
-yang menyetujui untuk dirinya sendiri. Lingkup pemindahannya dinyatakan di laporan,
-bukan disembunyikan.
+Jalur keputusan di produk tidak dilatih sama sekali. Satu-satunya ambangnya diambil apa
+adanya dari Wen dkk. 2022, dan sinyal keduanya membandingkan anak dengan dirinya
+sendiri sehingga tidak butuh norma populasi. Evaluasi algoritmik di makalah memakai data
+eye-tracking anak yang sudah diterbitkan terbuka, dengan ID partisipan dan pemisahan per
+anak. Responsivitas instrumennya diukur pada orang dewasa yang menyetujui untuk dirinya
+sendiri. Rencana memasang bobot antar sinyal pada data Cilia dkk. (CC BY 4.0) ada di
+[`model_rujukan.md`](model_rujukan.md) dan **belum dikerjakan** — datanya belum diunduh.
+Menyebutnya sebagai sudah terpasang akan menjadi kebohongan pertama di proyek ini.
 
 **"Kalau begitu kapan alat ini boleh dipakai ke anak?"**
 Setelah tujuh prasyarat di atas terpenuhi berurutan, dan prasyarat keempat sampai

@@ -7,7 +7,8 @@ const baseInput = {
   qualityPassed: true,
   validityCanScore: true,
   geopref: {
-    percentGeometric: 0.82, percentSocial: 0.18, geometricDwellMs: 8200, socialDwellMs: 1800,
+    percentGeometric: 0.82, percentGeometricCi: [0.74, 0.89] as readonly [number, number],
+    percentSocial: 0.18, geometricDwellMs: 8200, socialDwellMs: 1800,
     validSamples: 200, totalSamples: 260, aoiCoverage: 0.77, threshold: 0.69,
     outcome: "GEOMETRIC_PREFERENCE" as const, rulesOutAsd: false as const,
   },

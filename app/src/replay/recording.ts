@@ -146,32 +146,94 @@ export function recordingFromAuditLog(log: unknown, id: string): RecordedSession
  */
 export const RECORDING_MANIFEST_URL = "/replay/index.json";
 
+/**
+ * One registered recording, as the manifest describes it.
+ *
+ * The label exists because the demo needs to name the condition out loud. Two
+ * recordings that differ only by filename read as interchangeable on stage,
+ * and they are not: one is a person watching ordinarily and the other is a
+ * person producing the pattern on instruction. Picking the wrong one and
+ * narrating the other is the single easiest way to mislead a room by accident.
+ */
+export type RecordingEntry = {
+  file: string;
+  label: string;
+  /** Free text. `biasa` and `produksi` are what the positive control uses. */
+  condition?: string;
+};
+
+/** Filename without extension, hyphens opened up: `sesi-produksi.json` -> `Sesi produksi`. */
+function labelFromFile(file: string): string {
+  const base = (file.split("/").pop() ?? file).replace(/\.json$/i, "").replaceAll(/[-_]+/g, " ").trim();
+  return base ? base.charAt(0).toUpperCase() + base.slice(1) : file;
+}
+
+/**
+ * Manifest entries are a filename or an object carrying its label.
+ *
+ * Both forms stay valid on purpose: every manifest written before labels
+ * existed still loads, and a registration that only knows the filename does
+ * not have to invent a label to be well-formed.
+ */
+export function normaliseRecordingEntries(listed: unknown): RecordingEntry[] {
+  if (!Array.isArray(listed)) return [];
+  const entries: RecordingEntry[] = [];
+  for (const item of listed) {
+    if (typeof item === "string" && item) {
+      entries.push({ file: item, label: labelFromFile(item) });
+      continue;
+    }
+    if (isObject(item) && typeof item.file === "string" && item.file) {
+      entries.push({
+        file: item.file,
+        label: typeof item.label === "string" && item.label ? item.label : labelFromFile(item.file),
+        ...(typeof item.condition === "string" && item.condition ? { condition: item.condition } : {}),
+      });
+    }
+  }
+  return entries;
+}
+
+/** What the manifest lists, without reading any of the recordings themselves. */
+export async function loadRecordingManifest(
+  manifestUrl: string = RECORDING_MANIFEST_URL,
+  fetcher: typeof fetch = fetch,
+): Promise<RecordingEntry[]> {
+  try {
+    const response = await fetcher(manifestUrl, { cache: "no-store" });
+    if (!response.ok) return [];
+    const manifest: unknown = await response.json();
+    return normaliseRecordingEntries(isObject(manifest) ? manifest.recordings : null);
+  } catch {
+    return [];
+  }
+}
+
+/** Read one registered recording by filename. */
+export async function loadRecording(
+  file: string,
+  fetcher: typeof fetch = fetch,
+): Promise<RecordedSession | null> {
+  const url = file.startsWith("/") ? file : `/replay/${file}`;
+  try {
+    const response = await fetcher(url, { cache: "no-store" });
+    if (!response.ok) return null;
+    return recordingFromAuditLog(await response.json(), url.split("/").pop() ?? url);
+  } catch {
+    return null;
+  }
+}
+
 export async function loadFirstRecording(
   manifestUrl: string = RECORDING_MANIFEST_URL,
   fetcher: typeof fetch = fetch,
 ): Promise<RecordedSession | null> {
-  let files: string[] = [];
-  try {
-    const response = await fetcher(manifestUrl, { cache: "no-store" });
-    if (!response.ok) return null;
-    const manifest: unknown = await response.json();
-    const listed = isObject(manifest) ? manifest.recordings : null;
-    files = Array.isArray(listed) ? listed.filter((item): item is string => typeof item === "string") : [];
-  } catch {
-    return null;
-  }
-
-  for (const file of files) {
-    const url = file.startsWith("/") ? file : `/replay/${file}`;
-    try {
-      const response = await fetcher(url, { cache: "no-store" });
-      if (!response.ok) continue;
-      const recording = recordingFromAuditLog(await response.json(), url.split("/").pop() ?? url);
-      if (recording) return recording;
-    } catch {
-      // A listed file that will not parse is a broken recording, not a reason
-      // to abandon the rest of the manifest.
-    }
+  const entries = await loadRecordingManifest(manifestUrl, fetcher);
+  for (const entry of entries) {
+    // A listed file that will not parse is a broken recording, not a reason to
+    // abandon the rest of the manifest.
+    const recording = await loadRecording(entry.file, fetcher);
+    if (recording) return recording;
   }
   return null;
 }

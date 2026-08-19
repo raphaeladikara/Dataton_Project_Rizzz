@@ -120,6 +120,31 @@ menghasilkan angka yang sama dengan peserta yang benar-benar memilih panel
 geometrik. Kodenya sudah diperbaiki dan mencatat penugasannya ke dalam log, tapi
 perbaikan itu tidak menyembuhkan rekaman yang sudah ada.
 
+Yang perlu dinyatakan bersamanya, supaya batasnya tidak dibaca lebih luas
+daripada yang benar: **confound ini membatasi penafsiran angka absolutnya, dan
+tidak menjelaskan pemisahan antar kondisi.** Tiga alasan, masing-masing berdiri
+sendiri.
+
+Tata letaknya identik di kedua lengan. Panelnya di kanan untuk sesi biasa
+maupun sesi produksi, jadi kebiasaan melirik kanan adalah konstanta di keduanya.
+Sesuatu yang sama pada dua kelompok tidak dapat menghasilkan pemisahan di antara
+keduanya.
+
+Datanya memprediksi arah yang berlawanan dengan akun confound-nya. Kalau bias
+melirik kanan yang menggerakkan angka ini, sesi biasa juga akan tinggi. Median
+sesi biasa 0,343 — dua pertiga waktu tatap justru di panel sosial, yang ada di
+kiri. Akun bias-kanan memprediksi di atas 0,5; yang terukur 0,34.
+
+Dua dari tiga sinyal tidak punya jalur ke confound itu. Percobaan masuk target
+dan sebaran tatapan fase isyarat diukur di blok aktor vektor, yang tidak memuat
+panel geometrik maupun sosial. Keduanya terpisah sempurna dengan p = 6,3×10⁻⁴
+dan 2,0×10⁻⁴.
+
+Karena itu rekaman ini dipakai apa adanya dan tidak diulang. Yang lebih layak
+dikhawatirkan daripada sisi panel adalah dua baris berikutnya di bagian ini —
+urutan kondisi dan identitas peserta — dan merekam ulang dengan desain yang sama
+tidak memperbaiki satu pun dari keduanya.
+
 **Identitas peserta tidak terekam,** jadi tidak ada analisis berpasangan; yang
 ada perbandingan antar-kondisi dengan perangkat sebagai grup.
 

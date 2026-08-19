@@ -194,3 +194,53 @@ test("two remaining signals mean the rule needs both, and says so when it cannot
   assert.equal(abbreviated.recommendsFollowUp, false);
   assert.match(abbreviated.headline.toLowerCase(), /terlalu sedikit/);
 });
+
+/**
+ * The safety property the stage demo depends on, and the one a field session
+ * depends on far more: a session whose measured percentage sits just over the
+ * cutoff must not count as deviant. Before the interval existed, 71% and 94%
+ * were the same verdict, and the first of those is inside the noise of a
+ * 16.75 s excerpt.
+ */
+test("a percentage just over the cutoff is unassessable, not deviant", () => {
+  const recommendation = buildReferralRecommendation({
+    geopref: {
+      percentGeometric: 0.71,
+      percentGeometricCi: [0.62, 0.79],
+      threshold: 0.69,
+      outcome: "MEASURED_INTERVAL_STRADDLES_THRESHOLD",
+    },
+    jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 0, pValue: 1 },
+  });
+  const geometric = recommendation.signals.find((signal) => signal.id === "geometric_preference");
+  assert.equal(geometric?.status, "tidak_dapat_dinilai");
+  assert.equal(recommendation.recommendsFollowUp, false);
+});
+
+test("an interval clear of the cutoff still reaches a recommendation", () => {
+  const recommendation = buildReferralRecommendation({
+    geopref: {
+      percentGeometric: 0.94,
+      percentGeometricCi: [0.81, 1],
+      threshold: 0.69,
+      outcome: "GEOMETRIC_PREFERENCE_DEMONSTRATION",
+    },
+    jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 0, pValue: 1 },
+  });
+  assert.equal(recommendation.recommendsFollowUp, true);
+  assert.equal(recommendation.deviantCount, 2);
+});
+
+test("the measured string carries the interval so the report cannot show a bare point", () => {
+  const recommendation = buildReferralRecommendation({
+    geopref: {
+      percentGeometric: 0.94,
+      percentGeometricCi: [0.81, 1],
+      threshold: 0.69,
+      outcome: "GEOMETRIC_PREFERENCE_DEMONSTRATION",
+    },
+    jointAttention: { verdict: "DOES_NOT_FOLLOW", trialsScored: 8, trialsFollowed: 0, pValue: 1 },
+  });
+  const geometric = recommendation.signals.find((signal) => signal.id === "geometric_preference");
+  assert.match(geometric?.measured ?? "", /CI/);
+});

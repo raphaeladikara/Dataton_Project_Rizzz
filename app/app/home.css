@@ -1239,3 +1239,12 @@
 .demoAside .secondary {
   white-space: nowrap;
 }
+
+/* One button per registered recording. Stacked rather than side by side: the
+   labels are condition names of unequal length, and a row of them wraps into
+   something that reads as one control with a stray word under it. */
+.demoAsideActions {
+  display: grid;
+  gap: 8px;
+  justify-items: stretch;
+}

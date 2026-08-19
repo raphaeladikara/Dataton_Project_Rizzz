@@ -99,13 +99,71 @@ test("threshold is the published 69% cutoff", () => {
   assert.equal(GEOPREF_THRESHOLD, 0.69);
 });
 
+/**
+ * Sixteen seconds at 20 Hz averaging `geometricShare` on the geometric panel,
+ * with the share swinging by `jitter` from one second to the next.
+ *
+ * The swing is the point. A session whose every second is identical carries no
+ * between-window variance, so the interval collapses onto the point estimate —
+ * correct for that input, and nothing like a real recording, where looking
+ * comes in bursts. The two shipped positive-control recordings span roughly
+ * ±0.15 around their means, which is what `jitter` defaults to.
+ */
+const steadySession = (geometricShare: number, seconds = 16, jitter = 0.15) =>
+  Array.from({ length: seconds * 20 }, (_, i) => {
+    const second = Math.floor(i / 20);
+    const share = Math.min(1, Math.max(0, geometricShare + (second % 2 === 0 ? jitter : -jitter)));
+    return sample(i * 50, i % 20 < Math.round(share * 20) ? 0.35 : 0.65);
+  });
+
 test("a strong geometric preference is ruled in only under the validated protocol", () => {
-  const points = Array.from({ length: 120 }, (_, i) => sample(i * 50, i < 100 ? 0.35 : 0.65));
+  const points = steadySession(0.95);
   const validated = scoreGeopref(points, { geometricSide: "left", socialSide: "right", validatedProtocol: true });
   assert.equal(validated.outcome, "GEOMETRIC_PREFERENCE");
   const excerpt = scoreGeopref(points, { geometricSide: "left", socialSide: "right", validatedProtocol: false });
   assert.equal(excerpt.outcome, "MEASURED_PROTOCOL_ABBREVIATED");
   assert.equal(excerpt.percentGeometric, validated.percentGeometric);
+});
+
+test("the cutoff is compared against the interval, not the point estimate", () => {
+  // Just over the cutoff, and nowhere near resolvable on a clip this short.
+  const borderline = scoreGeopref(steadySession(0.72), {
+    geometricSide: "left", socialSide: "right", validatedProtocol: true,
+  });
+  assert.ok(borderline.percentGeometric! > GEOPREF_THRESHOLD);
+  assert.equal(borderline.outcome, "MEASURED_INTERVAL_STRADDLES_THRESHOLD");
+  assert.ok(borderline.percentGeometricCi![0] < GEOPREF_THRESHOLD);
+
+  // Held far enough above the cutoff that the whole interval clears it.
+  const held = scoreGeopref(steadySession(0.95), {
+    geometricSide: "left", socialSide: "right", validatedProtocol: true,
+  });
+  assert.equal(held.outcome, "GEOMETRIC_PREFERENCE");
+  assert.ok(held.percentGeometricCi![0] >= GEOPREF_THRESHOLD);
+});
+
+test("a straddling interval still reports the percentage it measured", () => {
+  const result = scoreGeopref(steadySession(0.72), {
+    geometricSide: "left", socialSide: "right", validatedProtocol: true,
+  });
+  assert.notEqual(result.percentGeometric, null);
+  assert.notEqual(result.outcome, "WITHHELD_INSUFFICIENT_LOOKING");
+});
+
+test("the interval is deterministic, so a recording reports the same bounds twice", () => {
+  const points = steadySession(0.8);
+  const layout = { geometricSide: "left" as const, socialSide: "right" as const, validatedProtocol: true };
+  assert.deepEqual(scoreGeopref(points, layout).percentGeometricCi, scoreGeopref(points, layout).percentGeometricCi);
+});
+
+test("too few windows yields no interval rather than a fabricated one", () => {
+  // Three seconds of looking: exactly enough samples to clear the coverage
+  // gate, not enough windows for a moving-block estimate to mean anything.
+  const result = scoreGeopref(steadySession(0.9, 3), {
+    geometricSide: "left", socialSide: "right", validatedProtocol: true,
+  });
+  assert.equal(result.percentGeometricCi, null);
+  assert.equal(result.outcome, "MEASURED_INTERVAL_STRADDLES_THRESHOLD");
 });
 
 test("insufficient AOI coverage withholds any outcome", () => {
