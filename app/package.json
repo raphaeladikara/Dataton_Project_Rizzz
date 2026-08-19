@@ -17,7 +17,8 @@
     "replay:register": "tsx scripts/register-recording.ts",
     "replay:check": "tsx scripts/register-recording.ts --check",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "kp:check": "tsx scripts/check-positive-control.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.0",
