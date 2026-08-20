@@ -122,3 +122,11 @@ test("every call unscorable yields an unassessable index, not a deviant one", ()
   assert.equal(index.callsDelivered, 0);
   assert.equal(index.proportion, null);
 });
+
+test("a phase list without the name call yields no call timeline", () => {
+  // Otherwise the loop falls through and every offset is stamped past the end
+  // of the battery, so three calls that were never sounded would still be
+  // looked for in the pose trace and scored as three missed responses.
+  const silent = sessionStimulusPhases("NG-0001", { nameCallsDelivered: false });
+  assert.deepEqual(nameCallTimeline(silent), []);
+});

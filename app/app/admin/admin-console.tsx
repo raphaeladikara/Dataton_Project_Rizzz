@@ -37,7 +37,7 @@ const STIMULUS_METRICS = [
   [
     "Durasi total",
     `${STIMULUS_TOTAL_SECONDS} detik`,
-    `5 + 16,75 + (${SCORED_TRIAL_COUNT} × 5) + 13 + 5 detik`,
+    `5 + 16,75 + (${SCORED_TRIAL_COUNT} × 5) + 13 + 5 detik · tanpa speaker, 13 detik panggilan nama tidak dijalankan`,
   ],
   ["Percobaan berskor", `${SCORED_TRIAL_COUNT}`, "4 jenis isyarat × kiri/kanan"],
   ["Epok pra-isyarat", "1,7 detik", "Tanpa informasi kiri/kanan"],

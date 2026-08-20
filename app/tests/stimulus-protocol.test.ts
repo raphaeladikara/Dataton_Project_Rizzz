@@ -9,6 +9,7 @@ import {
   sessionStimulusPhases,
   STIMULUS_PHASES,
   STIMULUS_TOTAL_MS,
+  stimulusSeconds,
   STIMULUS_VERSION,
 } from "../src/stimulus/protocol";
 import { GEOPREF_ASSETS } from "../src/geopref/stimulusMeta";
@@ -155,4 +156,39 @@ test("phase clock changes epoch exactly at the declared cue onset", () => {
   assert.equal(at(gazeLeft.ostensiveOnsetMs)?.ostensiveActive, true);
   assert.equal(at(gazeLeft.ostensiveOnsetMs)?.cueActive, false);
   assert.equal(at(0)?.phase.id, "gaze_left");
+});
+
+test("the name-call phase is dropped when no call will be delivered", () => {
+  // Without a speaker behind the participant the calls are never sounded, so
+  // the phase used to run its full thirteen seconds as a bare centre dot:
+  // nothing to look at, nothing measured, and a stretch of the battery long
+  // enough for a toddler to leave the chair over.
+  for (const sessionId of ["NG-0001", "NG-0042", "NG-9999"]) {
+    const silent = sessionStimulusPhases(sessionId, { nameCallsDelivered: false });
+    assert.equal(silent.some((phase) => phase.id === NAME_CALL_PHASE_ID), false);
+    assert.equal(silent.at(-1)!.id, "positive_ending");
+    // Only the name call goes. The scored trials and their counterbalancing
+    // are untouched, so a silent session stays comparable to a spoken one.
+    assert.deepEqual(
+      silent.filter((phase) => phase.scored).map((phase) => phase.id),
+      sessionStimulusPhases(sessionId).filter((phase) => phase.scored).map((phase) => phase.id),
+    );
+  }
+});
+
+test("the name-call phase is kept when a call will be delivered", () => {
+  const spoken = sessionStimulusPhases("NG-0001", { nameCallsDelivered: true });
+  assert.equal(spoken.at(-2)!.id, NAME_CALL_PHASE_ID);
+  assert.deepEqual(spoken.map((phase) => phase.id), sessionStimulusPhases("NG-0001").map((phase) => phase.id));
+});
+
+test("stated duration follows the phases the session will actually run", () => {
+  // The battery grew from 66 to 96 seconds once and the copy kept quoting 66.
+  // Dropping the name call reopens exactly that gap in the other direction, so
+  // anything that states a duration reads it off the session's own phase list.
+  const spoken = sessionStimulusPhases("NG-0001", { nameCallsDelivered: true });
+  const silent = sessionStimulusPhases("NG-0001", { nameCallsDelivered: false });
+  assert.equal(stimulusSeconds(spoken), 80);
+  assert.equal(stimulusSeconds(silent), 67);
+  assert.equal(stimulusSeconds(spoken) - stimulusSeconds(silent), 13);
 });

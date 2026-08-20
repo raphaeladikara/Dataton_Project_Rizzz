@@ -135,6 +135,13 @@ export function evaluateSessionValidity(input: SessionValidityInput): SessionVal
   if (!input.sessionComplete) return held("SESSION_INCOMPLETE", evidence);
   if (input.orientationChanged) return held("OFF_SCREEN_DOMINANT", evidence, ["pemeriksaan posisi", "kalibrasi"]);
   if (!input.calibrationPassed) return held("CALIBRATION_INVALID", evidence);
+  // Ahead of the phase-level checks, because a mapping that put most of the
+  // session past the edge of the screen is what starves those phases of
+  // samples in the first place. Ranked below them it lost every time: the
+  // operator was told the session had been interrupted and to repeat the
+  // stimulus, so the calibration at fault was carried into the retry
+  // unchanged and the next recording failed the same way.
+  if (input.offScreenRate > 0.5) return held("OFF_SCREEN_DOMINANT", evidence, ["kalibrasi"]);
   if (!input.timestampsSynchronized || input.phases.some((phase) => !phase.timestampsComplete || !phase.synchronized))
     return held("PHASE_DESYNC", evidence);
 
@@ -148,7 +155,6 @@ export function evaluateSessionValidity(input: SessionValidityInput): SessionVal
 
   if (input.rawIrisMovement >= 0.02 && input.gazeMovement < 0.015) return held("GAZE_FROZEN", evidence);
   if (input.stationaryJumpRate > 0.18) return held("GAZE_RANDOM_JUMPS", evidence);
-  if (input.offScreenRate > 0.5) return held("OFF_SCREEN_DOMINANT", evidence);
   if (input.poseRejectedRate > 0.25) return held("FACE_POSE_UNSTABLE", evidence);
   if (input.faceRate < 0.85 || input.gazeDropout > 0.2) return held("GAZE_UNAVAILABLE", evidence);
 
@@ -181,7 +187,23 @@ export function evaluateSessionValidity(input: SessionValidityInput): SessionVal
   };
 }
 
-export function phaseAssessment(id: string, sampleCount: number, expectedMinimum = 8): PhaseAssessment {
+/**
+ * `timestampsMonotonic` is the only thing here that can speak to the clock, and
+ * a caller that does not measure it says nothing rather than guessing.
+ *
+ * These two fields used to be filled in from the sample count, which reads as
+ * "the session was interrupted" whenever a phase was merely thin. A phase can
+ * be starved of samples with a perfectly monotone clock — that is exactly what
+ * an off-screen calibration produces — and the fabricated answer outranked the
+ * real one in evaluateSessionValidity, so the operator was sent to repeat the
+ * stimulus while the calibration that caused it went untouched.
+ */
+export function phaseAssessment(
+  id: string,
+  sampleCount: number,
+  expectedMinimum = 8,
+  timestampsMonotonic = true,
+): PhaseAssessment {
   const valid = sampleCount >= expectedMinimum;
   return {
     id,
@@ -190,8 +212,8 @@ export function phaseAssessment(id: string, sampleCount: number, expectedMinimum
     gazeAvailable: sampleCount > 0,
     onScreen: sampleCount > 0,
     stable: valid,
-    timestampsComplete: valid,
+    timestampsComplete: timestampsMonotonic,
     stimulusComplete: true,
-    synchronized: valid,
+    synchronized: timestampsMonotonic,
   };
 }

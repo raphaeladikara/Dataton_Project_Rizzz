@@ -6,6 +6,9 @@ export type GazePipelineDiagnostics = {
   inputSamples: number;
   finiteSamples: number;
   rejectedBounds: number;
+  /** Split by axis: a session can lose every sample to one axis while the other is perfectly usable. */
+  rejectedBoundsX: number;
+  rejectedBoundsY: number;
   rejectedJump: number;
   /**
    * Share of accepted samples the calibration mapped onto or past a screen
@@ -46,13 +49,20 @@ export function processGazeSamples(
 ): ProcessedGaze {
   const ordered = [...input].sort((a, b) => a.t - b.t);
   let rejectedBounds = 0;
+  let rejectedBoundsX = 0;
+  let rejectedBoundsY = 0;
   let rejectedJump = 0;
   let saturatedSamples = 0;
   const finite = ordered.filter((point) => Number.isFinite(point.t) && Number.isFinite(point.x) && Number.isFinite(point.y));
+  const inRange = (value: number) => value >= -config.maxBoundsMargin && value <= 1 + config.maxBoundsMargin;
   const bounded = finite.filter((point) => {
-    const accepted = point.x >= -config.maxBoundsMargin && point.x <= 1 + config.maxBoundsMargin && point.y >= -config.maxBoundsMargin && point.y <= 1 + config.maxBoundsMargin;
-    if (!accepted) rejectedBounds += 1;
-    return accepted;
+    const insideX = inRange(point.x);
+    const insideY = inRange(point.y);
+    if (!insideX) rejectedBoundsX += 1;
+    if (!insideY) rejectedBoundsY += 1;
+    if (insideX && insideY) return true;
+    rejectedBounds += 1;
+    return false;
   });
   const intervals = bounded.slice(1).map((point, index) => point.t - bounded[index].t).filter((value) => value >= 0);
   const rawSegments: RawGazePoint[][] = [];
@@ -121,6 +131,8 @@ export function processGazeSamples(
       inputSamples: input.length,
       finiteSamples: finite.length,
       rejectedBounds,
+      rejectedBoundsX,
+      rejectedBoundsY,
       rejectedJump,
       saturatedSamples,
       segments: rawSegments.length,

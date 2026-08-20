@@ -150,7 +150,21 @@ function shuffled<T>(items: readonly T[], next: () => number): T[] {
  * the operator can choose. Baseline, preferential looking, name call, and the
  * ending stay fixed; only the eight directional trials move.
  */
-export function sessionStimulusPhases(sessionId: string): readonly StimulusPhase[] {
+export function sessionStimulusPhases(
+  sessionId: string,
+  options: {
+    /**
+     * False when no speaker was declared behind the participant. The calls are
+     * then never sounded, and the phase reduces to thirteen seconds of a bare
+     * centre dot: nothing to look at, nothing measured, and long enough for a
+     * toddler to leave the chair over. Dropping it is not a protocol change —
+     * a silent name call was never a name call — but a spoken session and a
+     * silent one now differ in length, so anything quoting a duration has to
+     * read it off the returned list rather than off STIMULUS_TOTAL_MS.
+     */
+    nameCallsDelivered?: boolean;
+  } = {},
+): readonly StimulusPhase[] {
   const next = pseudoRandom(sessionHash(sessionId));
   const sequence = SIDE_SEQUENCES[Math.floor(next() * SIDE_SEQUENCES.length)];
   const left = shuffled(DIRECTIONAL_TRIALS.filter((phase) => phase.target === "left"), next);
@@ -158,7 +172,15 @@ export function sessionStimulusPhases(sessionId: string): readonly StimulusPhase
   let leftIndex = 0;
   let rightIndex = 0;
   const ordered = sequence.map((side) => (side === "left" ? left[leftIndex++] : right[rightIndex++]));
-  return [BASELINE, GEOPREF, ...ordered, NAME_CALL, POSITIVE_ENDING];
+  // The counterbalanced draw happens before the name call is considered, so a
+  // silent session and a spoken one with the same id run the same cue order.
+  const nameCall = options.nameCallsDelivered === false ? [] : [NAME_CALL];
+  return [BASELINE, GEOPREF, ...ordered, ...nameCall, POSITIVE_ENDING];
+}
+
+/** Whole seconds a given phase list runs for. The only duration anything quotes. */
+export function stimulusSeconds(phases: readonly StimulusPhase[] = STIMULUS_PHASES) {
+  return Math.round(phases.reduce((total, phase) => total + phase.durationMs, 0) / 1000);
 }
 
 export function phaseAtElapsed(elapsedMs: number, phases: readonly StimulusPhase[] = STIMULUS_PHASES) {
@@ -185,6 +207,11 @@ export function phaseAtElapsed(elapsedMs: number, phases: readonly StimulusPhase
  * phase list has to be passed in.
  */
 export function nameCallTimeline(phases: readonly StimulusPhase[] = STIMULUS_PHASES) {
+  // A session that drops the phase has no calls to place. Falling through the
+  // loop instead would stamp all three past the end of the battery, where the
+  // pose trace has nothing to match them against and three calls that were
+  // never sounded would score as three missed responses.
+  if (!phases.some((phase) => phase.id === NAME_CALL_PHASE_ID)) return [];
   let startMs = 0;
   for (const phase of phases) {
     if (phase.id === NAME_CALL_PHASE_ID) break;

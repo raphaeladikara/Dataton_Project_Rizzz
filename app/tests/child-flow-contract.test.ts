@@ -36,7 +36,10 @@ test("hero animation mirrors the complete child-first session flow", () => {
   }
   // [\s\S]* rather than /s: the dotAll flag needs an ES2018 target and tsc is on ES2017.
   assert.match(heroDevice, /01 \/ 09|padStart\(2, "0"\)[\s\S]*09/);
-  assert.match(heroDevice, /CALIBRATION_TARGETS[\s\S]*?\[82, 82\]/);
+  // Derived from CHILD_TARGETS rather than retyped. The illustration went on
+  // drawing the four-corner square while the square was the reason live
+  // sessions were coming back unscorable.
+  assert.match(heroDevice, /CALIBRATION_TARGETS = CHILD_TARGETS\.map/);
   assert.match(heroDevice, /Adegan \{stimulusScene\} dari 10/);
   assert.doesNotMatch(heroDevice, /SCANPATH|heroBoardPath/);
 });
@@ -47,9 +50,12 @@ test("tutorial can play, pause, replay, mute, and be skipped", () => {
   assert.equal((page.match(/visual: "/g) ?? []).length, 6);
 });
 
-test("child calibration has five positions and technical mode is flag-gated", () => {
-  const childBlock = page.match(/const CHILD_TARGETS = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
-  assert.equal((childBlock.match(/\[0\./g) ?? []).length, 5);
+test("child calibration has five positions and technical mode is flag-gated", async () => {
+  // Both grids live in src/capture/calibrationTargets.ts so their geometry can
+  // be asserted as geometry rather than matched out of the page source; the
+  // shape they have to keep is in tests/calibration-targets.test.ts.
+  const { CHILD_TARGETS } = await import("../src/capture/calibrationTargets");
+  assert.equal(CHILD_TARGETS.length, 5);
   assert.match(page, /technicalCalibration.*=== "1"/);
   assert.match(page, /useTechnicalCalibration \? TARGETS : CHILD_TARGETS/);
 });
@@ -251,10 +257,15 @@ test("stated session duration is derived from the protocol, never retyped", asyn
   assert.equal(SCORED_TRIAL_COUNT, 8);
   // No screen may state a duration as a literal; the operator reading it is
   // deciding whether the child in front of them will sit still for it.
-  for (const source of [page, adminConsole]) {
-    assert.match(source, /STIMULUS_TOTAL_SECONDS/);
-    assert.doesNotMatch(source, /\b(?:66|96) detik\b/);
-  }
+  assert.doesNotMatch(page, /\b(?:66|96) detik\b/);
+  assert.doesNotMatch(adminConsole, /\b(?:66|96) detik\b/);
+  // The console describes the protocol, so it quotes the full battery. The
+  // session screens quote what their own configuration will run, which is 13 s
+  // shorter whenever the name call is silent — the same gap that had the UI
+  // saying 66 while the battery was 96, only in the other direction.
+  assert.match(adminConsole, /STIMULUS_TOTAL_SECONDS/);
+  assert.match(page, /stimulusSeconds\(sessionStimulusPhases\(/);
+  assert.doesNotMatch(page, /STIMULUS_TOTAL_SECONDS/);
 });
 
 test("admin explains why the stimulus was purpose-built, with sources and limits", () => {
