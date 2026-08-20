@@ -51,6 +51,8 @@ import { scoreGeopref } from "../src/geopref/score";
 import { resolveSessionOutcome } from "../src/outcome/sessionOutcome";
 import { buildReferralRecommendation, REFERRAL_RULE_VERSION } from "../src/outcome/referralRecommendation";
 import { reportBadge } from "../src/outcome/reportBadge";
+import { buildPosteriorOdds } from "../src/outcome/posteriorOdds";
+import { buildSessionVerdict } from "../src/outcome/sessionVerdict";
 import {
   appendAuditEvent,
   createSessionAudit,
@@ -196,6 +198,22 @@ const CHILD_TARGETS = [
   [0.82, 0.82],
 ] as const;
 const APP_VERSION = "3.0.0-child-flow";
+
+/**
+ * Where a session's identity fields start, per purpose.
+ *
+ * Extracted because two callers need it now: start(), and the consent-screen
+ * checkbox that turns a field session into a demonstration after start() has
+ * already run. Age is empty on every adult purpose on purpose — the field is
+ * hidden there, and a stale "24" left behind would ride into the audit log.
+ */
+function defaultProfile(purpose: SessionPurpose) {
+  const today = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+  if (purpose === "gate_a_adult") return { childId: `GA-${today}-01`, age: "", site: "Pilot perangkat", operator: "Operator-01" };
+  if (purpose === "gate_b_bridge") return { childId: `GB-${today}-P01`, age: "", site: "Lab validasi", operator: "Peneliti-01" };
+  if (purpose === "stage_demo") return { childId: `PERAGA-${today}-01`, age: "", site: "Peragaan panggung", operator: "Penyaji-01" };
+  return { childId: "NG-0042", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" };
+}
 const pause = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -589,9 +607,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [recordingEntries, setRecordingEntries] = useState<RecordingEntry[]>([]);
   const [demoRun, setDemoRun] = useState<"idle" | "calibrating" | "measuring" | "done">("idle");
   /**
-   * Stage demonstration of the full rule-in report. Reachable only from the
-   * demo controls and only in replay mode, so a field session cannot enter it,
-   * and the outcome it produces has emitsReferral hard-coded to false.
+   * Stage demonstration of the full rule-in report. Reachable only from replay
+   * or the `stage_demo` purpose, so a session with a child in front of the
+   * tablet cannot enter it, and the outcome it produces has emitsReferral
+   * hard-coded to false.
    */
   const [demonstrationMode, setDemonstrationMode] = useState(false);
   /**
@@ -839,8 +858,45 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         referenceDevice: "-",
       } : undefined,
     });
-    commitAudit(next);
+    // Logged here rather than where the box was ticked, because an event needs
+    // a log to land in and start() has just cleared the previous one.
+    commitAudit(demonstrationMode
+      ? appendAuditEvent(next, "session.demonstration_mode", {
+        enabled: true,
+        live: mode === "live",
+        declaredAt: "layar_persetujuan",
+        reason: "ambang_69_diterapkan_pada_protokol_dipersingkat",
+      }, "warning")
+      : next);
     setStage(isEngineeringStudy ? "device" : "preparation");
+  }
+
+  /**
+   * The demonstration is declared on the consent screen, not chosen at a button.
+   *
+   * There is one "Mulai observasi kamera" and it always opens a field session.
+   * Ticking this turns the session being set up into a stage demonstration: the
+   * participant becomes a consenting adult, the age field disappears instead of
+   * inviting an invented number, and the 69% threshold is applied so the shape
+   * of a referral report is visible. The purpose moves with it, so
+   * consentBlockers, the audit log, and every line of copy that already reads
+   * `stage_demo` follow along without a second flag to keep in step.
+   */
+  function setDemonstration(on: boolean) {
+    const purpose: SessionPurpose = on ? "stage_demo" : "target_population_research";
+    const leaving = defaultProfile(on ? "target_population_research" : "stage_demo");
+    const arriving = defaultProfile(purpose);
+    setSessionPurpose(purpose);
+    setDemonstrationMode(on);
+    // Untouched defaults are swapped; anything the operator typed is kept. Age
+    // is the exception — it is hidden in one mode, so a leftover value there
+    // would be a number nobody entered for this session.
+    setProfile((current) => ({
+      childId: current.childId === leaving.childId ? arriving.childId : current.childId,
+      site: current.site === leaving.site ? arriving.site : current.site,
+      operator: current.operator === leaving.operator ? arriving.operator : current.operator,
+      age: arriving.age,
+    }));
   }
 
   function downloadCurrentAudit() {
@@ -971,6 +1027,24 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     demonstrationMode,
     recommendsFollowUp: referral.recommendsFollowUp,
   });
+  /**
+   * Layer 1 of the referral model, and the number the report is asked to defend.
+   *
+   * It exists only where the 69% cutoff was actually applied. On the shipped
+   * field path every likelihood ratio would be 1 and the posterior would equal
+   * the prevalence it started from — a result-shaped restatement of the input,
+   * which is worse than no number at all.
+   */
+  const posterior = useMemo(() => buildPosteriorOdds({
+    signals: referral.signals,
+    thresholdApplied: demonstrationMode,
+  }), [referral, demonstrationMode]);
+  const verdict = useMemo(() => buildSessionVerdict({
+    referral,
+    outcome: sessionOutcome,
+    posterior,
+    demonstrationMode,
+  }), [referral, sessionOutcome, posterior, demonstrationMode]);
   const useTechnicalCalibration = isEngineeringStudy || technicalCalibration;
   const activeTargets = useTechnicalCalibration ? TARGETS : CHILD_TARGETS;
   const calibrationLimitDeg = isEngineeringStudy ? 3 : 5;
@@ -1018,15 +1092,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setScenario(replay);
     setConsented(modeChoice === "replay");
     setResearchConsent(false);
-    setProfile(purpose === "gate_a_adult"
-      ? { childId: `GA-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-01`, age: "", site: "Pilot perangkat", operator: "Operator-01" }
-      : purpose === "gate_b_bridge"
-        ? { childId: `GB-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-P01`, age: "", site: "Lab validasi", operator: "Peneliti-01" }
-        // Age stays empty: the participant is an adult, and the field is not
-        // required for this purpose precisely so nobody types 24 to get past it.
-        : purpose === "stage_demo"
-          ? { childId: `PERAGA-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-01`, age: "", site: "Peragaan panggung", operator: "Penyaji-01" }
-          : { childId: "NG-0042", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
+    setProfile(defaultProfile(purpose));
     setDeviceStatus("idle");
     setDeviceDiagnostics(null);
     setCalibration(null);
@@ -2017,6 +2083,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           : `Langkah ${sessionStepPosition(stage).number} dari ${sessionStepPosition(stage).total}: ${sessionStepPosition(stage).label}`}
       </p>
       <div id="konten" tabIndex={-1} />
+      {/* A checkbox on one screen is easy to forget three screens later. This
+          stays across every screen except the two the participant looks at, so
+          nobody narrates a demonstration as an ordinary session by accident. */}
+      {demonstrationMode && stage !== "calibration" && stage !== "stimulus" && (
+        <div className="presentationStrip" role="status">
+          <span><IconResearch size={14} /> Peragaan demo</span>
+          <small>Peserta dewasa · ambang 69% diterapkan pada klip pendek · sesi tidak mengeluarkan rujukan</small>
+        </div>
+      )}
       {stage !== "calibration" && stage !== "stimulus" && <header className="topbar">
         <div className="topbarInner">
         <button className="brandButton" onClick={goHome}>
@@ -2305,14 +2380,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   </button>
                 )}
                 {/* Live camera, adult purpose, threshold applied under the same
-                    banner. Separate from "Mulai observasi kamera" so the field
-                    path cannot reach it by mistake. */}
+                    banner. Kept even though the switch below reaches the same
+                    place: it is the path that works when nobody remembered to
+                    flip anything. */}
                 <button
                   className="secondary"
-                  onClick={() => {
-                    recordAudit("session.demonstration_mode", { enabled: true, live: true, reason: "peragaan_panggung_kamera_langsung" }, "warning");
-                    start("live", scenario, "stage_demo", { demonstration: true });
-                  }}
+                  onClick={() => start("live", scenario, "stage_demo", { demonstration: true })}
                 >
                   <IconCamera size={15} /> Peragakan · kamera langsung
                 </button>
@@ -2377,6 +2450,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <label><span>Jarak mata–layar (mm)</span><input type="number" min="200" value={bridgeMeta.viewingDistanceMm} onChange={(event) => setBridgeMeta({ ...bridgeMeta, viewingDistanceMm: Number(event.target.value) })} /></label>
               </div>
             </div>}
+            {/* Declared, never inferred.
+                The one control that changes what this session is, sitting on
+                the screen where a session's terms are already agreed to rather
+                than on a button somewhere upstream. Offered only on the child
+                flow: Gate A and Gate B are already adult purposes and have no
+                threshold to apply. */}
+            {(sessionPurpose === "target_population_research" || isStageDemo) && <label className="demonstrationField checkRow optional" data-on={String(demonstrationMode)}>
+              <input type="checkbox" checked={demonstrationMode} onChange={(event) => setDemonstration(event.target.checked)} />
+              <span><strong>Peragaan demo.</strong> Sesi dijalankan pada peserta dewasa yang menyetujui untuk dirinya sendiri, dan ambang GeoPref 69% diterapkan supaya bentuk laporan rujukan terlihat. Kolom usia hilang karena pesertanya bukan balita. Sesinya tetap tidak mengeluarkan rujukan dan laporannya membawa banner mode demonstrasi. Biarkan mati untuk sesi Posyandu yang sebenarnya.</span>
+            </label>}
             {(!isEngineeringStudy || positiveControl?.speakerBehind) && <div className="nameCallField">
               <label className="checkRow optional">
                 <input type="checkbox" checked={callNameEnabled} onChange={(event) => { const on = event.target.checked; setCallNameEnabled(on); if (!on) { callNameRef.current = ""; setCallNamePresent(false); } }} />
@@ -2607,10 +2690,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
       {stage === "report" && quality && (
         <section className="workspace reportPage">
-          <div className="reportHeader">
+          <div className="reportHeader" data-verdict={verdict?.tone ?? "none"}>
             <div>
               <span className="eyebrow">Laporan sesi · {profile.childId}</span>
-              <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : sessionOutcome.headline}</h1>
+              <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : verdict ? verdict.headline : sessionOutcome.headline}</h1>
               <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
             </div>
             <span className={`decisionBadge ${badge.tone}`}>
@@ -2631,9 +2714,34 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {sessionOutcome.recordedSession && (recording
                 ? <p className="recordedBanner" data-kind="recording" role="status"><IconInfo size={15} /> <strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p>
                 : <p className="recordedBanner" role="status"><IconInfo size={15} /> <strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p>)}
-              <article className="observationLead">
+              {/* The decision, before the measurement.
+                  What used to greet a reader here was "92% waktu pada pola
+                  geometrik" — a number, and a number is not an answer. The
+                  sentence that answered it lived a screen and a half further
+                  down at 1,4rem. Everything in this block was already on the
+                  report; what changed is the order and the size. */}
+              {verdict && <section className="sessionVerdict" data-tone={verdict.tone} aria-labelledby="verdict-heading">
+                <div className="verdictHead">
+                  <span className="verdictMark" aria-hidden="true">
+                    {verdict.tone === "follow_up" ? <IconAlert size={26} /> : <IconCheck size={26} />}
+                  </span>
+                  <div>
+                    <small>Dasar kesimpulan · {verdict.tone === "follow_up" ? "disarankan pemeriksaan lanjutan" : "tanpa rekomendasi pemeriksaan"}</small>
+                    <h2 id="verdict-heading">{verdict.subline}</h2>
+                  </div>
+                </div>
+                <ol className="verdictReasons">
+                  {verdict.reasons.map((reason) => <li key={reason.id}>
+                    <div className="verdictReasonTop"><strong>{reason.label}</strong><span>{reason.measured}</span></div>
+                    <p>{reason.body}</p>
+                    <small>{reason.source}</small>
+                  </li>)}
+                </ol>
+                <p className="verdictCaveat"><IconSignalHeld size={15} /> <span>{verdict.caveat}</span></p>
+              </section>}
+              <article className="observationLead" data-demoted={String(Boolean(verdict))}>
                 <span className="resultIcon" aria-hidden="true"><IconShieldCheck size={28} /></span>
-                <div><small>Hasil pengukuran sesi ini</small><h2>{sessionOutcome.headline}</h2><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
+                <div><small>Angka yang diukur sesi ini</small><h3>{sessionOutcome.headline}</h3><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
               </article>
               <section className="observationMetrics" aria-label="Indeks perilaku sesi">
                 <article><span><IconScanpathSpread size={19} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>{geoprefResult?.percentGeometricCi
@@ -2663,7 +2771,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 </ul>
                 <p className="referralLimit">Rekomendasi ini bukan diagnosis dan tidak menggantikan ambang GeoPref. Arah tiap sinyal diambil dari literatur, tetapi aturan gabungannya belum divalidasi pada balita. Hasil yang tidak memicu rekomendasi tetap bukan tanda aman.</p>
               </section>}
-              <section className="observationAnswer">
+              {/* The fallback, not the main event.
+                  The verdict block above says all of this and says it first, so
+                  keeping both would have the report explain its conclusion twice
+                  and make the conclusion feel less settled for it. What this
+                  still covers is the session with nothing assessable — the
+                  shipped field path today — where there is no verdict to state
+                  and the reader is owed the explanation anyway. */}
+              {!verdict && <section className="observationAnswer">
                 <span className="observationQuestion"><IconInfo size={20} /></span>
                 {/* Three answers, because there are three situations.
                     This section used to switch on emitsReferral alone, which
@@ -2677,7 +2792,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     geometric signal assessable, and that needs the threshold
                     applied. */}
                 <div><small>Cara membaca hasil ini</small><h2>{sessionOutcome.emitsReferral || referral.recommendsFollowUp ? "Kenapa hasil ini perlu ditindaklanjuti?" : "Kenapa hasil ini belum berarti aman?"}</h2><p>{sessionOutcome.emitsReferral ? "Preferensi kuat pada pola geometrik jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita usia 12 sampai 49 bulan. Bawa hasil ini ke kader atau Puskesmas bersama SDIDTK." : referral.recommendsFollowUp ? `Kedua sinyal yang dapat dinilai sama-sama menyimpang. Seluruh selang kepercayaan waktu tatap pada pola geometrik berada di atas ambang 69 persen, dan pola itu jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita. Isyarat arah diikuti pada ${jointAttention ? `${jointAttention.trialsFollowed} dari ${jointAttention.trialsScored}` : "sebagian kecil"} percobaan, dibandingkan terhadap peserta yang sama sebelum isyarat diberikan. Beginilah sesi lapangan akan terbaca bila stimulus penuh tersedia. Sesi ini peragaan, jadi tidak ada rujukan yang dikeluarkan dan hasilnya tidak dibawa ke layanan kesehatan.` :"Ambang rujukan otomatis dirancang untuk memastikan hasil positif, bukan menyingkirkan ASD. Sensitivitasnya hanya 17 persen, jadi sebagian besar anak ASD tidak terdeteksi di sini. Indeks lain di atas adalah pengukuran deskriptif yang belum punya ambang tervalidasi; skrining perkembangan rutin tetap diperlukan."}</p></div>
-              </section>
+              </section>}
               <section className="decisionRules" aria-labelledby="decision-rules-heading">
                 <div className="decisionRulesHead"><small>Cara membaca status</small><h2 id="decision-rules-heading">Kapan sistem memberi arahan?</h2></div>
                 <div className="decisionRuleGrid">
@@ -2832,7 +2947,21 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 printed as an ordinary session was a demonstration only the people
                 who saw the banner knew about. */}
             {demonstrationMode && <p className="printDemonstration"><strong>MODE DEMONSTRASI — bukan hasil sesi lapangan.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun.</p>}
-            <h2>Hasil</h2>
+            {/* The sheet leads with the same sentence the screen led with. A
+                printout whose first line is a percentage hands the reader the
+                job of drawing the conclusion, which is the job the report is
+                supposed to have done. The per-signal reasons are not repeated
+                here — the composite table below already carries them. */}
+            {verdict && <>
+              <h2>Kesimpulan</h2>
+              <p className="printVerdict" data-tone={verdict.tone}>{verdict.headline}</p>
+              <p>{verdict.subline}</p>
+              {verdict.reasons.filter((reason) => reason.id === "posterior_odds").map((reason) => (
+                <p key={reason.id}><strong>{reason.label}: {reason.measured}.</strong> {reason.body}</p>
+              ))}
+              <p>{verdict.caveat}</p>
+            </>}
+            <h2>Ringkasan pengukuran</h2>
             <p className="printHeadline">{sessionOutcome.headline}</p>
             <p>{sessionOutcome.summaryLine}</p>
             <p><strong>Arahan rujukan otomatis:</strong> {sessionOutcome.emitsReferral ? "Ya — disarankan pemeriksaan lanjutan." : "Tidak."}</p>

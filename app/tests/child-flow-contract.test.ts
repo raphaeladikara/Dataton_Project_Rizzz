@@ -309,20 +309,38 @@ test("demonstration mode never reaches the child path and never emits a referral
   // `target_population_research` — the one purpose that means a child is in
   // front of the tablet.
   assert.match(page, /modeChoice === "replay" \|\| purpose === "stage_demo"/);
+  // Aimed at the call sites rather than at any line mentioning both, because
+  // the consent screen legitimately names the child purpose next to the word
+  // "demonstration": that is the condition deciding whether to offer the box,
+  // not a path that ticks it.
   assert.ok(
-    !/purpose === "target_population_research"[^\n]*demonstration/i.test(page),
-    "the child purpose must never appear on a path that enables demonstration mode",
+    !/start\([^)]*"target_population_research"[^)]*demonstration/i.test(page),
+    "the child purpose must never be started with demonstration mode on",
   );
   assert.match(page, /startQuickDemo\(\{ demonstration: true \}\)/);
-  // Live stage demonstration runs under its own purpose, from a control that
-  // lives behind the guide rather than beside the field entry point.
+  // Live stage demonstration runs under its own purpose, from the guide control
+  // that names it out loud.
   assert.match(page, /start\("live", scenario, "stage_demo", \{ demonstration: true \}\)/);
+  // The consent-screen checkbox is the other way in, and it is why the
+  // invariant above still holds: it moves the purpose and the flag inside one
+  // function, so a ticked box can never leave a child purpose behind it.
+  const toggle = /function setDemonstration\(on: boolean\) \{[\s\S]*?\n  \}/.exec(page);
+  assert.ok(toggle, "the consent-screen demonstration toggle should exist");
+  assert.match(toggle![0], /setSessionPurpose\(purpose\)/);
+  assert.match(toggle![0], /setDemonstrationMode\(on\)/);
+  assert.match(toggle![0], /on \? "stage_demo" : "target_population_research"/);
+  // start() and that toggle are the only two writers. A third would be a place
+  // the flag and the purpose could drift apart.
+  assert.equal((page.match(/setDemonstrationMode\(/g) ?? []).length, 2);
   // The operator-facing banner has to say the threshold was applied on purpose
   // and that the session produces no referral.
   assert.match(page, /MODE DEMONSTRASI/);
   assert.match(page, /demonstrationMode && <div className="demonstrationBanner"/);
-  // It is written into the audit log, so an exported session cannot hide it.
-  assert.match(page, /recordAudit\("session\.demonstration_mode"/);
+  // It is written into the audit log, so an exported session cannot hide it —
+  // and it is written where the log actually exists. Recording it before
+  // start() appended the event to the previous session's log, which start()
+  // then discarded, so the evidence looked present and was not.
+  assert.match(page, /appendAuditEvent\(next, "session\.demonstration_mode"/);
   // The only place the demonstration threshold is applied is the scorer, which
   // marks the outcome so sessionOutcome can force emitsReferral to false.
   const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");

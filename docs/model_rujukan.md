@@ -50,6 +50,13 @@ odds_pasca = odds_pra × Π LR(sinyal_i)
 `odds_pra` datang dari prevalensi, atau — lebih tepat untuk lapangan — dari hasil
 SDIDTK/M-CHAT yang memang sudah ada di tangan petugas ketika sesi dijalankan.
 
+Lapis ini sudah terpasang: [`app/src/outcome/posteriorOdds.ts`](../app/src/outcome/posteriorOdds.ts).
+Ia mengembalikan `null` kecuali ambangnya benar-benar diterapkan, jadi di jalur
+lapangan hari ini ia tidak menghasilkan apa-apa — dan itu perilaku yang benar,
+sebagaimana tertulis di [Batas yang harus ikut ditulis](#batas-yang-harus-ikut-ditulis).
+Angkanya tampil di laporan sebagai satu alasan di blok kesimpulan, tidak pernah
+sebagai judulnya.
+
 ### Nilai yang sudah pasti
 
 | Sinyal | Sumber | Sens | Spec | LR+ | LR− |
@@ -251,7 +258,7 @@ mereka tidak mengelompokkan per partisipan.
 |---|---|---|---|
 | 1 | Cabut kekeliruan absence-of-evidence pada `cueSignal` | — | Uji yang mengunci tiga keadaan |
 | 2 | Jalankan kontrol positif, 8–10 dewasa | Langkah 1 | Tabel dua baris + dua rekaman terdaftar |
-| 3 | Ekstrak LR dari makalah, pasang Lapis 1 | — | `referral_lr.json` dengan kutipan per baris |
+| 3 | ~~Ekstrak LR dari makalah, pasang Lapis 1~~ **selesai** | — | `app/src/outcome/posteriorOdds.ts` + `posterior-odds.test.ts` |
 | 4 | Unduh Cilia, verifikasi tabel dataset | — | Manifest + SHA-256 |
 | 5 | Bangun indeks, jalankan empat audit | Langkah 4 | Empat berkas hasil audit |
 | 6 | Pasang bobot, atau terbitkan penolakannya | Langkah 5 lolos | `model_rujukan.json` |

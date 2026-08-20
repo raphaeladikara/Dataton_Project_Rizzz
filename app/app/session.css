@@ -2463,6 +2463,58 @@ dd {
 .referralSignals li small { display: block; margin-top: 10px; color: var(--ink-300); font-size: .72rem; line-height: 1.45; }
 .referralLimit { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--line-soft); color: var(--text-muted); font-size: .82rem; line-height: 1.6; }
 
+/* The verdict.
+   Same amber family as the composite lane and, for the same reason, never the
+   coral of the GeoPref rule-in: a conclusion drawn by a rule we wrote must not
+   be mistakable at a glance for the one threshold taken from a published
+   cohort. Size is what carries the emphasis here, not colour. */
+.sessionVerdict {
+  margin: 22px 0 0;
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: var(--e2);
+}
+.sessionVerdict[data-tone="follow_up"] { border-color: var(--amber-200); border-top: 5px solid var(--amber-500); background: linear-gradient(150deg, var(--amber-50), var(--paper) 62%); }
+.sessionVerdict[data-tone="no_follow_up"] { border-color: var(--teal-200); border-top: 5px solid var(--teal-500); background: linear-gradient(150deg, var(--teal-100), #f8fffc 62%); }
+.verdictHead { display: flex; gap: 18px; align-items: flex-start; }
+.verdictMark { flex: none; display: grid; place-items: center; width: 54px; height: 54px; border-radius: 17px; }
+.sessionVerdict[data-tone="follow_up"] .verdictMark { color: var(--amber-700); background: rgba(207,149,29,.14); }
+.sessionVerdict[data-tone="no_follow_up"] .verdictMark { color: var(--teal-700); background: rgba(9,106,92,.11); }
+.verdictHead small { font-size: .78rem; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+.sessionVerdict[data-tone="follow_up"] .verdictHead small { color: var(--amber-700); }
+.sessionVerdict[data-tone="no_follow_up"] .verdictHead small { color: var(--teal-700); }
+.verdictHead h2 { max-width: 40ch; margin: 6px 0 0; font-size: 1.35rem; line-height: 1.25; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.verdictReasons { display: grid; gap: 12px; margin: 24px 0 0; padding: 0; list-style: none; counter-reset: verdict; }
+.verdictReasons li { position: relative; padding: 16px 18px 16px 46px; border: 1px solid var(--line-soft); border-radius: 15px; background: rgba(255,255,255,.72); counter-increment: verdict; }
+.verdictReasons li::before {
+  content: counter(verdict);
+  position: absolute; left: 16px; top: 16px;
+  display: grid; place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 7px;
+  color: var(--paper); background: var(--ink-600);
+  font-size: .7rem; font-weight: 750;
+}
+.verdictReasonTop { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.verdictReasonTop strong { font-size: .95rem; }
+.verdictReasonTop span { flex: none; color: var(--ink-600); font-size: .88rem; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; }
+.verdictReasons li p { margin: 8px 0 0; color: var(--text-muted); font-size: .84rem; line-height: 1.6; }
+.verdictReasons li small { display: block; margin-top: 10px; color: var(--ink-300); font-size: .72rem; line-height: 1.45; }
+.verdictCaveat { display: flex; gap: 10px; align-items: flex-start; margin: 20px 0 0; padding-top: 17px; border-top: 1px solid var(--line-soft); color: var(--ink-600); font-size: .84rem; line-height: 1.6; }
+.verdictCaveat svg { flex: none; margin-top: 2px; }
+
+/* Demoted when a verdict sits above it: this became the measurement summary the
+   moment the decision stopped living here. */
+.observationLead[data-demoted="true"] { background: var(--paper-2); box-shadow: none; border: 1px solid var(--line-soft); }
+.observationLead[data-demoted="true"] h3 { max-width: 760px; margin: 5px 0 9px; font-size: 1.2rem; line-height: 1.3; }
+.observationLead[data-demoted="true"]::after { display: none; }
+
+/* The title now carries the conclusion, so it gets the tone the conclusion has. */
+.reportHeader[data-verdict="follow_up"] h1 { color: var(--amber-700); }
+.reportHeader[data-verdict="no_follow_up"] h1 { color: var(--teal-700); }
+
 .observationLead { position: relative; overflow: hidden; }
 .observationLead::after { content: ""; position: absolute; right: -80px; top: -110px; width: 250px; height: 250px; border: 1px solid rgba(9,106,92,.1); border-radius: 50%; box-shadow: 0 0 0 28px rgba(9,106,92,.035), 0 0 0 60px rgba(9,106,92,.02); pointer-events: none; }
 .observationLead > * { position: relative; z-index: 1; }
@@ -2587,6 +2639,8 @@ dd {
   .printMeta dt::after { content: ":"; }
   .printMeta dd { margin: 0; font-weight: 700; }
   .printHeadline { margin: 0 0 4pt; font-size: 13pt; font-weight: 700; }
+  .printVerdict { margin: 0 0 5pt; font-size: 17pt; font-weight: 800; line-height: 1.15; }
+  .printVerdict[data-tone="follow_up"] { padding: 5pt 7pt; border: 2pt solid #000; }
   /* Loud on paper, because the sheet leaves the room without the screen. */
   .printDemonstration { margin: 10pt 0 0; padding: 6pt 8pt; border: 1.5pt solid #000; font-size: 10pt; }
   .printSummary table { width: 100%; border-collapse: collapse; font-size: 10pt; }
@@ -2688,6 +2742,28 @@ dd {
    `.formGrid input` gave the checkbox block display, full width, and 13px of
    padding: a 20px box rendered as a 46px slab, wedged against the field beside
    it and reading as though it belonged to that field. */
+/* The one box on this screen that changes what the session is, rather than how
+   it is run. Slate and dashed, matching .demonstrationBanner on the report, so
+   the screen where the mode is chosen and the screen where it is disclosed look
+   like they belong to the same decision. */
+.demonstrationField {
+  margin-top: 20px;
+  border-style: dashed;
+  border-color: var(--slate-200);
+  background: var(--sand-50);
+}
+
+.demonstrationField[data-on="true"] {
+  border-color: var(--slate-700);
+  border-left: 4px solid var(--slate-700);
+  background: var(--slate-50);
+  color: var(--ink-700);
+}
+
+.demonstrationField input {
+  accent-color: var(--slate-700);
+}
+
 .nameCallField {
   margin-top: 20px;
 }
