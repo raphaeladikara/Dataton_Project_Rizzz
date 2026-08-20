@@ -5,8 +5,8 @@
 /* ── Demonstration strip ───────────────────────────────────────────────────
    A checkbox on the consent screen is easy to forget three screens later; a
    full-width band is not. Slate rather than amber, matching
-   .demonstrationBanner: this announces which mode the session is in, and must
-   not be read as a finding about anybody. */
+   .reportNotice[data-kind="demonstration"]: this announces which mode the session
+   is in, and must not be read as a finding about anybody. */
 
 .presentationStrip {
   position: sticky;
@@ -197,7 +197,7 @@
 .version {
   font-family: var(--font-mono-stack);
   font-size: 11px;
-  color: var(--ink-300);
+  color: var(--ink-400);
 }
 
 /* ── Session rail ─────────────────────────────────────────────────────────
@@ -265,18 +265,20 @@
 
 .railCounter small {
   font-size: 11px;
-  color: var(--ink-300);
+  color: var(--ink-400);
 }
 
 .railNow {
   min-width: 0;
 }
 
+/* 10px, not the 8.5px this was: below about 10px a tracked uppercase mono label
+   stops being readable however much contrast you give it. */
 .railNow small {
   display: block;
   font-family: var(--font-mono-stack);
-  font-size: 8.5px;
-  letter-spacing: 0.13em;
+  font-size: 10px;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--ink-400);
 }
@@ -353,7 +355,7 @@
   margin-top: 1px;
   font-size: 10.5px;
   line-height: 1.4;
-  color: var(--ink-300);
+  color: var(--ink-400);
 }
 
 .railList li[data-state="done"] .railMark {
@@ -379,9 +381,13 @@
   font-weight: 700;
 }
 
-.railList li[data-state="upcoming"] .railCopy strong,
-.railList li[data-state="upcoming"] .railCopy small {
-  opacity: 0.62;
+/* De-emphasised by colour, not by opacity. Fading text to 62% multiplies its
+   contrast down by a factor nothing in the stylesheet accounts for, and these
+   nine labels are the ones an operator scans to find where they are. The state
+   still reads: the marker changes and the label drops a step on the ink ramp. */
+.railList li[data-state="upcoming"] .railCopy strong {
+  color: var(--ink-400);
+  font-weight: 500;
 }
 
 .railNext {

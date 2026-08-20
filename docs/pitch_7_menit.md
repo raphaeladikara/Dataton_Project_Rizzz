@@ -21,19 +21,24 @@ sudah dicetak. Jangan berpindah tab lebih dari tiga kali sepanjang pitch.
 |---|---|---:|---:|
 | 1 | Masalah | 0:40 | 0:40 |
 | 2 | Kenapa alat yang ada gagal di Posyandu | 0:25 | 1:05 |
-| 3 | Demo: pola diproduksi | 0:50 | 1:55 |
-| 4 | Demo: kontrol negatif langsung | 1:00 | 2:55 |
-| 5 | Kontrol positif: instrumennya merespons | 0:50 | 3:45 |
-| 6 | Kenapa punya batas | 0:45 | 4:30 |
-| 7 | Dampak, biaya, jalur adopsi | 1:00 | 5:30 |
-| 8 | Momen integritas | 0:40 | 6:10 |
-| 9 | Penutup dan yang dibutuhkan | 0:30 | 6:40 |
+| 3 | Demo: pola diproduksi | 0:45 | 1:50 |
+| 4 | Demo: kontrol negatif langsung | 1:00 | 2:50 |
+| 5 | Kontrol positif: instrumennya merespons | 0:35 | 3:25 |
+| 6 | **Arsitektur AI bergerbang** | 0:45 | 4:10 |
+| 7 | Kenapa punya batas, dan satu momen integritas | 0:45 | 4:55 |
+| 8 | Dampak, biaya, jalur adopsi | 1:10 | 6:05 |
+| 9 | Penutup dan yang dibutuhkan | 0:30 | 6:35 |
 
-Dua puluh detik cadangan sengaja disisakan untuk Bagian 4, yang satu-satunya bagian
+Dua puluh lima detik cadangan sengaja disisakan untuk Bagian 4, satu-satunya bagian
 dengan risiko panggung yang tidak dapat dikendalikan.
 
-Kalau harus memotong: Bagian 8 turun menjadi satu cerita. Yang **tidak boleh** dipotong
-adalah Bagian 4, 6, dan 7.
+**Alokasi ini mengikuti bobot rubrik, dan itu disengaja.** Versi sebelumnya memberi 1:55
+untuk kriteria berbobot 10% (Responsible AI) dan 1:00 untuk kriteria berbobot 35%
+(Impact). Bagian 6 dan 7 sekarang berbagi anggaran yang dulu dipakai keduanya
+sendiri-sendiri, dan selisihnya pindah ke Bagian 8.
+
+Kalau harus memotong: Bagian 7 turun menjadi satu cerita integritas saja. Yang **tidak
+boleh** dipotong adalah Bagian 4, 6, dan 8.
 
 ---
 
@@ -113,7 +118,7 @@ juri memikirkannya.**
 
 Ambil relawan. **Jangan** memilih rekan satu tim. Jalankan sesi kamera penuh.
 
-Selama 80 detik berjalan, diam. Satu kalimat saja di awal:
+Selama 67 detik berjalan, diam. Satu kalimat saja di awal:
 
 > Ini pipeline yang sama persis, tanpa satu baris pun yang berbeda.
 
@@ -179,7 +184,44 @@ Lalu batasnya, sebelum ditanya:
 > juga akan tinggi — mereka di 0,34, artinya dua pertiga waktunya justru di panel
 > sosial. Dua dari tiga sinyal kami diukur di blok yang tidak punya panel sama sekali.
 
-## 6. Kenapa punya batas (0:45)
+## 6. Arsitektur AI bergerbang (0:45)
+
+Bagian baru, dan bagian yang paling kurang dimanfaatkan sebelumnya. Pertanyaan
+**"AI-nya di mana?"** akan datang; jangan menunggu sampai ditanya. Bingkai lengkapnya
+di [`bingkai_ai.md`](bingkai_ai.md).
+
+**Di layar:** satu slide, empat kotak, plus tabel degradasi.
+
+> Kami tidak membangun satu model yang menebak autisme. Kami membangun arsitektur
+> inferensi bergerbang — sistem yang menjalankan modelnya di perangkat, lalu memutuskan
+> sendiri apakah keluaran model itu layak dibaca untuk anak yang sedang duduk di
+> depannya.
+>
+> Kenapa itu penting: hampir semua ML yang dikerahkan ke lapangan mengandaikan data
+> masuk mirip data latihnya. Ketika andaian itu salah, modelnya tetap mengeluarkan
+> angka — percaya diri, dan tanpa memberi tahu siapa pun. Di skrining anak, itu rasa
+> aman palsu yang diserahkan ke orang tua.
+
+Lalu **satu angka**, dan lambatkan di sini — ini satu-satunya temuan terukur milik
+sendiri di seluruh proyek:
+
+> Kamera Posyandu berjalan dua puluh enam fps, sering lebih lambat. Jadi kami tidak
+> menebak fitur mana yang bertahan — kami mengukurnya. Dua puluh tujuh sesi berpasangan,
+> didesimasi ke separuh laju. Fitur kinematik bergeser **69 persen**. Fitur geometri
+> bergeser **1,6 persen**. Empat puluh dua kali lipat, dan itu yang menentukan seluruh
+> arsitektur fitur kami.
+
+Lalu tunjuk panel riset di laporan yang masih terbuka dari Bagian 3:
+
+> Dan ini penjaganya, bekerja. Model regresi logistik kami dikirim ke tablet dan
+> dijalankan setiap sesi. Penjaganya menolak keluarannya — sambil menyebut fitur mana
+> yang di luar distribusi dan sejauh apa. Sembilan koma satu simpangan baku. Kami tidak
+> menyembunyikan model yang tidak layak; kami menjalankannya di depan kalian dan
+> menunjukkan sistem menangkapnya.
+
+**Di layar:** `research/hasil/degradasi_temporal.json` atau tabelnya, lalu panel riset.
+
+## 7. Kenapa punya batas, dan satu momen integritas (0:45)
 
 > Sensitivitas 17 persen artinya alat ini melewatkan sebagian besar anak autistik. Itu
 > bukan bug, itu bentuk alatnya. GeoPref adalah alat *rule-in*: hasil positif layak
@@ -205,19 +247,40 @@ Tampilkan tabel empat lengan.
 **Di layar:** `research/hasil/gate_c_simulation.json` atau tabel di atas. Kalau
 wawancara praktisi sudah ada, angka antreannya masuk di sini — blok C.
 
-## 7. Dampak, biaya, jalur adopsi (1:00)
+Lalu **satu** cerita integritas. Satu, bukan dua — yang kedua tidak menambah
+kredibilitas, ia memindahkan waktu dari kolom rubrik yang bobotnya lebih besar.
 
-Bagian yang sebelumnya tidak ada di naskah mana pun, dan berbobot paling besar di
-rubrik.
+> Dan satu hal yang harus kami sebut sendiri: CNN kami pada dataset wajah statis
+> mencapai AUC 0,932. Itu angka tertinggi di seluruh proyek ini, dan kami buang. Enam
+> dari enam metadata tata kelola tidak tersedia, tidak ada ID partisipan sehingga
+> kebocoran identitas tidak bisa disingkirkan, dan uji shortcut kami menunjukkan
+> statistik piksel saja sudah mencapai 0,751 dengan permutasi p sama dengan 0,005.
+> Bobotnya tidak ada di repositori.
+>
+> Tim yang mengoreksi angkanya sendiri lebih layak dipercaya daripada tim yang angkanya
+> selalu bagus.
+
+## 8. Dampak, biaya, jalur adopsi (1:10)
+
+Bagian dengan bobot terbesar di rubrik — 35% ada di kolom Impact.
 
 > Tidak ada biaya habis pakai, tidak ada biaya jaringan, tidak ada lisensi per kursi,
 > tidak ada waktu klinisi. Yang tersisa amortisasi perangkat. Tablet Android dua setengah
 > juta, umur pakai tiga tahun, dirotasi ke empat Posyandu: **Rp 3.500 per pemeriksaan**.
-> EarliPoint sekitar sembilan juta tujuh ratus ribu. Selisihnya tiga sampai empat orde
-> besaran, dan itu bukan hasil optimasi — perangkat kerasnya memang sudah ada di tangan
-> orang.
+> EarliPoint sekitar sembilan juta tujuh ratus ribu.
 >
-> Ia tidak menggantikan apa pun. Ia menempel: sesi 80 detik sesudah penimbangan
+> Tapi biaya per pemeriksaan itu perbandingan yang terlalu ramah pada kami, jadi biar
+> saya pakai yang lebih keras. Biaya per **kasus yang benar-benar ditemukan**, sudah
+> memperhitungkan bahwa alat ini melewatkan sebagian besar: seribu sesi menemukan 1,53
+> kasus, jadi **sembilan juta rupiah per kasus** — kira-kira sama dengan sekali
+> pemeriksaan EarliPoint. Dengan tablet dirotasi ke empat Posyandu, dua juta tiga ratus.
+> Seperempatnya.
+
+Pakai angka per-kasus itu, bukan "tiga sampai empat orde besaran". Juri yang tajam akan
+mengerjakan pembagian ini sendiri; lebih baik kamu yang menyebutkannya lebih dulu.
+Rinciannya di [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md).
+
+> Dan ia tidak menggantikan apa pun. Ia menempel: sesi 67 detik sesudah penimbangan
 > bulanan, laporan satu halaman diserahkan ke Puskesmas, dibaca berdampingan dengan
 > SDIDTK.
 
@@ -234,48 +297,32 @@ Lalu bagian yang paling jarang terpikir:
 
 **Di layar:** [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md) atau slide biaya.
 
-## 8. Momen integritas (0:40)
-
-Dua cerita. Tidak lebih.
-
-> Pertama: model terbaik kami tidak dipakai. Regresi logistik Carette punya AUC 0,82 dan
-> CNN-nya 0,88, tapi selisihnya tidak dapat dibedakan dari nol — bootstrap berpasangan
-> pada 54 partisipan yang sama, p sama dengan 0,087. Dan fitur geometrinya mengkodekan
-> tata letak stimulus studi asalnya. Model itu tetap dikirim ke perangkat dan dijalankan
-> tiap sesi, tapi penjaga out-of-distribution memutuskan apakah keluarannya boleh
-> dibaca — dan di sini ia menolak, dengan fitur yang disebut namanya.
->
-> Kedua: CNN pada dataset wajah statis mencapai AUC 0,932. Itu angka tertinggi di
-> seluruh proyek ini, dan kami buang. Enam dari enam metadata tata kelola tidak
-> tersedia, tidak ada ID partisipan sehingga kebocoran identitas tidak bisa
-> disingkirkan, dan uji shortcut kami menunjukkan statistik piksel saja sudah mencapai
-> 0,751 dengan permutasi p sama dengan 0,005. Bobotnya tidak ada di repositori.
-
-Satu kalimat penutup bagian ini:
-
-> Tim yang mengoreksi angkanya sendiri lebih layak dipercaya daripada tim yang angkanya
-> selalu bagus.
-
 ## 9. Penutup dan yang dibutuhkan (0:30)
 
-> Kami tidak merekam satu balita pun dan tidak akan sebelum ada kaji etik. Bukan karena
-> meneliti anak autistik tidak etis — seluruh bukti yang kami pakai lahir dari
-> penelitian yang merekam anak autistik dengan izin yang benar. Yang tidak etis adalah
-> kami melakukannya tanpa struktur itu. Jadi risetnya tidak berhenti; ia pindah ke
-> orang dewasa yang menyetujui untuk dirinya sendiri, ke data yang peneliti lain sudah
-> terbitkan dengan izin yang mereka punya, dan ke praktisi yang menangani anak-anak ini
-> setiap hari.
->
-> Yang belum ada bukan pekerjaan teknisnya — itu ada di tangan kalian sekarang, jalan,
-> luring, di tablet. Yang belum ada satu mitra klinis berizin etik. Targetnya sudah kami
-> tetapkan dari literatur, bukan dari harapan: sensitivitas 88 persen dan spesifisitas
-> 81 persen, angka SenseToKnow di Nature Medicine pada kelas perangkat yang sama.
->
-> Dan begitu mitra itu ada, penyebaran alat ini adalah mesin pengumpul datanya sendiri.
+Tutup dengan kekuatan, bukan dengan daftar yang belum ada. Satu kalimat etika, lalu
+langsung ke apa yang siap.
 
-Berhenti di sini. **Jangan** tutup dengan "lima lembaga menolak kami". Itu benar, layak
-disebut, dan tempatnya di sesi tanya jawab — bukan sebagai kalimat terakhir yang juri
-bawa pulang.
+> Kami tidak merekam satu balita pun, dan itu keputusan, bukan keadaan — merekam anak
+> menuntut kaji etik, dan kami menolak jalan memutar yang tersedia. Jadi risetnya pindah
+> ke tiga sumber yang boleh: orang dewasa yang menyetujui untuk dirinya sendiri, data
+> anak yang peneliti lain sudah terbitkan dengan izin yang mereka punya, dan praktisi
+> yang menangani anak-anak ini setiap hari.
+>
+> Karena perhatikan apa yang sebenarnya belum kami punya: **label**, bukan sistemnya.
+> Rantainya sudah berdiri dan sudah terinstrumentasi — ada di tangan kalian sekarang,
+> jalan, luring, di tablet. Targetnya sudah kami tetapkan dari literatur, bukan dari
+> harapan: sensitivitas 88 persen, spesifisitas 81 persen, angka SenseToKnow di Nature
+> Medicine pada kelas perangkat yang sama.
+>
+> Sebagian besar tim punya model tanpa jalur ke lapangan. Kami punya jalur ke lapangan
+> yang sudah jalan, menunggu modelnya — dan dari dua masalah itu, yang kedua yang bisa
+> diselesaikan dengan satu tanda tangan. Begitu satu mitra berizin etik ada, penyebaran
+> alat ini adalah mesin pengumpul datanya sendiri.
+
+Berhenti di sini. **Jangan** tutup dengan "lima lembaga menolak kami" — jangan sebut
+sama sekali di naskah utama. Ke telinga juri non-akademik itu tidak terdengar seperti
+integritas, terdengar seperti tidak ada yang percaya. Tempatnya hanya di tanya jawab,
+dan hanya kalau ditanya langsung.
 
 ---
 
@@ -296,13 +343,21 @@ pada raster yang kanal warnanya membawa kecepatan, akselerasi, dan jerk dari sin
 di perangkat sasaran.
 
 **"Kalau belum ada balita, kenapa yakin ini jalan?"**
-Kami tidak yakin dan tidak mengklaim yakin. Yang terbukti empat hal: alat ukurnya teliti
-(Gate A), aliran pengukurannya sejalan dengan metode yang divalidasi ManyBabies untuk
-balita (Gate B), instrumennya merespons ketika sinyalnya benar-benar ada (kontrol
-positif), dan ambang keputusannya diambil dari studi 1.863 balita, bukan dari data kami.
-Yang belum terbukti adalah performa skrining pada balita Indonesia. Itu Gate C.
+Perhatikan apa yang sebenarnya belum kami punya: **label**, bukan sistemnya. Yang sudah
+berdiri dan terbukti jalan adalah seluruh rantainya — kamera ke landmark, landmark ke
+pandangan terkalibrasi, pandangan ke fitur, fitur ke model, model ke penjaga, penjaga ke
+laporan — dan tiap mata rantai punya log audit yang bisa diekspor dan diputar ulang.
+Kami membuktikannya bukan dengan diagram: 23 sesi direkam lewat aplikasi ini, lalu
+angkanya dihitung ulang dari jejak mentah oleh skrip terpisah dan hasilnya sama.
 
-**"Kenapa tidak rekam anak-anak di sekitar kalian saja? Cuma 80 detik."**
+Jadi yang kami bawa ke Gate C bukan prototipe yang harus dibangun ulang. Ini instrumen
+yang sudah terpasang dan sudah terinstrumentasi, menunggu satu hal: label klinis. Begitu
+ada satu mitra berizin etik, hari pertama pengumpulan data adalah hari pertama
+pelatihan — bukan hari pertama rekayasa. Sebagian besar tim punya model tanpa jalur ke
+lapangan; kami punya jalur ke lapangan yang sudah jalan, menunggu modelnya. Dari dua
+masalah itu, yang kedua yang bisa diselesaikan dengan satu tanda tangan.
+
+**"Kenapa tidak rekam anak-anak di sekitar kalian saja? Cuma 67 detik."**
 Durasi bukan yang menentukan. Balita tidak bisa memberi persetujuan, jadi yang
 menggantikannya adalah keputusan orang lain, dan struktur yang mengawasi keputusan itu
 namanya kaji etik. Melewatinya bukan mempercepat penelitian — itu menghapus satu-satunya
@@ -340,19 +395,25 @@ landmark tidak pernah diunggah maupun disimpan. Log teknis hidup di memori sampa
 operator memilih mengunduh. Nama panggilan anak dipakai untuk memanggil namanya lewat
 speech synthesis, dan tidak pernah masuk ke profil, log audit, maupun disk.
 
-**"Kenapa 80 detik? Balita tidak akan duduk selama itu."**
+**"Kenapa 67 detik? Balita tidak akan duduk selama itu."**
 Ini keterbatasan yang kami akui dan belum uji. Baterainya belum pernah dijalankan pada
 balita. Toleransi terhadap durasi ini adalah salah satu hal pertama yang harus diukur
 Gate C, dan attrition 42 persen dari ManyBabies adalah ekspektasi awal kami, bukan
 kejutan.
 
 **"Bedanya dengan SenseToKnow apa?"**
-Bukan modelnya. SenseToKnow membuktikan kamera perangkat konsumen layak; kami memakai
-keluarga indeksnya sebagai preseden. Yang kami tambahkan arsitektur untuk konteks lain:
-PWA tanpa backend sehingga Posyandu ke-1.000 tidak menambah biaya perangkat lunak,
-dioperasikan kader bukan klinisi, luring, dengan keadaan ditahan yang didesain sebagai
-hasil dan bukan sebagai error, dan laporan satu halaman yang bisa diserahkan di atas
-kertas.
+SenseToKnow membuktikan kamera perangkat konsumen layak secara ilmiah — di klinik, di
+Amerika, dijalankan peneliti. Yang belum dijawab siapa pun adalah bagaimana alat ukur
+seperti itu boleh dipegang relawan Posyandu tanpa mengarang satu angka pun, dan itu
+masalah arsitektur, bukan masalah model.
+
+Yang kami bangun untuk menjawabnya: PWA statis tanpa backend sehingga Posyandu ke-1.000
+tidak menambah biaya perangkat lunak; pemilihan fitur yang diukur terhadap degradasi
+laju kamera, bukan diasumsikan; penjaga out-of-distribution yang menolak model kami
+sendiri di perangkat sambil menyebut fiturnya; pemisahan lajur yang dijaga type checker
+sehingga penggabungan ilegal tidak dapat dikompilasi; dan keadaan ditahan yang didesain
+sebagai hasil, bukan ditangani sebagai error. Tidak satu pun dari itu ada di
+SenseToKnow, karena SenseToKnow tidak menghadapi masalahnya.
 
 **"Gate A dan B ini datanya dari mana? Bisa dibuktikan?"**
 Sesinya sungguhan dan ada dokumentasi fotonya. Yang harus kami sebut sendiri: harness

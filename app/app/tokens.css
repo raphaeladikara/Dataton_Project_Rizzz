@@ -23,8 +23,18 @@
   --ink-700: #1d413b;
   --ink-600: #2c534c;
   --ink-500: #436159;
-  --ink-400: #667d77;
-  --ink-300: #8b9d98;
+  /* The two quiet steps carry almost every small label in the app, so they are
+     set from the contrast floor rather than by eye.
+       --ink-400 is the muted *text* colour: 5.45:1 on paper, 4.80:1 on the
+     darkest paper-family surface (--sand-100), so it clears 4.5:1 wherever it
+     lands. At its old #667d77 it was 4.34:1 on paper and 3.82:1 on sand — under
+     the floor on every screen, which is what made nine rail labels, the version
+     string and most of the home page unreadable.
+       --ink-300 is a *non-text* tone: borders, spines, inactive marks. 3.41:1 at
+     worst, above the 3:1 floor for UI components and below the one for text —
+     it is not a body colour and nothing should set text in it. */
+  --ink-400: #526e68;
+  --ink-300: #6e8580;
 
   /* ── Teal — brand, primary action, "monitor" outcome ─────────────────── */
   --teal-50: #e7f4f0;

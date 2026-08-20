@@ -8,7 +8,7 @@ Posyandu table with limited time. Design serves the measurement; it never perfor
 ## What it is
 
 An offline-first PWA that measures a toddler's attention patterns on an ordinary
-Android tablet and reports what was measured. It runs an 80-second battery:
+Android tablet and reports what was measured. It runs a 67-second battery:
 a preferential-looking block, eight joint-attention micro-trials in a counterbalanced
 order, and three name calls. All camera processing happens on device. Raw video and
 landmarks are never stored.

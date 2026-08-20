@@ -2293,7 +2293,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <div>
                 <span>Datathon RISTEK Fasilkom UI 2026 · University Track</span>
                 <div className="footerMeta">
-                  <a className="adminAccess" href="/admin"><IconShieldCheck size={14} /> Konsol admin</a>
+                  <a className="adminAccess" href="/admin"><IconShieldCheck size={14} /> Panel teknis</a>
                   <code>app {APP_VERSION}</code>
                 </div>
               </div>
@@ -2693,30 +2693,41 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
       {stage === "report" && quality && (
         <section className="workspace reportPage">
+          {/* Label and badge on their own row, the conclusion beneath them at
+              full width. Side by side, the badge took a quarter of the column
+              and the headline broke over four lines in the remainder — the one
+              sentence the room reads was the worst-set text on the page. */}
           <div className="reportHeader" data-verdict={verdict?.tone ?? "none"}>
-            <div>
+            <div className="reportHeaderTop">
               <span className="eyebrow">Laporan sesi · {profile.childId}</span>
-              <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : verdict ? verdict.headline : sessionOutcome.headline}</h1>
-              <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
+              <span className={`decisionBadge ${badge.tone}`}>
+                {badge.tone === "research" ? <IconResearch size={14} /> : badge.tone === "refer" || (badge.tone === "demonstration" && referral.recommendsFollowUp) ? <IconScanpathSpread size={14} /> : badge.tone === "withheld" ? <IconSignalHeld size={14} /> : <IconScanpathFocus size={14} />}
+                {badge.label}
+              </span>
             </div>
-            <span className={`decisionBadge ${badge.tone}`}>
-              {badge.tone === "research" ? <IconResearch size={15} /> : badge.tone === "refer" || (badge.tone === "demonstration" && referral.recommendsFollowUp) ? <IconScanpathSpread size={15} /> : badge.tone === "withheld" ? <IconSignalHeld size={15} /> : <IconScanpathFocus size={15} />}
-              {badge.label}
-            </span>
+            <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : verdict ? verdict.headline : sessionOutcome.headline}</h1>
+            <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
           </div>
-          {demonstrationMode && <div className="demonstrationBanner" role="status">
-            <span aria-hidden="true"><IconResearch size={18} /></span>
-            <p><strong>MODE DEMONSTRASI.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan rujukan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun. Di lapangan ambang ini ditahan.</p>
-          </div>}
-          <div className="warning">
-            <span aria-hidden="true"><IconAlert size={18} /></span>
-            <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : "Gunakan bersama SDIDTK/M-CHAT dan penilaian tenaga kesehatan. Ambang rujukan mengikuti GeoPref (Wen dkk., 2022); indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
+          {/* One notice stack, one geometry. These used to be two full-width
+              blocks with different borders, backgrounds and type sizes, and a
+              third (the replay banner) further down inside the report — three
+              screens of caveat before the reader reached the conclusion. Same
+              sentences, one shell, read in one pass. */}
+          <div className="reportNotices">
+            {demonstrationMode && <div className="reportNotice" data-kind="demonstration" role="status">
+              <span aria-hidden="true"><IconResearch size={17} /></span>
+              <p><strong>MODE DEMONSTRASI.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan rujukan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun. Di lapangan ambang ini ditahan.</p>
+            </div>}
+            <div className="reportNotice" data-kind="limit">
+              <span aria-hidden="true"><IconAlert size={17} /></span>
+              <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : "Gunakan bersama SDIDTK/M-CHAT dan penilaian tenaga kesehatan. Ambang rujukan mengikuti GeoPref (Wen dkk., 2022); indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
+            </div>
+            {!isEngineeringStudy && quality.passed && sessionOutcome.recordedSession && (recording
+              ? <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p></div>
+              : <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p></div>)}
           </div>
           {!isEngineeringStudy && quality.passed ? (
             <div className="observationReport">
-              {sessionOutcome.recordedSession && (recording
-                ? <p className="recordedBanner" data-kind="recording" role="status"><IconInfo size={15} /> <strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p>
-                : <p className="recordedBanner" role="status"><IconInfo size={15} /> <strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p>)}
               {/* The decision, before the measurement.
                   What used to greet a reader here was "92% waktu pada pola
                   geometrik" — a number, and a number is not an answer. The
@@ -2733,45 +2744,76 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     <h2 id="verdict-heading">{verdict.subline}</h2>
                   </div>
                 </div>
+                {/* The composite lane's per-signal reasoning, stated once.
+                    It used to be printed twice — here, and again as cards in
+                    the section below, same label, same number, same citation —
+                    because the verdict's reasons are the referral's signals
+                    mapped one to one. What only the cards carried was the
+                    assessable/deviant status, so that moves up here and the
+                    duplicate goes away. */}
                 <ol className="verdictReasons">
-                  {verdict.reasons.map((reason) => <li key={reason.id}>
-                    <div className="verdictReasonTop"><strong>{reason.label}</strong><span>{reason.measured}</span></div>
-                    <p>{reason.body}</p>
-                    <small>{reason.source}</small>
-                  </li>)}
+                  {verdict.reasons.map((reason) => {
+                    const signal = referral.signals.find((item) => item.id === reason.id);
+                    return <li key={reason.id} data-status={signal?.status ?? "none"}>
+                      <div className="verdictReasonTop">
+                        <strong>{reason.label}</strong>
+                        {signal && <span className="signalStatus">{signal.status === "menyimpang" ? "Menyimpang" : signal.status === "normal" ? "Sesuai harapan" : "Tidak dapat dinilai"}</span>}
+                      </div>
+                      <p className="verdictMeasured">{reason.measured}</p>
+                      <p>{reason.body}</p>
+                      <small>{reason.source}</small>
+                    </li>;
+                  })}
                 </ol>
                 <p className="verdictCaveat"><IconSignalHeld size={15} /> <span>{verdict.caveat}</span></p>
               </section>}
-              <article className="observationLead" data-demoted={String(Boolean(verdict))}>
-                <span className="resultIcon" aria-hidden="true"><IconShieldCheck size={28} /></span>
-                <div><small>Angka yang diukur sesi ini</small><h3>{sessionOutcome.headline}</h3><p>{sessionOutcome.summaryLine}</p><span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span></div>
-              </article>
-              <section className="observationMetrics" aria-label="Indeks perilaku sesi">
-                <article><span><IconScanpathSpread size={19} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>{geoprefResult?.percentGeometricCi
-                  ? `95% CI ${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%. Ambang rujukan 69% dibandingkan terhadap selang ini, bukan terhadap satu angka (Wen dkk., 2022; n=1.863, spesifisitas 98%).`
-                  : "Ambang rujukan 69% (Wen dkk., 2022; n=1.863, spesifisitas 98%)."}</p></article>
-                <article><span><IconJointAttention size={19} /> Isyarat diikuti</span><strong>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</strong><p>{jointAttention?.pValue == null ? "Belum cukup percobaan." : `Uji tanda p = ${jointAttention.pValue.toFixed(3).replace(".", ",")}.`}</p></article>
-                <article><span><IconEye size={19} /> Menghadap layar</span><strong>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</strong><p>Padanan indeks ber-AUC 0,838 pada preseden tablet.</p></article>
-                <article><span><IconRoute size={19} /> Gerak kepala</span><strong>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</strong><p>Padanan indeks ber-AUC 0,864, tertinggi pada preseden.</p></article>
-                <article><span><IconTimer size={19} /> Respons nama</span><strong>{phenotype.responseToName.proportion == null ? "—" : `${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered}`}</strong><p>{phenotype.responseToName.medianLatencyMs == null ? "Belum terukur." : `Median ${Math.round(phenotype.responseToName.medianLatencyMs)} ms.`}</p></article>
-                <article><span><IconGauge size={19} /> Laju kedip</span><strong>{phenotype.blinkSocial.blinksPerMinute == null ? "—" : `${phenotype.blinkSocial.blinksPerMinute.toFixed(1).replace(".", ",")}/mnt`}</strong><p>Saat adegan sosial.</p></article>
+              {/* Lane 1, in one container instead of three.
+                  The headline, the six indices and the per-scene numbers are
+                  one thought — what this session measured — and they were three
+                  separately-bordered blocks with three different paddings. Each
+                  index now leads with its number and carries its provenance in
+                  the size provenance deserves, so a card is a number with a
+                  caption rather than a paragraph with a number in it. */}
+              <section className="measurementLane" data-demoted={String(Boolean(verdict))} aria-labelledby="measurement-heading">
+                <div className="laneHead">
+                  <small>Angka yang diukur sesi ini</small>
+                  <h2 id="measurement-heading">{sessionOutcome.headline}</h2>
+                  <p>{sessionOutcome.summaryLine}</p>
+                  <span className="observationStatus"><IconCheck size={14} /> {geoprefResult ? `${geoprefResult.validSamples} sampel dalam area` : "Belum terukur"} <i /> <IconSignalHeld size={14} /> Bukan diagnosis</span>
+                </div>
+                <div className="observationMetrics" role="list" aria-label="Indeks perilaku sesi">
+                  <article role="listitem"><span><IconScanpathSpread size={17} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>{geoprefResult?.percentGeometricCi
+                    ? `95% CI ${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%. Ambang rujukan 69% dibandingkan terhadap selang ini, bukan terhadap satu angka (Wen dkk., 2022; n=1.863, spesifisitas 98%).`
+                    : "Ambang rujukan 69% (Wen dkk., 2022; n=1.863, spesifisitas 98%)."}</p></article>
+                  <article role="listitem"><span><IconJointAttention size={17} /> Isyarat diikuti</span><strong>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</strong><p>{jointAttention?.pValue == null ? "Belum cukup percobaan." : `Uji tanda p = ${jointAttention.pValue.toFixed(3).replace(".", ",")}.`}</p></article>
+                  <article role="listitem"><span><IconEye size={17} /> Menghadap layar</span><strong>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</strong><p>Padanan indeks ber-AUC 0,838 pada preseden tablet.</p></article>
+                  <article role="listitem"><span><IconRoute size={17} /> Gerak kepala</span><strong>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</strong><p>Padanan indeks ber-AUC 0,864, tertinggi pada preseden.</p></article>
+                  <article role="listitem"><span><IconTimer size={17} /> Respons nama</span><strong>{phenotype.responseToName.proportion == null ? "—" : `${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered}`}</strong><p>{phenotype.responseToName.medianLatencyMs == null ? "Belum terukur." : `Median ${Math.round(phenotype.responseToName.medianLatencyMs)} ms.`}</p></article>
+                  <article role="listitem"><span><IconGauge size={17} /> Laju kedip</span><strong>{phenotype.blinkSocial.blinksPerMinute == null ? "—" : `${phenotype.blinkSocial.blinksPerMinute.toFixed(1).replace(".", ",")}/mnt`}</strong><p>Saat adegan sosial.</p></article>
+                </div>
+                {cueSummary && <details className="reportTechnical observationDetails"><summary>Lihat angka tiap adegan</summary><div className="cueRows">{STIMULUS_PHASES.filter((phase) => phase.target === "left" || phase.target === "right").map((phase) => { const response = cueSummary.targetResponse[phase.id]; const face = cueSummary.dwellShare[phase.id]?.face; return <div key={phase.id}><span>{phase.label}</span><strong>{response ? `${Math.round(response.probability * 100)}% pada target` : "tidak terbaca"}</strong><small>{face == null ? "wajah n/a" : `${Math.round(face * 100)}% pada wajah`}{response?.latencyMs == null ? "" : ` · respons awal ${Math.round(response.latencyMs)} ms`}</small></div>; })}</div><p>Persentase ini adalah porsi waktu tatapan, bukan probabilitas ASD dan bukan nilai benar/salah.</p></details>}
               </section>
-              {!isEngineeringStudy && <section className="referralLane" aria-labelledby="referral-heading" data-recommends={String(referral.recommendsFollowUp)}>
-                <div className="referralHead">
+              {/* Lane 2's rule, kept separable from lane 1 and stated once.
+                  The signal cards live in the verdict above whenever there is a
+                  verdict; here they would be the same four lines a second time.
+                  Without a verdict — nothing assessable — this is the only place
+                  the signals appear, so they stay. */}
+              {!isEngineeringStudy && <section className="referralLane" aria-labelledby="referral-heading" data-recommends={String(referral.recommendsFollowUp)} data-compact={String(Boolean(verdict))}>
+                <div className="laneHead">
                   <small>Jalur kedua · aturan komposit</small>
                   <h2 id="referral-heading">{referral.headline}</h2>
                   {/* Counted from the rule, not retyped: the copy said "empat sinyal" for a
                       while after the blink signal was dropped and the rule became three. */}
                   <p>{numberWordCapitalized(referral.signals.length)} sinyal yang dapat dinilai tanpa data pembanding balita: satu memakai ambang terbit, {numberWord(referral.signals.length - 1)} membandingkan anak dengan dirinya sendiri. Batas {referral.threshold} sinyal adalah pilihan desain, bukan ambang tervalidasi.</p>
                 </div>
-                <ul className="referralSignals">
+                {!verdict && <ul className="referralSignals">
                   {referral.signals.map((item) => <li key={item.id} data-status={item.status}>
-                    <div className="referralSignalTop"><strong>{item.label}</strong><span>{item.status === "menyimpang" ? "Menyimpang" : item.status === "normal" ? "Sesuai harapan" : "Tidak dapat dinilai"}</span></div>
+                    <div className="referralSignalTop"><strong>{item.label}</strong><span className="signalStatus">{item.status === "menyimpang" ? "Menyimpang" : item.status === "normal" ? "Sesuai harapan" : "Tidak dapat dinilai"}</span></div>
                     <p className="referralMeasured">{item.measured}</p>
                     <p className="referralReason">{item.reason}</p>
                     <small>{item.source}</small>
                   </li>)}
-                </ul>
+                </ul>}
                 <p className="referralLimit">Rekomendasi ini bukan diagnosis dan tidak menggantikan ambang GeoPref. Arah tiap sinyal diambil dari literatur, tetapi aturan gabungannya belum divalidasi pada balita. Hasil yang tidak memicu rekomendasi tetap bukan tanda aman.</p>
               </section>}
               {/* The fallback, not the main event.
@@ -2796,15 +2838,21 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     applied. */}
                 <div><small>Cara membaca hasil ini</small><h2>{sessionOutcome.emitsReferral || referral.recommendsFollowUp ? "Kenapa hasil ini perlu ditindaklanjuti?" : "Kenapa hasil ini belum berarti aman?"}</h2><p>{sessionOutcome.emitsReferral ? "Preferensi kuat pada pola geometrik jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita usia 12 sampai 49 bulan. Bawa hasil ini ke kader atau Puskesmas bersama SDIDTK." : referral.recommendsFollowUp ? `Kedua sinyal yang dapat dinilai sama-sama menyimpang. Seluruh selang kepercayaan waktu tatap pada pola geometrik berada di atas ambang 69 persen, dan pola itu jarang muncul pada anak tanpa ASD: spesifisitasnya 98 persen pada 1.863 balita. Isyarat arah diikuti pada ${jointAttention ? `${jointAttention.trialsFollowed} dari ${jointAttention.trialsScored}` : "sebagian kecil"} percobaan, dibandingkan terhadap peserta yang sama sebelum isyarat diberikan. Beginilah sesi lapangan akan terbaca bila stimulus penuh tersedia. Sesi ini peragaan, jadi tidak ada rujukan yang dikeluarkan dan hasilnya tidak dibawa ke layanan kesehatan.` :"Ambang rujukan otomatis dirancang untuk memastikan hasil positif, bukan menyingkirkan ASD. Sensitivitasnya hanya 17 persen, jadi sebagian besar anak ASD tidak terdeteksi di sini. Indeks lain di atas adalah pengukuran deskriptif yang belum punya ambang tervalidasi; skrining perkembangan rutin tetap diperlukan."}</p></div>
               </section>}
+              {/* A legend, sized like one. Three states of lane 1 with the
+                  session's own state marked; it explains the report rather than
+                  adding to it, so it reads at reference size, not at the size
+                  of the conclusion it sits under. */}
               <section className="decisionRules" aria-labelledby="decision-rules-heading">
-                <div className="decisionRulesHead"><small>Cara membaca status</small><h2 id="decision-rules-heading">Kapan sistem memberi arahan?</h2></div>
+                <div className="laneHead">
+                  <small>Cara membaca status</small>
+                  <h2 id="decision-rules-heading">Kapan sistem memberi arahan?</h2>
+                </div>
                 <div className="decisionRuleGrid">
-                  <article className={sessionOutcome.kind === "WITHHELD" ? "current" : ""}><span className="ruleIcon withheld"><IconSignalHeld size={18} /></span><div><small>DATA KURANG</small><strong>Sesi ditahan</strong><p>Wajah sering hilang, kalibrasi gagal, atau bagian tes tidak lengkap. Tidak ada hasil yang dikeluarkan.</p></div></article>
-                  <article className={sessionOutcome.kind === "MEASURED_NO_RULE_IN" || sessionOutcome.kind === "MEASURED_PROTOCOL_ABBREVIATED" ? "current" : ""}><span className="ruleIcon measured"><IconResearch size={18} /></span><div><small>DI BAWAH AMBANG</small><strong>Terukur, tanpa arahan rujukan</strong><p>Pola geometrik di bawah 69 persen. Bukan tanda aman: tes ini melewatkan sebagian besar anak ASD.</p></div></article>
-                  <article className={sessionOutcome.emitsReferral ? "current" : ""}><span className="ruleIcon alert"><IconAlert size={18} /></span><div><small>DI ATAS AMBANG</small><strong>Disarankan pemeriksaan lanjutan</strong><p>Pola geometrik 69 persen ke atas. Spesifisitas 98 persen pada 1.863 balita usia 12 sampai 49 bulan.</p></div></article>
+                  <article aria-current={sessionOutcome.kind === "WITHHELD" ? "true" : undefined} className={sessionOutcome.kind === "WITHHELD" ? "current" : ""}><span className="ruleIcon withheld"><IconSignalHeld size={16} /></span><div><small>Data kurang</small><strong>Sesi ditahan</strong><p>Wajah sering hilang, kalibrasi gagal, atau bagian tes tidak lengkap. Tidak ada hasil yang dikeluarkan.</p></div></article>
+                  <article aria-current={sessionOutcome.kind === "MEASURED_NO_RULE_IN" || sessionOutcome.kind === "MEASURED_PROTOCOL_ABBREVIATED" ? "true" : undefined} className={sessionOutcome.kind === "MEASURED_NO_RULE_IN" || sessionOutcome.kind === "MEASURED_PROTOCOL_ABBREVIATED" ? "current" : ""}><span className="ruleIcon measured"><IconResearch size={16} /></span><div><small>Di bawah ambang</small><strong>Terukur, tanpa arahan rujukan</strong><p>Pola geometrik di bawah 69 persen. Bukan tanda aman: tes ini melewatkan sebagian besar anak ASD.</p></div></article>
+                  <article aria-current={sessionOutcome.emitsReferral ? "true" : undefined} className={sessionOutcome.emitsReferral ? "current" : ""}><span className="ruleIcon alert"><IconAlert size={16} /></span><div><small>Di atas ambang</small><strong>Disarankan pemeriksaan lanjutan</strong><p>Pola geometrik 69 persen ke atas. Spesifisitas 98 persen pada 1.863 balita usia 12 sampai 49 bulan.</p></div></article>
                 </div>
               </section>
-              {cueSummary && <details className="reportTechnical observationDetails"><summary>Lihat angka tiap adegan</summary><div className="cueRows">{STIMULUS_PHASES.filter((phase) => phase.target === "left" || phase.target === "right").map((phase) => { const response = cueSummary.targetResponse[phase.id]; const face = cueSummary.dwellShare[phase.id]?.face; return <div key={phase.id}><span>{phase.label}</span><strong>{response ? `${Math.round(response.probability * 100)}% pada target` : "tidak terbaca"}</strong><small>{face == null ? "wajah n/a" : `${Math.round(face * 100)}% pada wajah`}{response?.latencyMs == null ? "" : ` · respons awal ${Math.round(response.latencyMs)} ms`}</small></div>; })}</div><p>Persentase ini adalah porsi waktu tatapan, bukan probabilitas ASD dan bukan nilai benar/salah.</p></details>}
               <section className="resultNext"><span><IconRoute size={20} /></span><div><small>Langkah berikutnya</small><h2>Gunakan instrumen skrining perkembangan yang tervalidasi.</h2><p>Bila ada kekhawatiran, bawa ringkasan observasi ini bersama hasil SDIDTK atau M-CHAT-R/F kepada kader, Puskesmas, atau dokter anak. Keputusan pemeriksaan lanjutan berasal dari penilaian tersebut, bukan dari skor kamera ini.</p></div></section>
             </div>
           ) : mode === "live" && isEngineeringStudy ? (
@@ -2893,13 +2941,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               read. Until now the refusal was invisible, so the strongest piece
               of engineering in the project looked from the outside like an
               absence of one. This shows the refusal happening. */}
-          <section className="researchPanel" aria-labelledby="research-panel-heading">
-            <div className="researchPanelHead">
+          <section className="researchLane" aria-labelledby="research-panel-heading">
+            <div className="laneHead">
               <small>Panel riset · bukan bagian dari keputusan</small>
               <h2 id="research-panel-heading">Model scanpath dan penjaga distribusi</h2>
               <p>Regresi logistik 13 fitur (AUC tingkat anak 0,823 pada 54 anak Carette) dikirim ke perangkat dan dijalankan setiap sesi. Penjaga out-of-distribution memutuskan apakah keluarannya boleh dibaca. Fitur geometrinya mengkodekan tata letak stimulus asal, jadi batas keputusannya tidak berpindah ke stimulus ini — penolakan di bawah adalah rancangan, bukan kegagalan.</p>
             </div>
-            <div className="researchPanelGrid">
+            <div className="researchLaneGrid">
               <article><span>Model</span><strong>{model?.model_version ?? "tidak dimuat"}</strong><small>{modelError ?? "13 fitur geometri, kalibrasi Platt"}</small></article>
               <article data-verdict={oodAssessment ? (oodAssessment.passed ? "pass" : "reject") : "none"}><span>Putusan penjaga</span><strong>{oodAssessment ? (oodAssessment.passed ? "Dalam rentang" : "Ditolak") : "Tidak dinilai"}</strong><small>{oodAssessment ? `${oodAssessment.flaggedFeatures.length} fitur ditandai · cakupan ${Math.round(oodAssessment.coverage * 100)}%` : "Referensi OOD belum dimuat"}</small></article>
               <article><span>Keluaran model</span><strong>{riskInterpretable && risk !== null ? risk.toFixed(2).replace(".", ",") : "ditahan"}</strong><small>{riskInterpretable ? "Hanya untuk panel ini; tidak ada jalur kode yang memakainya untuk memutuskan" : "Penjaga menolak, jadi angkanya tidak ditampilkan"}</small></article>
@@ -2914,18 +2962,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </div>}
             {oodAssessment && oodAssessment.featureDistance.length > 0 && <details className="reportTechnical">
               <summary>Lihat jarak tiap fitur terhadap kohort referensi</summary>
-              <table className="oodTable">
-                <thead><tr><th scope="col">Fitur</th><th scope="col">Sesi ini</th><th scope="col">Median referensi</th><th scope="col">Robust-z</th><th scope="col">Status</th></tr></thead>
-                <tbody>
-                  {oodAssessment.featureDistance.map((item) => <tr key={item.name} data-outside={String(item.outside)}>
-                    <th scope="row">{item.name}</th>
-                    <td>{item.value == null ? "—" : item.value.toFixed(3).replace(".", ",")}</td>
-                    <td>{item.median.toFixed(3).replace(".", ",")}</td>
-                    <td>{item.robustZ == null ? "—" : item.robustZ.toFixed(1).replace(".", ",")}</td>
-                    <td>{item.robustZ == null ? "tidak terhitung" : item.outside ? "di luar rentang" : "di dalam rentang"}</td>
-                  </tr>)}
-                </tbody>
-              </table>
+              {/* Five columns of numbers do not fit a phone. They scroll inside
+                  their own box rather than pushing the whole report sideways. */}
+              <div className="tableScroll" tabIndex={0} role="region" aria-label="Jarak tiap fitur terhadap kohort referensi">
+                <table className="oodTable">
+                  <thead><tr><th scope="col">Fitur</th><th scope="col">Sesi ini</th><th scope="col">Median referensi</th><th scope="col">Robust-z</th><th scope="col">Status</th></tr></thead>
+                  <tbody>
+                    {oodAssessment.featureDistance.map((item) => <tr key={item.name} data-outside={String(item.outside)}>
+                      <th scope="row">{item.name}</th>
+                      <td>{item.value == null ? "—" : item.value.toFixed(3).replace(".", ",")}</td>
+                      <td>{item.median.toFixed(3).replace(".", ",")}</td>
+                      <td>{item.robustZ == null ? "—" : item.robustZ.toFixed(1).replace(".", ",")}</td>
+                      <td>{item.robustZ == null ? "tidak terhitung" : item.outside ? "di luar rentang" : "di dalam rentang"}</td>
+                    </tr>)}
+                  </tbody>
+                </table>
+              </div>
               <p>Robust-z adalah jarak terhadap median kohort Carette dibagi skala MAD-nya. Angka besar berarti sesi ini menghasilkan nilai fitur yang tidak pernah ditemui model saat dilatih.</p>
             </details>}
           </section>

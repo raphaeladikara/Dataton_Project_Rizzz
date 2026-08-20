@@ -179,7 +179,7 @@ dan ambang keputusannya diambil dari studi 1.863 balita, bukan dari data kami. Y
 belum terbukti adalah performa skrining pada balita Indonesia. Itu Gate C, dan Gate C
 butuh izin yang kami belum punya.
 
-**"Kenapa tidak rekam anak-anak di sekitar kalian saja? Cuma 80 detik."**
+**"Kenapa tidak rekam anak-anak di sekitar kalian saja? Cuma 67 detik."**
 Durasi bukan yang menentukan. Yang menentukan: balita tidak dapat memberi persetujuan,
 jadi yang menggantikannya adalah keputusan orang lain, dan struktur yang mengawasi
 keputusan itu adalah kaji etik. Melewatinya menghapus pihak yang mewakili kepentingan

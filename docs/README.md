@@ -5,10 +5,12 @@
 - [`panduan_gate_b_webgazer.md`](panduan_gate_b_webgazer.md): kontrak data dan analisis Gate B.
 - [`panduan_operator.md`](panduan_operator.md): cara menjalankan webapp dengan aman.
 - [`panduan_audit_kalibrasi.md`](panduan_audit_kalibrasi.md): pengambilan dan interpretasi log kalibrasi.
+- [`bingkai_ai.md`](bingkai_ai.md): jawaban untuk "AI-nya di mana?" — empat komponen arsitektur bergerbang, temuan degradasi temporal 69% vs 1,6%, dan cara menjawab "belum ada balita" tanpa kehilangan poin. **Baca bersama `arah_pitch.md`.**
 - [`arah_pitch.md`](arah_pitch.md): bingkai presentasi — apa yang dijual, kalimat yang tidak boleh keluar, dan kenapa urutannya mengikuti bobot rubrik. **Mulai dari sini, dan baca sebelum menyunting naskah mana pun.**
 - [`pitch_7_menit.md`](pitch_7_menit.md): naskah presentasi semifinal beserta peta waktu, jawaban pertanyaan, dan sumber tiap angka.
 - [`pitch_10_menit.md`](pitch_10_menit.md): naskah sesi demo 10 menit — satu rekaman, satu sesi langsung dari penonton sebagai kontrol negatif, dan bahasa yang wajib dipakai saat memperagakan pola.
 - [`wawancara_praktisi.md`](wawancara_praktisi.md): protokol wawancara guru ASD dan tenaga kesehatan, pertanyaannya, dan aturan yang menjaganya tidak menjadi validasi yang tidak mungkin gagal.
+- [`wawancara_guru_15_menit.md`](wawancara_guru_15_menit.md): versi padat protokol itu untuk satu sesi 15 menit dengan guru SLS — lima pertanyaan yang jawabannya tidak bisa didapat dari tempat lain, naskah kalimat per kalimat, peta waktu, dan kartu contekan satu halaman.
 - [`jalur_rujukan.md`](jalur_rujukan.md): kenapa belum ada rujukan yang bisa keluar, kunci yang menahannya, dan rencana delapan langkah membukanya. **Baca ini sebelum kontrol positif.**
 - [`etika_perekaman.md`](etika_perekaman.md): kenapa tidak ada balita dan tidak ada anak ASD yang direkam tim ini, apa yang sudah dicoba, apa yang boleh dikerjakan sebagai gantinya, dan jawaban untuk pertanyaan juri soal izin. **Baca sebelum sesi perekaman apa pun.**
 - [`ambang_selang_kepercayaan.md`](ambang_selang_kepercayaan.md): kenapa ambang 69% dibandingkan terhadap selang kepercayaan dan bukan terhadap satu angka, penaksir yang dipakai beserta dua yang gagal, dan tabel karakteristik operasi aturan lama versus baru.

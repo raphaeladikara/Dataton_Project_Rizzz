@@ -90,12 +90,42 @@ ia muncul karena perangkat kerasnya sudah ada di tangan orang.
   sini karena kader adalah relawan; kalau kebijakan menuntut insentif, angkanya
   berubah dan harus dihitung ulang.
 - Angka 5 anak per hari buka adalah perkiraan, bukan observasi.
-- Baterai 80 detik belum pernah dijalankan pada balita. Kalau toleransinya jauh lebih
+- Baterai 67 detik belum pernah dijalankan pada balita. Kalau toleransinya jauh lebih
   rendah dan sesi harus diulang, sesi per hari turun dan biaya per sesi naik.
 
 Yang **tidak** berubah oleh asumsi mana pun: tidak ada biaya marginal perangkat lunak
 untuk Posyandu tambahan. PWA tanpa backend, tanpa basis data, tanpa lisensi. Posyandu
 ke-1 dan Posyandu ke-1.000 memakai berkas statis yang sama.
+
+### Biaya per kasus ditemukan — angka yang harus dibawa ke panggung
+
+Perbandingan biaya per *pemeriksaan* punya satu kelemahan yang juri tajam akan temukan
+dalam tiga puluh detik: ia membandingkan alat bersensitivitas 17% dengan alat berizin
+FDA seolah keduanya melakukan hal yang sama. Serangan itu sah, dan jawabannya adalah
+menghitung metrik yang lebih keras terhadap diri sendiri lebih dulu.
+
+Dari `research/hasil/gate_c_simulation.json`: kohort 1.000 anak, prevalensi 1%,
+coverage teknis 90% → ambang GeoPref terbit menemukan **1,53 kasus benar**.
+
+| Pemakaian | Biaya per sesi | Biaya 1.000 sesi | **Biaya per kasus ditemukan** |
+|---|---:|---:|---:|
+| Satu Posyandu | Rp 13.900 | Rp 13,9 juta | **Rp 9,08 juta** |
+| Dirotasi 4 Posyandu | Rp 3.500 | Rp 3,5 juta | **Rp 2,29 juta** |
+| Dirotasi 8 Posyandu | Rp 1.700 | Rp 1,7 juta | **Rp 1,11 juta** |
+
+Pembandingnya: EarliPoint **Rp 9,7 juta untuk satu kali pemeriksaan**, satu anak.
+
+Kalimat panggungnya:
+
+> Ambil metrik yang paling keras terhadap kami — bukan biaya per pemeriksaan, tapi
+> biaya per kasus yang benar-benar ditemukan, sudah memperhitungkan bahwa alat ini
+> melewatkan sebagian besar. **Menemukan satu kasus dengan Neurogaze harganya kira-kira
+> sama dengan sekali pemeriksaan EarliPoint.** Dan dengan satu tablet yang dirotasi ke
+> empat Posyandu, harganya turun jadi seperempatnya.
+
+Angka ini lebih rendah hati daripada "tiga sampai empat orde besaran", lebih mudah
+diingat, dan — yang menentukan — ia bertahan ketika juri mengerjakan pembagiannya
+sendiri.
 
 ---
 
@@ -105,7 +135,7 @@ Alat ini tidak menggantikan apa pun. Ia menempel pada alur yang sudah berjalan.
 
 | Lapis | Yang sudah ada | Di mana NeuroGaze masuk |
 |---|---|---|
-| Posyandu | SDIDTK/KPSP saat penimbangan bulanan | Sesi 80 detik sesudah penimbangan, dijalankan kader |
+| Posyandu | SDIDTK/KPSP saat penimbangan bulanan | Sesi 67 detik sesudah penimbangan, dijalankan kader |
 | Rujukan | Kader menyerahkan temuan ke Puskesmas | Laporan satu halaman dicetak atau diserahkan sebagai berkas |
 | Puskesmas | M-CHAT-R/F, pemeriksaan tenaga kesehatan | Laporan dibaca **berdampingan** dengan SDIDTK, bukan menggantikannya |
 | Nasional | SATUSEHAT (FHIR R4) | Target integrasi, belum dikerjakan |

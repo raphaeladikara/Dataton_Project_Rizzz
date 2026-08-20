@@ -92,6 +92,11 @@ melainkan pengulangannya.**
 
 ## Bingkai bagian AI
 
+> **Bingkai lengkapnya sekarang punya dokumen sendiri:
+> [`bingkai_ai.md`](bingkai_ai.md)** — empat komponen arsitektur bergerbang beserta
+> berkas buktinya, tabel degradasi temporal, dan naskah untuk menjawab "belum ada
+> balita". Bagian di bawah ini adalah ringkasan alasannya.
+
 Pertanyaan yang akan datang, dan sekarang belum terjawab di naskah mana pun:
 **"AI-nya di mana?"** Faktanya setiap model di repositori ini dikarantina, ditolak,
 atau belum dibangun, dan yang memutuskan di produk adalah aturan pencacahan.
