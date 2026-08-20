@@ -115,3 +115,34 @@ test("a loaded model with a broken feature still fails the contract", () => {
   assert.equal(result.primaryReasonCode, "FEATURE_CONTRACT_MISMATCH");
   assert.equal(result.canScore, false);
 });
+
+test("a phase starved of samples is not reported as a clock desync", () => {
+  const sparse = phaseAssessment("gaze_left", 3);
+  assert.equal(sparse.status, "degraded");
+  // `timestampsComplete` and `synchronized` are claims about the clock, and
+  // phaseAssessment is never handed one. A phase can be starved of samples
+  // with a perfectly monotone clock — which is what happens when the
+  // calibration maps the session off screen — and answering "desync" here
+  // sends the operator to repeat the stimulus while the calibration that
+  // caused it is carried into the retry unchanged.
+  assert.equal(sparse.timestampsComplete, true);
+  assert.equal(sparse.synchronized, true);
+});
+
+test("a session the calibration mapped off screen says so, and sends the operator back to calibration", () => {
+  // Taken from neurogaze-audit-PERAGA-20260820-01: offScreenRate 0.78, every
+  // scored phase starved, clocks monotone throughout, calibration passed at
+  // 1.35 deg. It was reported as PHASE_DESYNC -> "Ulangi stimulus", so three
+  // consecutive retries reused the mapping that was the actual fault.
+  const starved = ["gaze_left", "gaze_right", "pointing_left", "pointing_right",
+    "gaze_left_repeat", "gaze_right_repeat", "pointing_left_repeat", "pointing_right_repeat"]
+    .map((id, index) => phaseAssessment(id, index === 5 ? 17 : 3));
+  const result = evaluateSessionValidity(valid({ offScreenRate: 0.777, phases: starved }));
+  assert.equal(result.primaryReasonCode, "OFF_SCREEN_DOMINANT");
+  assert.match(result.operatorAction, /kalibrasi/i);
+});
+
+test("a genuine clock desync is still reported as one", () => {
+  const result = evaluateSessionValidity(valid({ timestampsSynchronized: false }));
+  assert.equal(result.primaryReasonCode, "PHASE_DESYNC");
+});

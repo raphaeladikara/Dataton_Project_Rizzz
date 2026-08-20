@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { CHILD_TARGETS } from "../capture/calibrationTargets";
 import {
   IconBrightness,
   IconCalibrationGrid,
@@ -29,7 +30,10 @@ const FLOW = [
   { key: "report", label: "Laporan", hint: "Kesimpulan & tindakan", icon: IconReport },
 ] as const;
 const LOOP = FLOW.length * STEP_DURATION;
-const CALIBRATION_TARGETS = [[50, 50], [18, 18], [82, 18], [18, 82], [82, 82]] as const;
+// Derived, so the illustration cannot go on advertising a grid the app stopped
+// running. It showed the four-corner square for as long as the square was the
+// reason sessions were coming back unscorable.
+const CALIBRATION_TARGETS = CHILD_TARGETS.map(([x, y]) => [x * 100, y * 100] as const);
 
 function MockCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <div className={`heroMockCard ${className}`}>{children}</div>;

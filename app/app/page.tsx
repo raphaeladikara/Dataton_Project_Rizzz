@@ -29,6 +29,7 @@ import {
   type CalibrationTargetDiagnostic,
 } from "../src/capture/faceLandmarker";
 import { projectCoverPoint, projectCoverRect } from "../src/capture/videoProjection";
+import { CHILD_TARGETS, TECHNICAL_TARGETS as TARGETS } from "../src/capture/calibrationTargets";
 import type {
   DeviceDiagnostics,
   ModelExport,
@@ -95,7 +96,7 @@ import {
   scoredPhaseTargets,
   sessionStimulusPhases,
   STIMULUS_PHASES,
-  STIMULUS_TOTAL_SECONDS,
+  stimulusSeconds,
   STIMULUS_VERSION,
 } from "../src/stimulus/protocol";
 import {
@@ -179,24 +180,6 @@ const EMPTY_PHENOTYPE = buildPhenotypeProfile({
   frames: [], nameCalls: [], socialPhases: SOCIAL_PHASE_IDS, nonsocialPhases: [GEOPREF_PHASE_ID],
 });
 
-const TARGETS = [
-  [0.12, 0.14],
-  [0.5, 0.14],
-  [0.88, 0.14],
-  [0.12, 0.5],
-  [0.5, 0.5],
-  [0.88, 0.5],
-  [0.12, 0.86],
-  [0.5, 0.86],
-  [0.88, 0.86],
-] as const;
-const CHILD_TARGETS = [
-  [0.5, 0.5],
-  [0.18, 0.18],
-  [0.82, 0.18],
-  [0.18, 0.82],
-  [0.82, 0.82],
-] as const;
 const APP_VERSION = "3.0.0-child-flow";
 
 /**
@@ -1047,6 +1030,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   }), [referral, sessionOutcome, posterior, demonstrationMode]);
   const useTechnicalCalibration = isEngineeringStudy || technicalCalibration;
   const activeTargets = useTechnicalCalibration ? TARGETS : CHILD_TARGETS;
+  // Null outside the positive-control lane, so an ordinary child session never
+  // sounds a name call and never needs the phase that would carry one.
+  const speakerDeclared = Boolean(positiveControl?.speakerBehind);
+  // What this configuration will actually run, which is 13 s shorter whenever
+  // the name call is silent. Operators decide whether a child will sit still
+  // from this number, so it cannot keep quoting the longest possible battery.
+  const sessionSeconds = useMemo(
+    () => stimulusSeconds(sessionStimulusPhases("duration-probe", { nameCallsDelivered: speakerDeclared })),
+    [speakerDeclared],
+  );
   const calibrationLimitDeg = isEngineeringStudy ? 3 : 5;
   const calibrationFailed = Boolean(calibrationMessage && (!calibration || calibration.errorDeg > calibrationLimitDeg));
   const recovery = calibrationRecovery(calibration, calibrationMessage);
@@ -1320,7 +1313,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setCalibrationMessage(null);
     setCalibrationProgress(null);
     recordAudit("calibration.started", {
-      protocol: useTechnicalCalibration ? "technical_9_grid_plus_center_drift_v6" : "child_passive_5_position_v1",
+      protocol: useTechnicalCalibration ? "technical_9_grid_plus_center_drift_v6" : "child_passive_5_cross_v2",
       targetCount: activeTargets.length,
       fullscreen: Boolean(document.fullscreenElement),
       viewport: { width: window.innerWidth, height: window.innerHeight },
@@ -1586,7 +1579,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       if (renewed) commitAudit(renewed);
       setCounterbalanceKey(runKey);
     }
-    const orderedPhases = sessionStimulusPhases(runKey);
+    // Decided before the phase list is built, not after: without a speaker
+    // behind the participant nothing is ever sounded, and the phase would run
+    // thirteen seconds of bare centre dot for a measurement that cannot happen.
+    const orderedPhases = sessionStimulusPhases(runKey, { nameCallsDelivered: speakerDeclared });
     const nameCallsPlanned = sessionNameCalls(positiveControl, orderedPhases);
     const runPhases = retryPhaseIds.length
       ? orderedPhases.filter((phase) => retryPhaseIds.includes(phase.id))
@@ -1827,10 +1823,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       // below, and nothing else.
     });
     const scoredPhases = STIMULUS_PHASES.filter((phase) => phase.scored);
-    const phaseAssessments = scoredPhases.map((phase) => phaseAssessment(
-      phase.id,
-      captured.filter((point) => point.phase === phase.id).length,
-    ));
+    const phaseAssessments = scoredPhases.map((phase) => {
+      const phasePoints = captured.filter((point) => point.phase === phase.id);
+      return phaseAssessment(
+        phase.id,
+        phasePoints.length,
+        undefined,
+        // Measured, not inferred from how many samples survived. A thin phase
+        // and a desynchronised one need opposite remedies from the operator.
+        phasePoints.every((point, index) => index === 0 || point.t >= phasePoints[index - 1].t),
+      );
+    });
     const gazeSteps = captured.slice(1).map((point, index) => ({
       distance: Math.hypot(point.x - captured[index].x, point.y - captured[index].y),
       samePhase: point.phase === captured[index].phase,
@@ -2134,7 +2137,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <i aria-hidden="true"><IconEye size={13} /></i>
                 Pendamping skrining untuk Posyandu
               </span>
-              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>dalam {STIMULUS_TOTAL_SECONDS} detik</em>.</h1>
+              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>dalam {sessionSeconds} detik</em>.</h1>
               <p className="lead" style={{ "--i": 2 } as CSSProperties}>
                 Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi.
               </p>
@@ -3027,7 +3030,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <div className="stimulusSteps" aria-label="Ringkasan tugas">
                 {introCopy.steps.map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}
               </div>
-              <small>{isEngineeringStudy ? `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${STIMULUS_TOTAL_SECONDS} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
+              <small>{isEngineeringStudy ? `Stimulus berlangsung ${sessionSeconds} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${sessionSeconds} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
               <button className="startStimulus" disabled={!calibration || sanityPassed !== true || (mode === "replay" && !model)} onClick={() => void runStimulus()}><IconPlay size={15} />{mode === "replay" ? "Saya paham · mulai demo" : isEngineeringStudy ? "Saya paham · mulai pengukuran" : "Mulai tes"}</button>
             </div>}
             </div>

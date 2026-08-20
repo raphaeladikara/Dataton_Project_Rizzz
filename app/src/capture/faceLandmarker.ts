@@ -31,6 +31,20 @@ export type CalibrationDiagnostics = {
   validationSamples: number;
   signalRangeU: number;
   signalRangeV: number;
+  /**
+   * How much screen one unit of eye signal has to cover, per axis. The number
+   * every reading off this calibration is multiplied by, including the drift
+   * and jitter the calibration itself could not remove.
+   *
+   * Recorded because `gridMedianErrorDeg` cannot see it: that error is
+   * measured at the very points the curve interpolates, so it reads about a
+   * degree whether the mapping is stable or hopeless. The stage-demo session
+   * that put 78% of its samples off screen passed at 1.35°, against 1.09° and
+   * 1.17° for the two recordings that worked. Its gain was the only number
+   * that differed, and the only one knowable before the session ran.
+   */
+  screenSpanPerUnitU: number;
+  screenSpanPerUnitV: number;
   trainingRmseDeg: number;
   gridMedianErrorDeg: number;
   centerDriftDeg: number;
@@ -321,6 +335,12 @@ export function fitCalibration(
     throw new Error("CALIBRATION_RANGE_X: gerakan sinyal horizontal terlalu kecil. Dekatkan tablet atau pastikan mata mengikuti titik, bukan hanya kepala.");
   if (rangeV < 0.004)
     throw new Error("CALIBRATION_RANGE_Y: gerakan sinyal vertikal terlalu kecil. Naikkan tablet sejajar mata dan ulangi.");
+  const targetSpan = (axis: "x" | "y") => {
+    const values = representatives.map((sample) => sample.target[axis]);
+    return Math.max(...values) - Math.min(...values);
+  };
+  const targetSpanX = targetSpan("x");
+  const targetSpanY = targetSpan("y");
   const x = fitAxis(representatives, "x");
   const y = fitAxis(representatives, "y");
   const curveX = axisCurve(representatives, "x");
@@ -366,6 +386,8 @@ export function fitCalibration(
       validationSamples: validation.length,
       signalRangeU: rangeU,
       signalRangeV: rangeV,
+      screenSpanPerUnitU: targetSpanX / rangeU,
+      screenSpanPerUnitV: targetSpanY / rangeV,
       trainingRmseDeg,
       gridMedianErrorDeg,
       centerDriftDeg,
