@@ -15,7 +15,7 @@ Protokol perekamannya ada di [`kontrol_positif.md`](kontrol_positif.md).
 
 **Anggaran waktu yang harus dihitung sebelum menyusun ulang naskah ini.** Satu sesi
 kamera penuh memakan sekitar tiga menit: persetujuan, persiapan, kalibrasi lima titik,
-lalu 80 detik stimulus. Dua sesi langsung tidak muat di slot sepuluh menit bersama
+lalu 67 detik stimulus. Dua sesi langsung tidak muat di slot sepuluh menit bersama
 apa pun yang lain. Naskah ini menjalankan **satu** sesi langsung dan memutar rekaman
 untuk kondisi yang satunya.
 

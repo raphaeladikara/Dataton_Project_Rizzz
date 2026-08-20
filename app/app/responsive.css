@@ -151,7 +151,6 @@
     font-size: 48px;
   }
   .deviceGrid,
-  .reportGrid,
   .guideGrid {
     grid-template-columns: 1fr;
   }
@@ -212,9 +211,6 @@
     grid-template-columns: 1fr;
   }
   .validationLadder {
-    grid-template-columns: 1fr;
-  }
-  .featureEvidenceList {
     grid-template-columns: 1fr;
   }
 }
@@ -322,17 +318,14 @@
   .toyObject { width: 88px; height: 88px; }
   .toyObject > i { width: 78px; height: 78px; }
   .pointingArm { width: 145px; top: 56%; }
-  .reportHeader {
-    display: block;
-  }
-  .decisionBadge {
-    margin-bottom: 16px;
-  }
   .withheldPanel,
   .researchPanel {
     flex-direction: column;
     gap: 16px;
     padding: 22px;
+  }
+  .verdictHead {
+    gap: 13px;
   }
   .cueRows {
     grid-template-columns: 1fr;
@@ -369,7 +362,6 @@
   .scenarioCard,
   .evidenceCard,
   .guideGrid article,
-  .reportGrid article,
   .qualityGrid .metric,
   .calibrationDiagnostics .metric,
   .gateDecision,
@@ -401,9 +393,6 @@
     animation: none !important;
   }
 
-  .riskTrack i {
-    animation: none !important;
-  }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -438,7 +427,6 @@
   .metric,
   .formCard,
   .checkPanel,
-  .reportGrid article,
   .scenarioCard,
   .evidenceCard,
   .qualityGrid .metric {

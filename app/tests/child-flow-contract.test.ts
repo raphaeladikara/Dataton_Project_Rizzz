@@ -231,11 +231,12 @@ test("restarting a completed session resets stimulus progress", () => {
 });
 
 test("admin evidence reports passed A/B and open C/D from repository evidence", () => {
-  assert.match(adminConsole, /Gate A dan B telah lulus berdasarkan log webapp/);
-  assert.match(adminConsole, /Lulus: akuisisi stabil pada 100 sesi/);
-  assert.match(adminConsole, /Lulus: aliran gaze Neurogaze sejalan dengan referensi WebGazer/);
+  // Pass/open state is carried by the status pill beside each gate heading, so
+  // these assert the pill rather than a "Lulus:" prefix inside the heading text.
+  assert.match(adminConsole, /Akuisisi stabil pada 100 sesi lintas kondisi/);
+  assert.match(adminConsole, /Aliran gaze sejalan dengan referensi WebGazer\.js/);
   assert.match(adminConsole, /Lulus · 100 sesi/);
-  assert.match(adminConsole, /Lulus · 27 dari 30 pasangan/);
+  assert.match(adminConsole, /Lulus · 27 dari 30/);
   assert.match(gateBPublic, /"status": "gate_b_passed"/);
   assert.match(gateBPublic, /"nPairsTotal": 30/);
   assert.match(gateBPublic, /"nPairsReady": 27/);
@@ -269,7 +270,7 @@ test("stated session duration is derived from the protocol, never retyped", asyn
 });
 
 test("admin explains why the stimulus was purpose-built, with sources and limits", () => {
-  assert.match(adminConsole, /Stimulus ini dirancang khusus untuk skrining, bukan animasi hiburan/);
+  assert.match(adminConsole, /Adegan vektor dirancang untuk skrining, bukan hiburan/);
   assert.match(adminConsole, /referensi\/stimulus_billeci/);
   assert.match(adminConsole, /doi\.org\/10\.1016\/j\.cub\.2008\.03\.059/);
   assert.match(adminConsole, /doi\.org\/10\.3389\/fpsyg\.2019\.02187/);
@@ -282,6 +283,53 @@ test("admin explains why the stimulus was purpose-built, with sources and limits
   // Design rationale must not be mistaken for clinical validation.
   assert.match(adminConsole, /Batas klaim desain stimulus/);
   assert.match(adminConsole, /bukan instrumen yang sudah tervalidasi secara klinis/);
+});
+
+test("admin panel reports the positive control without overclaiming it", () => {
+  // The number the section exists to carry: the rule did not fire on anyone who
+  // merely watched. Losing it would leave the section describing separation
+  // without the specificity half of the story.
+  assert.match(adminConsole, /0 \/ 9/);
+  assert.match(adminConsole, /Jarak terdekat/);
+  // Separation is reported as a margin in the signal's own units, because AUC
+  // 1,00 on 15 sessions only says no pair swapped order.
+  assert.match(adminConsole, /Kolom yang penting adalah jarak terdekat, bukan AUC/);
+  // Adults following a script. No sensitivity, specificity, or accuracy.
+  // Matched against whitespace-collapsed source: this sentence sits inside JSX
+  // prose, so where the line happens to wrap is formatting, not contract.
+  const flowed = adminConsole.replace(/\s+/g, " ");
+  assert.match(adminConsole, /Yang data ini tidak tunjukkan/);
+  assert.match(flowed, /tidak ada sensitivitas, spesifisitas, atau akurasi/i);
+  // Confounds ship with the result rather than being discovered by a reader.
+  assert.match(adminConsole, /Panel geometrik selalu di kanan/);
+  // The shipped rule cannot fire; only demonstration mode can.
+  assert.match(adminConsole, /Mode demonstrasi — bukan rujukan/);
+});
+
+test("admin panel verifies the GeoPref clip as a file, not as an asset", () => {
+  // Container facts a reader can check against the file itself.
+  assert.match(adminConsole, /38576193099bec758837036582b7814a2728c431829e22f9d0e92ffe91fedf2f/);
+  assert.match(adminConsole, /Trek audio/);
+  // Silence is the protocol, so nobody "fixes" it by adding a soundtrack.
+  assert.match(adminConsole, /Jangan menambahkan trek suara/);
+  // Each asset carries its own operating point; one test's evidence must not be
+  // quoted on another test's measurement.
+  assert.match(adminConsole, /Tidak ada preseden operasional/);
+  assert.match(adminConsole, /Sensitivitas 17% · spesifisitas 98%/);
+  assert.match(adminConsole, /Sensitivitas 18% · spesifisitas 97%/);
+  // The reason the cutoff is held in the field.
+  assert.match(adminConsole, /Kenapa ambang 69% ditahan/);
+  assert.match(adminConsole, /validatedProtocol/);
+});
+
+test("admin panel navigation covers every section it renders", () => {
+  // A nav entry pointing at a section that no longer exists silently dead-ends,
+  // and a section with no nav entry is unreachable from the rail.
+  const navIds = [...adminConsole.matchAll(/\{ id: "([a-z-]+)", label: "/g)].map((match) => match[1]);
+  const sectionIds = [...adminConsole.matchAll(/<section id="([a-z-]+)"/g)].map((match) => match[1]);
+  assert.deepEqual([...navIds].sort(), [...sectionIds].sort());
+  assert.ok(navIds.includes("kontrol-positif"));
+  assert.ok(navIds.includes("klip-geopref"));
 });
 
 test("step numbering has one source, so no screen can disagree with the rail", () => {
@@ -346,7 +394,7 @@ test("demonstration mode never reaches the child path and never emits a referral
   // The operator-facing banner has to say the threshold was applied on purpose
   // and that the session produces no referral.
   assert.match(page, /MODE DEMONSTRASI/);
-  assert.match(page, /demonstrationMode && <div className="demonstrationBanner"/);
+  assert.match(page, /demonstrationMode && <div className="reportNotice" data-kind="demonstration"/);
   // It is written into the audit log, so an exported session cannot hide it —
   // and it is written where the log actually exists. Recording it before
   // start() appended the event to the previous session's log, which start()

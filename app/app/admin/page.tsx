@@ -1,12 +1,12 @@
-import { cookies } from "next/headers";
-import { ADMIN_COOKIE, adminConfigured, verifyAdminSession } from "../../src/admin/auth";
 import { AdminConsole } from "./admin-console";
-import { AdminLogin } from "./admin-login";
 
-export const dynamic = "force-dynamic";
-
-export default async function AdminPage() {
-  const cookieStore = await cookies();
-  const authenticated = verifyAdminSession(cookieStore.get(ADMIN_COOKIE)?.value);
-  return authenticated ? <AdminConsole /> : <AdminLogin configured={adminConfigured()} />;
+/**
+ * Static. There is no server in this product, so there is nothing here to
+ * authenticate against — the panel reads the same published evidence files the
+ * rest of the app does, and holds no session data. It used to sit behind a
+ * passcode backed by an API route, which was the only thing in the repository
+ * that contradicted "PWA statis tanpa backend".
+ */
+export default function TechnicalPanelPage() {
+  return <AdminConsole />;
 }

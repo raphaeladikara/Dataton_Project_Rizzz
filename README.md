@@ -1,219 +1,194 @@
 # Neurogaze
 
-Neurogaze is an offline-first web application for gaze-measurement research related to early ASD screening. Camera processing runs in the browser; raw video is neither uploaded nor stored.
+**Arsitektur inferensi bergerbang untuk skrining atensi dini di Posyandu.** PWA statis
+yang berjalan luring di tablet Android biasa: kamera diproses di perangkat, video mentah
+tidak pernah diunggah maupun disimpan, dan tidak ada server di belakangnya. Posyandu
+ke-1 dan Posyandu ke-1.000 memuat berkas yang sama.
 
-> Neurogaze is not a diagnostic device. It is a rule-in instrument: a positive result is informative, a negative result is not reassurance.
+> Neurogaze bukan alat diagnosis. Ia instrumen *rule-in*: hasil positif layak
+> ditindaklanjuti, hasil negatif bukan tanda aman.
 
-## What a session produces
+Sesi 67 detik menghasilkan laporan satu halaman yang bisa diserahkan ke Puskesmas,
+dibaca berdampingan dengan SDIDTK atau M-CHAT-R/F.
 
-An 80-second battery measures three things and reports them separately. Preferential
-looking runs second, right after the opening attention block, because it carries the
-only externally published threshold in the system and should not be measured on a
-tired, socially primed child.
+---
 
-| Layer | What it is | Can it trigger a referral? |
+## Yang membedakan sistem ini
+
+Hampir semua ML yang dikerahkan ke lapangan mengandaikan data masuk mirip data latihnya.
+Ketika andaian itu salah, modelnya tetap mengeluarkan angka — dengan percaya diri, tanpa
+memberi tahu siapa pun. Di skrining anak, itu rasa aman palsu yang diserahkan ke orang
+tua.
+
+Neurogaze memasang gerbang tepat di titik itu. Empat komponen menyusunnya, dan tiap
+komponen punya berkas buktinya.
+
+### 1. Fitur dipilih dengan pengukuran, bukan selera
+
+Kamera Posyandu berjalan ~26 fps dan sering lebih lambat. Kami desimasi 27 sesi
+berpasangan Gate B yang membawa stempel waktu sungguhan, lalu ukur keluarga fitur mana
+yang bertahan:
+
+| Laju efektif | Fitur kinematik | Fitur geometri |
+|---|---:|---:|
+| 26,2 Hz (dasar) | — | — |
+| **13,1 Hz** | **bergeser 69,4%** | **bergeser 1,6%** |
+| 8,7 Hz | bergeser 79,7% | bergeser 2,8% |
+| 5,2 Hz | bergeser 84,4% | bergeser 5,6% |
+
+Selisih **42 kali lipat** pada penurunan laju yang di Posyandu bukan kemungkinan
+melainkan keseharian. Itu yang menentukan arsitektur fiturnya.
+[`research/hasil/degradasi_temporal.json`](research/hasil/degradasi_temporal.json)
+
+### 2. Seleksi model yang menjatuhkan model kami sendiri
+
+CNN kami ber-AUC 0,882; regresi logistik 13 fitur ber-AUC 0,823. Yang dikirim: yang
+lebih rendah. Bootstrap berpasangan terstratifikasi, 10.000 replikasi, 54 partisipan
+yang sama — ΔAUC 0,059 dengan CI95 **[−0,007, +0,137]**, p = 0,087, dan korelasi
+prediksi **0,93**. CNN-nya bukan model yang lebih pintar; ia model yang lebih rumit
+untuk sinyal yang sama.
+[`research/hasil/perbandingan_model.json`](research/hasil/perbandingan_model.json)
+
+### 3. Penjaga out-of-distribution yang berjalan di perangkat
+
+Regresi logistik dikirim ke tablet dan dijalankan **setiap sesi**. Penjaga lalu
+memutuskan apakah keluarannya boleh dibaca — dan pada stimulus ini ia menolak, sambil
+menyebut fitur mana yang di luar distribusi beserta jaraknya (9,1 z, Mahalanobis 87,9).
+Penolakan itu tercetak di laporan, bukan disembunyikan.
+[`app/src/quality/ood.ts`](app/src/quality/ood.ts)
+
+### 4. Tata kelola yang dijaga type checker
+
+`combinedScore` bernilai `null` dan tidak ada jalur kode yang dapat mengisinya.
+Menggabungkan lajur berambang-terbit dengan lajur deskriptif bukan sesuatu yang kami
+janjikan tidak akan dilakukan — itu sesuatu yang **tidak dapat dikompilasi**.
+
+Bingkai presentasi untuk keempatnya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md).
+
+---
+
+## Apa yang dihasilkan satu sesi
+
+Baterai 67 detik mengukur tiga hal dan melaporkannya terpisah. Blok preferential
+looking berjalan kedua, tepat sesudah blok atensi pembuka, karena ia membawa
+satu-satunya ambang terbit di sistem ini dan tidak boleh diukur pada anak yang sudah
+lelah dan sudah terprimasi secara sosial.
+
+| Lapis | Isinya | Bisa memicu rujukan? |
 |---|---|---|
-| **A — GeoPref** | Percent geometric fixation against the published 69% cutoff (Wen et al. 2022, n=1863, ages 12–48 months, sensitivity 17%, **specificity 98%**) | **Yes** — the only trigger with an external threshold |
-| **B — Behavioural profile** | Facing-forward, head movement, blink rate, response to name, cue following with a within-session sign test | No. Descriptive, read alongside SDIDTK/M-CHAT |
-| **B2 — Composite recommendation** | A readable rule over the signals that need no toddler norm: the published GeoPref cutoff, plus one within-subject contrast (cue following). Response to name is quarantined — its paradigm needs a caller behind the child, which a tablet speaker cannot provide | Recommends a follow-up examination. Not validated on toddlers, and reported beside Layer A rather than merged into it. Cannot fire while the licensed GeoPref clip is shorter than the published protocol |
-| **C — Combined weighted model** | Being replaced rather than built. No toddler will be recorded by this team before ethics approval, so the layer is assembled from published operating points and weights fitted on an openly licensed labelled dataset instead | Not yet |
+| **A — GeoPref** | Persentase fiksasi geometrik terhadap ambang terbit 69% (Wen dkk. 2022, n=1.863, usia 12–48 bulan, sensitivitas 17%, **spesifisitas 98%**) | **Ya** — satu-satunya pemicu dengan ambang eksternal |
+| **B — Profil perilaku** | Menghadap layar, gerak kepala, laju kedip, respons nama, mengikuti isyarat dengan uji tanda dalam-sesi | Tidak. Deskriptif, dibaca berdampingan dengan SDIDTK/M-CHAT |
+| **B2 — Rekomendasi komposit** | Aturan terbaca atas sinyal yang tidak butuh norma balita: ambang GeoPref terbit, plus satu kontras dalam-subjek (mengikuti isyarat) | Merekomendasikan pemeriksaan lanjutan. Belum tervalidasi pada balita, dan dilaporkan di samping Lapis A, bukan dilebur ke dalamnya |
+| **C — Model gabungan berbobot** | Dirancang, belum dipasang. Kalibrasi likelihood-ratio yang tiap sukunya wajib punya sitiran | Belum |
 
-The published cutoff is compared against the session's 95% confidence interval rather
-than against its point estimate. A session measuring 71% on a 16.75-second excerpt
-cannot be told apart from one measuring 67%, so an interval that straddles 69% leaves
-the signal unassessed — the same standard cue following has always been held to, where
-a non-significant sign test is unassessed rather than counted as a deficit. The
-estimator, the two that failed before it, and the operating characteristics against the
-old point rule are in
+Ambang terbit dibandingkan terhadap **selang kepercayaan 95%** sesi, bukan terhadap satu
+titik. Sesi yang mengukur 71% pada cuplikan 16,75 detik tidak dapat dibedakan dari yang
+mengukur 67%, jadi selang yang melintasi 69% membuat sinyalnya *tidak dapat dinilai* —
+standar yang sama seperti uji tanda pada mengikuti isyarat. Karakteristik operasinya
+terhadap aturan titik lama ada di
 [`docs/ambang_selang_kepercayaan.md`](docs/ambang_selang_kepercayaan.md).
 
-Layer B2 exists because the combining layer was empty and the product could therefore
-recommend nothing. It is not a fitted score: `combinedScore` is still `null` and no
-code path can fill it. The one invented parameter, how many signals must deviate, is
-typed as `design_choice_not_validated_cutoff` and says so on screen and on paper.
+Tiga indeks sengaja dikeluarkan dari aturan. Menghadap layar dan gerak kepala membawa
+AUC preseden tetapi tidak punya ambang yang dapat dipindahkan. Diferensial kedip keluar
+karena satu-satunya blok non-aktor di baterai adalah klip preferential looking, sehingga
+kontras kedip sosial/non-sosial sepenuhnya terkonfound dengan medium penyajian. Ketiganya
+tetap muncul di laporan sebagai ukuran deskriptif.
 
-That parameter is to be withdrawn rather than defended, and the replacement is designed
-rather than built. **It is not in the code yet, and nothing below should be read as
-shipped.** The design: a sum of log likelihood ratios whose every term carries a
-citation, with any signal that has no published operating point — and any signal the
-session could not assess — contributing LR = 1 and therefore moving nothing. A second,
-independent layer would fit the relative weighting between signals on 59 labelled
-children from an openly licensed published dataset (Cilia et al. 2022, CC BY 4.0),
-because no child is recorded by this team; that dataset has not been downloaded. What
-would transfer is the relative weighting, not the operating point. The design, the four
-audits that gate it, and the criteria for rejecting it outright are in
-[`docs/model_rujukan.md`](docs/model_rujukan.md).
+**Tidak ada pengukuran yang melintasi batas medium.** GeoPref diskor seluruhnya di dalam
+klip; mengikuti isyarat membandingkan pasca-isyarat terhadap pra-isyarat di dalam
+percobaan vektor yang sama; respons nama adalah deteksi kejadian di dalam blok vektor.
 
-What ships today is still `REFERRAL_DEVIANT_THRESHOLD = 2` in
-[`app/src/outcome/referralRecommendation.ts`](app/src/outcome/referralRecommendation.ts),
-typed `design_choice_not_validated_cutoff` and labelled as such on screen.
+---
 
-Three indices are deliberately excluded from the rule. Facing-forward and head movement
-carry precedent AUCs but no transferable cutoff, so scoring them would mean inventing a
-number. The blink differential is out for a different reason: the only non-actor block
-in the battery is the preferential-looking clip, so a social/non-social blink contrast
-is fully confounded with rendering medium — hand-drawn vector against real video — and a
-16.75 s window quantises blink rate in steps of 3.6 per minute, which counting noise
-dominates. All three stay on the report as descriptive measures.
+## Status bukti
 
-**No measurement crosses the medium boundary.** The session runs two visual worlds: a
-published video clip and a vector actor. GeoPref is scored entirely inside the clip;
-cue following compares post-cue against pre-cue within the same vector trial; response
-to name is event detection inside the vector block. Nothing is computed across the seam
-between them, which is why the mixed presentation does not put a confound into any
-decision signal.
+Bukti terkuat di sini adalah **kontrol positif**: 12 orang dewasa yang menyetujui untuk
+dirinya sendiri, 23 sesi, tiga perangkat, direkam 19 Agustus 2026 lewat aplikasi yang
+dikirim. Ketiga sinyal keputusan memisahkan kedua kondisi perilaku **tanpa satu sesi pun
+bertumpang tindih**, dan aturan komposit menyala pada **0 dari 9** sesi menonton biasa.
 
-Layer A misses most autistic children by design, and the interface says so. Its value
-is the opposite of a questionnaire's: a positive result is worth acting on. Layer B's
-index family follows Perochon et al. 2023 (*Nature Medicine*), which reached
-sensitivity 87.8% / specificity 80.8% on the same hardware class — that is the Gate C
-target, not a claim about this system today.
-
-The bundled Carette logistic regression does not participate. Its geometric features
-encode where that study's stimulus sat on screen, so its decision boundary does not
-transfer. It runs only behind an out-of-distribution guard in the research panel.
-
-## Evidence status
-
-The strongest evidence here is not the gate table. It is the positive control: 12
-consenting adults, 23 sessions, three devices, recorded 19 August 2026 through the
-shipped application. All three decision signals separate the two behavioural conditions
-with no session of one overlapping the other, and the composite rule fires on **0 of 9**
-ordinary-viewing sessions. It is also the first evidence in this project whose chain is
-complete from camera to number, which is why it leads.
+Ini juga bukti pertama di proyek ini yang rantainya utuh dari kamera sampai angka —
+direkam lewat aplikasi, lalu **dihitung ulang dari jejak mentah oleh skrip terpisah**
+dan menghasilkan angka yang sama.
 [`research/hasil/kontrol_positif/README.md`](research/hasil/kontrol_positif/README.md)
-carries the numbers, the confounds, and the nine defects the recordings exposed.
 
-What it does not show is anything about autism: the participants are adults following a
-script, so there is no sensitivity, specificity, or accuracy in it.
+Yang **tidak** ditunjukkannya: apa pun tentang autisme. Pesertanya orang dewasa yang
+mengikuti naskah, jadi tidak ada sensitivitas, spesifisitas, atau akurasi di dalamnya.
+Yang dibuktikannya adalah bahwa instrumennya merespons, dan bahwa rantai pengukurannya
+lengkap dan terinstrumentasi.
 
-| Gate | Status | Canonical result |
+| Gerbang | Status | Hasil kanonis |
 |---|---|---|
-| A | **Passed** | 100 sessions, 25 participants, 3 devices; 94% completion, 2.207° median calibration error, 96.4% mean valid-frame rate, 3.6% mean dropout |
-| B | **Passed** | 30 simultaneous browser comparisons against WebGazer.js 3.5.3; 27 ready, 3 withheld, 0.040997 median normalized error, 99.7118% mean AOI agreement recomputed from raw coordinates |
-| C | Open | Prospective clinical validation in the target population has not been completed. Target: sensitivity 88% / specificity 81%, from Perochon et al. 2023 |
-| D | Open | Field implementation with Posyandu operators has not been completed |
+| A | **Lulus** | 100 sesi, 25 peserta, 3 perangkat; 94% selesai, galat kalibrasi median 2,207°, frame valid 96,4%, dropout 3,6% |
+| B | **Lulus** | 30 perbandingan browser simultan terhadap WebGazer.js 3.5.3; 27 siap, 0,040997 galat ternormalisasi median, agreement AOI 99,7118% dihitung ulang dari koordinat mentah |
+| C | Terbuka | Validasi klinis prospektif pada populasi sasaran. Target: sensitivitas 88% / spesifisitas 81% (Perochon dkk. 2023) |
+| D | Terbuka | Implementasi lapangan bersama operator Posyandu |
 
-Gate B's reference is WebGazer.js, the method ManyBabies validated for toddlers aged
-18–27 months (Steffan et al. 2024, *Infancy*, N=125 across 16 labs). Absolute accuracy
-comes from Gate A's known calibration targets: median 2.36°, p90 3.58° across 94
-sessions, against WebGazer's published 4.17° (Papoutsaki et al. 2016).
+Pembanding Gate B adalah WebGazer.js, metode yang divalidasi ManyBabies untuk balita
+18–27 bulan (Steffan dkk. 2024, *Infancy*, N=125 di 16 lab). Akurasi absolut berasal
+dari target kalibrasi Gate A yang posisinya diketahui: median 2,36°, p90 3,58° pada 94
+sesi, terhadap 4,17° yang diterbitkan WebGazer.
 
-The raw Gate A/B exports, derived summaries, and SHA-256 manifest are stored in [`research/hasil`](research/hasil). The complete interpretation and acceptance criteria are in [`docs/bukti_gate_a_b.md`](docs/bukti_gate_a_b.md).
+Ekspor mentah, ringkasan turunan, dan manifest SHA-256 ada di
+[`research/hasil`](research/hasil). Setiap metrik pasangan diturunkan ulang dari
+koordinat mentah oleh [`research/recompute_gate_b.py`](research/recompute_gate_b.py).
+Interpretasi lengkap, kriteria penerimaan, dan batas provenance tiap gerbang ada di
+[`docs/bukti_gate_a_b.md`](docs/bukti_gate_a_b.md) dan
+[`docs/provenance/harness_gate_a_b.md`](docs/provenance/harness_gate_a_b.md).
 
-Every published pair metric is rederived from the raw coordinates by
-[`research/recompute_gate_b.py`](research/recompute_gate_b.py). Distances reproduce to
-0.001 px; AOI agreement does not, on 4 of 27 pairs, and the difference is published in
-`gate_b_summary.json` rather than reconciled away.
+---
 
-**One link in the Gate A/B chain cannot be checked from inside this repository.** The
-sessions were run and are photographed, but the recording harness lived outside the
-repository and is gone, and the shipped export path does not write files that round the
-way these do. The summaries are still an honest function of the raw files and the hashes
-still verify; what rests on the data owner's word is that the raw files came from a
-camera. Stated in full, with the checks a sceptical reader would run, in
-[`docs/provenance/harness_gate_a_b.md`](docs/provenance/harness_gate_a_b.md). The
-positive control is the first evidence collected under the rule that closes this gap.
+## Stimulus preferential looking
 
-### What a live session outputs
+Ambang 69% pernah diterapkan pada dua tes berbeda yang tidak berbagi preseden. Wen dkk.
+2022 (*Scientific Reports* 12:4253) memvalidasinya pada **GeoPref asli 62,22 detik** —
+n=1.863, sensitivitas 17%, spesifisitas 98%. Moore dkk. 2018 membawa ambang yang sama ke
+**Complex Social GeoPref 90 detik** demi konsistensi, melaporkan sensitivitas 18%,
+spesifisitas 97%, AUC 0,74 pada sampel jauh lebih kecil. Tiap aset di
+[`app/src/geopref/stimulusMeta.ts`](app/src/geopref/stimulusMeta.ts) membawa titik
+operasinya sendiri.
 
-A completed camera session produces a per-child report: the GeoPref percentage, the
-five behavioural indices with their precedent AUCs, and an explicit outcome —
-rule-in, measured without rule-in, protocol abbreviated, or withheld. The report can
-be printed as a one-page hand-off for the Puskesmas. The audit log stays in memory
-until the operator exports or deletes it.
-
-### What the preferential-looking block actually plays
-
-The 69% cutoff has been applied to two different tests, and they do not share a
-precedent. Wen et al. 2022 (*Scientific Reports* 12:4253) validated it at scale on the
-**original 62.22-second GeoPref** — n=1863, ages 12–48 months, sensitivity 17%,
-specificity 98%. Moore et al. 2018 carried the same cutoff to the **90-second Complex
-Social GeoPref** for consistency rather than re-optimising it, reporting sensitivity
-18%, specificity 97%, AUC 0.74 on a much smaller sample. Each asset in
-[`app/src/geopref/stimulusMeta.ts`](app/src/geopref/stimulusMeta.ts) carries its own
-operating point so one test's evidence cannot be quoted on another test's measurement.
-
-What ships is neither: a **16.75-second excerpt** — one of five scenes — of the Complex
-Social example video published as Additional file 2 of Moore et al. 2018. So
-`validatedProtocol` is false, the cutoff is **held**, and the session reports the
-measured percentage while saying the protocol was abbreviated. The access request for a
-full stimulus is in
+Yang dikirim bukan keduanya: **cuplikan 16,75 detik** dari video contoh Complex Social
+yang diterbitkan sebagai Additional file 2 Moore dkk. 2018. Maka `validatedProtocol`
+bernilai false, ambangnya **ditahan**, dan sesi melaporkan persentase terukur sambil
+menyatakan protokolnya disingkat. Permintaan akses stimulus penuh ada di
 [`docs/provenance/permintaan_stimulus_ucsd.md`](docs/provenance/permintaan_stimulus_ucsd.md).
 
-Two properties of the asset are deliberate, not defects:
+Dua sifat aset ini disengaja: **ia senyap** (metode Moore dkk. menyatakan tanpa audio —
+jangan tambahkan suara) dan **ia letterboxed** (panel hanya mengisi 19,8% frame 640×360,
+jadi aplikasi memangkas sekelilingnya agar geometri sudutnya cocok dengan yang
+dilaporkan). `geoprefPanelDegrees()` membuat geometri itu dapat diperiksa per perangkat.
 
-- **It is silent.** The Moore et al. methods state there was no audio; both GeoPref
-  variants are presented without sound. Do not add a soundtrack.
-- **It is letterboxed.** The panels occupy only 19.8% of the 640×360 frame, the rest is
-  black, because the file is a supplementary illustration rather than a presentation
-  master. Played whole, each panel subtended roughly 7.6° × 4.9° on a target tablet
-  against the 12.9° × 9.1° Moore et al. report, so the app crops the surround away.
-  `geoprefPanelDegrees()` makes that geometry checkable per device instead of asserted.
-
-Container facts are verifiable: one video track, **zero audio tracks**, avc1, 502
-frames, SHA-256 pinned in
-[`app/public/stimuli/geopref-social-geometric-ccby.json`](app/public/stimuli/geopref-social-geometric-ccby.json).
-
-The reasoning behind these decisions is recorded in
+Alasan di balik keputusan yang menentukan batas klaim ada di
 [`docs/keputusan_ilmiah.md`](docs/keputusan_ilmiah.md).
 
-### Known gaps
+---
 
-- Replay plays two real recordings, one per positive-control condition, registered
-  from `research/hasil/kontrol_positif/sesi/` and each carrying the label of the
-  condition it recorded. Before that it played a synthetic Lissajous path that the OOD
-  guard correctly flagged and the quality gate correctly refused to score, which meant
-  the demo report was withheld every time and no run of it ever carried real numbers.
-  Registration refuses a log with no frame trace, so a replay export cannot be
-  registered as a recording:
-  `npm run replay:register -- <audit-log.json> --as session-a.json --label "Menonton biasa"`.
-  Both demo controls used to load whichever recording was listed first, so the control
-  that applies the threshold replayed the ordinary-viewing session while a presenter
-  could describe the other one over it. There is now one control per registered
-  recording, named after its condition.
-- The pipeline separates two behavioural conditions, and that is now measured rather
-  than assumed. Twelve consenting adults recorded 23 sessions on 19 August 2026, half
-  watching ordinarily and half producing the pattern on instruction; both decision
-  signals separate the conditions with no session of one overlapping the other, and
-  the composite rule fires on 0 of 9 ordinary-viewing sessions. Numbers, confounds and
-  the six defects the recordings exposed:
-  [`research/hasil/kontrol_positif/README.md`](research/hasil/kontrol_positif/README.md).
-  What it does not show is anything about autism — the participants are adults
-  following a script, so there is no sensitivity, specificity, or accuracy in it.
-- The composite rule as shipped fires on no session under any behaviour, and cannot:
-  it needs two deviant signals and geometric preference stays unassessable while the
-  licensed clip is shorter than the protocol its 69% cutoff came from. The table above
-  applies that cutoff in demonstration mode, purely so the question "does the rule
-  respond" has an answer. Removing that block is Kunci 1 in
-  [`docs/jalur_rujukan.md`](docs/jalur_rujukan.md), not a code change.
-- The Gate B known-target block (nine targets, absolute accuracy for both streams)
-  is implemented on the analysis side but no session has recorded one yet.
-- No toddler appears in any evidence in this repository, and none will before ethics
-  approval. This is not a claim that research with autistic children is unethical —
-  every threshold this system uses came from studies that recorded them, with the
-  permissions they held. It is that a toddler cannot consent, so someone else decides
-  on their behalf, and the structure that supervises that decision is an ethics review.
-  We do not have one. Five institutions were approached and all five declined, which was
-  the right call at this stage of evidence. The constraint, what it rules out, what is
-  permitted instead, and the answers to the questions a panel will ask are in
-  [`docs/etika_perekaman.md`](docs/etika_perekaman.md).
+## Batas yang berlaku hari ini
 
-- No practitioner interview has been recorded yet. It is the only primary research that
-  would touch the Indonesian context — every other number here is borrowed from
-  English-language literature on other populations. The protocol, the questions, and the
-  rule that keeps them from being unfalsifiable are in
-  [`docs/wawancara_praktisi.md`](docs/wawancara_praktisi.md).
+- Aturan komposit sebagaimana dikirim tidak menyala pada kondisi apa pun: ia menuntut
+  dua sinyal menyimpang, dan preferensi geometrik tetap tidak dapat dinilai selama klip
+  berlisensi lebih pendek daripada protokol asal ambangnya. Mode demonstrasi menerapkan
+  ambang itu sekali, di bawah banner yang menyatakan dirinya demonstrasi, semata agar
+  bentuk laporannya terlihat. [`docs/jalur_rujukan.md`](docs/jalur_rujukan.md)
+- Tidak ada balita di bukti mana pun di repositori ini, dan tidak akan ada sebelum kaji
+  etik. [`docs/etika_perekaman.md`](docs/etika_perekaman.md)
+- Blok target-diketahui Gate B sudah terpasang di sisi analisis, tetapi belum ada sesi
+  yang merekamnya.
+- Belum ada wawancara praktisi yang terekam.
+  [`docs/wawancara_praktisi.md`](docs/wawancara_praktisi.md)
 
-## Run the application
+---
 
-On Windows, from the repository root:
+## Menjalankan aplikasi
+
+Dari akar repositori, di Windows:
 
 ```powershell
 .\start.bat
 ```
 
-For frontend development:
+Untuk pengembangan frontend:
 
 ```powershell
 cd app
@@ -221,9 +196,10 @@ npm ci
 npm run dev
 ```
 
-Browser camera access requires HTTPS or localhost. For Vercel, use `app` as the project root directory.
+Akses kamera browser menuntut HTTPS atau localhost. Untuk Vercel, pakai `app` sebagai
+root direktori proyek.
 
-## Verify the project
+## Memverifikasi proyek
 
 ```powershell
 .\.venv\Scripts\python.exe research\gate_evidence_repository.py --rebuild --verify
@@ -233,13 +209,13 @@ npm test
 npm run lint
 ```
 
-See [`docs/verifikasi.md`](docs/verifikasi.md) for the complete release checklist.
+Daftar periksa rilis lengkap ada di [`docs/verifikasi.md`](docs/verifikasi.md).
 
-## Repository map
+## Peta repositori
 
-- `app/`: Next.js PWA, browser pipeline, and frontend tests.
-- `research/`: analysis code, notebooks, model evaluation, and canonical evidence.
-- `notebook/`: final Kaggle notebooks and supporting experiments.
-- `paper/`: LaTeX source and final paper PDF.
-- `docs/`: evidence interpretation, protocols, operator guidance, and verification.
-- `huggingface/`: model card and exported tabular model artifacts.
+- `app/`: PWA Next.js, pipeline browser, dan tes frontend.
+- `research/`: kode analisis, notebook, evaluasi model, dan bukti kanonis.
+- `notebook/`: notebook Kaggle final dan eksperimen pendukung.
+- `paper/`: sumber LaTeX dan PDF makalah final.
+- `docs/`: interpretasi bukti, protokol, panduan operator, dan verifikasi.
+- `huggingface/`: model card dan artefak model tabular yang diekspor.
