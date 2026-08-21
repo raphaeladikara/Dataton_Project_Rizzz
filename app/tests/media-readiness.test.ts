@@ -9,6 +9,59 @@ async function readinessModule() {
   return import("../src/ui/mediaReadiness");
 }
 
+function createFakeClock() {
+  let now = 0;
+  let nextId = 1;
+  const tasks = new Map<number, { at: number; callback: () => void }>();
+  return {
+    clock: {
+      setTimeout(callback: () => void, delayMs: number) {
+        const id = nextId++;
+        tasks.set(id, { at: now + delayMs, callback });
+        return id;
+      },
+      clearTimeout(id: unknown) {
+        tasks.delete(id as number);
+      },
+    },
+    advanceBy(delayMs: number) {
+      now += delayMs;
+      const due = [...tasks.entries()]
+        .filter(([, task]) => task.at <= now)
+        .sort((left, right) => left[1].at - right[1].at);
+      due.forEach(([id, task]) => {
+        if (!tasks.delete(id)) return;
+        task.callback();
+      });
+    },
+    pendingCount() {
+      return tasks.size;
+    },
+  };
+}
+
+function createFakeVisibility() {
+  const listeners = new Set<() => void>();
+  return {
+    hidden: false,
+    addEventListener(type: "visibilitychange", listener: () => void) {
+      assert.equal(type, "visibilitychange");
+      listeners.add(listener);
+    },
+    removeEventListener(type: "visibilitychange", listener: () => void) {
+      assert.equal(type, "visibilitychange");
+      listeners.delete(listener);
+    },
+    setHidden(hidden: boolean) {
+      this.hidden = hidden;
+      listeners.forEach((listener) => listener());
+    },
+    listenerCount() {
+      return listeners.size;
+    },
+  };
+}
+
 test("media readiness exposes every explicit playback state", async () => {
   const { MEDIA_READINESS_STATES } = await readinessModule();
   assert.deepEqual(MEDIA_READINESS_STATES, [
@@ -81,7 +134,121 @@ test("every terminal media state has stable audit data and Indonesian recovery c
   }
 });
 
-test("GeoPref is pre-mounted and both live and replay use the same playback callbacks", () => {
+test("the real orchestration gate holds live and replay progress until playing", async () => {
+  const { createMediaReadinessController } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const controller = createMediaReadinessController({ clock: fakeClock.clock });
+  const playable = { paused: false, ended: false, readyState: 4 };
+
+  const ready = controller.waitUntil(["ready", "playing"]);
+  const generation = controller.generation();
+  controller.event("can_play", generation);
+  assert.equal((await ready).status, "ready");
+
+  for (const mode of ["live", "replay"] as const) {
+    assert.equal(controller.canAdvance(mode, playable), false, `${mode} must not start on canplay`);
+  }
+
+  const playing = controller.waitUntil(["playing"]);
+  controller.event("playing", generation);
+  assert.equal((await playing).status, "playing");
+  for (const mode of ["live", "replay"] as const) {
+    assert.equal(controller.canAdvance(mode, playable), true, `${mode} may start after playing`);
+  }
+  assert.equal(fakeClock.pendingCount(), 0);
+});
+
+test("error, timeout, and hidden-page interruption withhold through one callback", async () => {
+  const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
+
+  for (const trigger of ["error", "timeout", "visibility"] as const) {
+    const fakeClock = createFakeClock();
+    const visibility = createFakeVisibility();
+    const withheld: Array<{ reason: string; operatorAction: string }> = [];
+    const controller = createMediaReadinessController({
+      clock: fakeClock.clock,
+      onWithhold: (failure) => withheld.push(failure),
+    });
+    const disconnect = controller.connectVisibility(visibility);
+    const waiting = controller.waitUntil(["playing"]);
+
+    if (trigger === "error") controller.event("error", controller.generation());
+    if (trigger === "timeout") fakeClock.advanceBy(MEDIA_READY_TIMEOUT_MS);
+    if (trigger === "visibility") visibility.setHidden(true);
+
+    const result = await waiting;
+    assert.equal(controller.canAdvance("live", { paused: false, ended: false, readyState: 4 }), false);
+    assert.equal(withheld.length, 1);
+    assert.match(withheld[0].reason, /^GEOPREF_MEDIA_(FAILED|TIMED_OUT|INTERRUPTED)$/);
+    assert.match(withheld[0].operatorAction, /mulai sesi baru/i);
+    assert.equal(result.status, trigger === "error" ? "failed" : trigger === "timeout" ? "timed_out" : "interrupted");
+    disconnect();
+    controller.dispose();
+  }
+});
+
+test("reset and dispose cancel timers, listeners, waiters, and late media events", async () => {
+  const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+  controller.connectVisibility(visibility);
+  const staleGeneration = controller.generation();
+  let rejectStalePlay: (reason?: unknown) => void = () => undefined;
+  const staleWait = controller.requestPlaying(
+    () => new Promise<void>((_resolve, reject) => { rejectStalePlay = reject; }),
+    staleGeneration,
+  );
+
+  const freshGeneration = controller.reset();
+  assert.equal((await staleWait).status, "interrupted");
+  assert.notEqual(freshGeneration, staleGeneration);
+  rejectStalePlay(new Error("late failure from replaced media"));
+  await Promise.resolve();
+  controller.event("playing", staleGeneration);
+  fakeClock.advanceBy(MEDIA_READY_TIMEOUT_MS);
+  assert.equal(controller.snapshot().status, "loading");
+  assert.deepEqual(withheld, []);
+
+  const freshWait = controller.waitUntil(["playing"]);
+  controller.event("can_play", freshGeneration);
+  assert.equal(controller.snapshot().status, "ready");
+  controller.event("playing", freshGeneration);
+  assert.equal((await freshWait).status, "playing");
+
+  controller.dispose();
+  controller.event("error", freshGeneration);
+  visibility.setHidden(true);
+  fakeClock.advanceBy(MEDIA_READY_TIMEOUT_MS);
+  assert.equal(controller.snapshot().status, "playing");
+  assert.equal(visibility.listenerCount(), 0);
+  assert.equal(fakeClock.pendingCount(), 0);
+  assert.deepEqual(withheld, []);
+});
+
+test("the playing deadline is armed before a browser play promise can stall", async () => {
+  const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+  const neverPlays = new Promise<void>(() => undefined);
+
+  const playing = controller.requestPlaying(() => neverPlays, controller.generation());
+  assert.equal(fakeClock.pendingCount(), 1, "deadline must exist while play() is still pending");
+  fakeClock.advanceBy(MEDIA_READY_TIMEOUT_MS);
+
+  assert.equal((await playing).status, "timed_out");
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_TIMED_OUT"]);
+});
+
+test("the stimulus page mounts browser callbacks into the behavioral controller", () => {
   const scene = readFileSync(new URL("../src/ui/stimulus-scene.tsx", import.meta.url), "utf8");
   const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 
@@ -90,29 +257,25 @@ test("GeoPref is pre-mounted and both live and replay use the same playback call
   assert.match(scene, /onPlaying=\{onGeoprefPlaying\}/);
   assert.match(scene, /onError=\{onGeoprefError\}/);
   assert.match(scene, /key=\{geoprefMediaKey\}/);
-  assert.match(page, /canStartTimedScoring/);
-  assert.match(page, /visibilitychange/);
-  assert.match(page, /MEDIA_READY_TIMEOUT_MS/);
+  assert.match(page, /createMediaReadinessController/);
+  assert.match(page, /mediaController\(\)\.waitUntil/);
+  assert.match(page, /mediaController\(\)\.canAdvance\(mode,/);
+  assert.match(page, /mediaController\(\)\.connectVisibility\(document\)/);
+  assert.match(page, /mediaController\(\)\.reset\(\)/);
+  assert.match(page, /mediaController\(\)\.requestPlaying/);
+  assert.match(page, /mediaControllerRef\.current\?\.dispose\(\)/);
   assert.match(page, /stimulus\.media_withheld/);
   assert.match(page, /gaze: undefined, assessment: undefined, decision: undefined/);
-  assert.match(page, /generation !== mediaGenerationRef\.current/);
-  assert.match(page, /transitionMediaGeneration\("timeout", generation\)/);
-  assert.match(page, /transitionMediaGeneration\("error", generation\)/);
-  assert.match(page, /runId !== stimulusRunIdRef\.current\) return Promise\.resolve\(\{ status: "interrupted" \}\)/);
-  assert.ok(
-    (page.match(/stopIfMediaTerminated\(runId\)/g) ?? []).length >= 3,
-    "both loops and the post-loop scoring boundary must check terminal media",
+  const timedStartGate = page.indexOf("if (includesGeopref && !await ensureGeoprefPlaying()) return;");
+  assert.ok(timedStartGate >= 0, "a baseline-first battery must preflight actual playback before its clock starts");
+  assert.ok(timedStartGate < page.indexOf("const startedAt = performance.now();", timedStartGate));
+  assert.ok(timedStartGate < page.indexOf("setProgress(Math.round((index / totalFrames) * 100));", timedStartGate));
+  const replayStep = page.slice(
+    page.indexOf("for (let index = 0; index < totalFrames; index += 6)"),
+    page.indexOf("await pause(stepPause)"),
   );
   assert.ok(
-    (page.match(/state\.phase\.id === GEOPREF_PHASE_ID && !geoprefCaptureReady\(\)/g) ?? []).length >= 2,
-    "replay must gate GeoPref both before and after each displayed step",
+    replayStep.indexOf("ensureGeoprefPlaying()") < replayStep.indexOf("setProgress("),
+    "replay progress must remain still while media is paused or buffering",
   );
-  const livePlaybackGate = page.match(/const phaseState = phaseAtElapsed\(elapsed, runPhases\)!;[\s\S]*?const nextPhaseIndex/)?.[0] ?? "";
-  const revealIndex = livePlaybackGate.indexOf("setStimulusPhase(phaseState.phase)");
-  const playIndex = livePlaybackGate.indexOf("ensureGeoprefPlaying()");
-  assert.ok(
-    revealIndex >= 0 && revealIndex < playIndex,
-    "the GeoPref stage must be visible before playback is requested",
-  );
-  assert.doesNotMatch(page, /mode === "replay"[^\n]+mediaReadiness/);
 });
