@@ -500,3 +500,26 @@ test("a disposed controller reports an interrupted run whether or not the page i
     assert.equal(fakeClock.pendingCount(), 0);
   }
 });
+
+test("the one-click demonstration mounts the stimulus stage before it runs the battery", async () => {
+  // The GeoPref <video> only exists while `stage === "stimulus"`, and the media
+  // gate now waits for that element to report canplay. The guided demo calls
+  // runStimulus from an effect rather than from the stimulus screen's own
+  // button, so it has to put the session on that stage itself. Without this the
+  // element never mounts, the gate waits out its deadline, and every registered
+  // replay ends as "Video stimulus terlalu lama dimuat".
+  const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const scene = readFileSync(new URL("../src/ui/stimulus-scene.tsx", import.meta.url), "utf8");
+
+  assert.match(scene, /geoprefSource && <div/, "the clip must stay conditional on the stimulus scene rendering");
+  assert.match(page, /stage === "stimulus" && \(/, "the stimulus scene must remain stage-gated");
+
+  const demoEffect = page.match(/if \(demoRun === "idle"[\s\S]*?\}, \[demoRun, calibration, quality, model, busy\]\);/)?.[0] ?? "";
+  assert.ok(demoEffect, "the guided demonstration effect must remain present");
+
+  const stageCall = demoEffect.indexOf('setStage("stimulus")');
+  const runCall = demoEffect.indexOf("runStimulus({ fast: true })");
+  assert.ok(stageCall >= 0, "the guided demonstration must mount the stimulus stage itself");
+  assert.ok(runCall >= 0, "the guided demonstration must still run the real battery");
+  assert.ok(stageCall < runCall, "the stage has to be mounted before the battery is prepared");
+});
