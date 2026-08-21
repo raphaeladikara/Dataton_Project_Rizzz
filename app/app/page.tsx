@@ -55,6 +55,7 @@ import { reportBadge } from "../src/outcome/reportBadge";
 import { buildPosteriorOdds } from "../src/outcome/posteriorOdds";
 import { buildSessionVerdict } from "../src/outcome/sessionVerdict";
 import { buildReportPresentation } from "../src/outcome/reportPresentation";
+import { compositeLaneHeadline } from "../src/outcome/referralPresentation";
 import {
   appendAuditEvent,
   createSessionAudit,
@@ -1166,6 +1167,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     geopref: geoprefResult,
     jointAttention,
   }), [geoprefResult, jointAttention]);
+  const compositeHeadline = compositeLaneHeadline({
+    headline: referral.headline,
+    recommendsFollowUp: referral.recommendsFollowUp,
+    assessableCount: referral.assessableCount,
+    deviantCount: referral.deviantCount,
+    demonstrationMode,
+  });
   const isGateA = sessionPurpose === "gate_a_adult";
   const isGateB = sessionPurpose === "gate_b_bridge";
   /** Consenting adult running the shipped child flow so the threshold can be shown. */
@@ -3113,7 +3121,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               {!isEngineeringStudy && <section className="referralLane" aria-labelledby="referral-heading" data-recommends={String(referral.recommendsFollowUp)} data-compact={String(Boolean(verdict))}>
                 <div className="laneHead">
                   <small>Jalur kedua · aturan komposit</small>
-                  <h2 id="referral-heading">{referral.headline}</h2>
+                  <h2 id="referral-heading">{compositeHeadline}</h2>
                   {/* Counted from the rule, not retyped: the copy said "empat sinyal" for a
                       while after the blink signal was dropped and the rule became three. */}
                   <p>{numberWordCapitalized(referral.signals.length)} sinyal yang dapat dinilai tanpa data pembanding balita: satu memakai ambang terbit, {numberWord(referral.signals.length - 1)} membandingkan anak dengan dirinya sendiri. Batas {referral.threshold} sinyal adalah pilihan desain, bukan ambang tervalidasi.</p>
@@ -3336,7 +3344,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             <p><strong>Arahan rujukan otomatis:</strong> {sessionOutcome.emitsReferral ? "Ya — disarankan pemeriksaan lanjutan." : "Tidak."}</p>
             {!isEngineeringStudy && <>
               <h2>Rekomendasi komposit</h2>
-              <p className="printHeadline">{referral.headline}</p>
+              <p className="printHeadline">{compositeHeadline}</p>
               <table>
                 <tbody>
                   {referral.signals.map((item) => <tr key={item.id}>
