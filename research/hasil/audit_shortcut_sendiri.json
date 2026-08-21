@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "neurogaze-audit-shortcut-sendiri-v1",
+  "question": "Bisakah mutu rekaman tingkat sesi saja — tanpa satu pun sinyal perilaku — memisahkan menonton biasa dari pola diproduksi pada kontrol positif kami sendiri?",
+  "why": "Audit yang sama menolak bobot lapis 2 pada data Cilia. Menolak dataset orang lain karena confound lalu tidak memeriksanya di rumah sendiri bukan kekakuan, dan juri berhak menanyakannya.",
+  "features": [
+    "faceRate",
+    "gazeDropout",
+    "calibrationErrorDeg",
+    "brightness",
+    "sampleCount",
+    "attemptedFrames",
+    "poseRejectedFrames"
+  ],
+  "permutations": 5000,
+  "seed": 20260821,
+  "results": {
+    "all_filed": {
+      "scope": "seluruh sesi terfilekan, termasuk yang ditahan gerbang mutu",
+      "n_sessions": 23,
+      "n_devices": 3,
+      "n_biasa": 11,
+      "n_produksi": 12,
+      "auc_oof_nuisance_only": 0.47727272727272724,
+      "permutation_p_unrestricted": 0.5472905418916216,
+      "permutation_p_within_device": 0.27234553089382124,
+      "per_feature_auc": {
+        "faceRate": {
+          "auc": 0.5,
+          "median_biasa": 1.0,
+          "median_produksi": 1.0
+        },
+        "gazeDropout": {
+          "auc": 0.5909090909090909,
+          "median_biasa": 0.01842664776754077,
+          "median_produksi": 0.02651819844347275
+        },
+        "calibrationErrorDeg": {
+          "auc": 0.5606060606060607,
+          "median_biasa": 1.5601153572951962,
+          "median_produksi": 1.8808935188558138
+        },
+        "brightness": {
+          "auc": 0.5151515151515152,
+          "median_biasa": 0.3756599235329423,
+          "median_produksi": 0.37799166944041024
+        },
+        "sampleCount": {
+          "auc": 0.6174242424242424,
+          "median_biasa": 1558.0,
+          "median_produksi": 1533.5
+        },
+        "attemptedFrames": {
+          "auc": 0.571969696969697,
+          "median_biasa": 1581.0,
+          "median_produksi": 1580.0
+        },
+        "poseRejectedFrames": {
+          "auc": 0.5454545454545454,
+          "median_biasa": 0.0,
+          "median_produksi": 0.0
+        }
+      }
+    },
+    "usable_only": {
+      "scope": "hanya sesi yang dipakai — populasi yang dilaporkan kontrol positif",
+      "n_sessions": 15,
+      "n_devices": 3,
+      "n_biasa": 9,
+      "n_produksi": 6,
+      "auc_oof_nuisance_only": 0.537037037037037,
+      "permutation_p_unrestricted": 0.4481103779244151,
+      "permutation_p_within_device": 0.259748050389922,
+      "per_feature_auc": {
+        "faceRate": {
+          "auc": 0.5,
+          "median_biasa": 1.0,
+          "median_produksi": 1.0
+        },
+        "gazeDropout": {
+          "auc": 0.7037037037037037,
+          "median_biasa": 0.021505376344086002,
+          "median_produksi": 0.03535635933671433
+        },
+        "calibrationErrorDeg": {
+          "auc": 0.5925925925925926,
+          "median_biasa": 1.5146152465764249,
+          "median_produksi": 1.7734259986716587
+        },
+        "brightness": {
+          "auc": 0.5370370370370371,
+          "median_biasa": 0.3756599235329423,
+          "median_produksi": 0.44269049980962183
+        },
+        "sampleCount": {
+          "auc": 0.6759259259259259,
+          "median_biasa": 1558.0,
+          "median_produksi": 1509.0
+        },
+        "attemptedFrames": {
+          "auc": 0.5555555555555556,
+          "median_biasa": 1581.0,
+          "median_produksi": 1553.5
+        },
+        "poseRejectedFrames": {
+          "auc": 0.5555555555555556,
+          "median_biasa": 0.0,
+          "median_produksi": 0.0
+        }
+      }
+    }
+  },
+  "verdict": "no_shortcut_detected",
+  "interpretation": "Mutu rekaman tingkat sesi tidak memisahkan kedua kondisi di atas kebetulan. Yang memisahkan keduanya adalah sinyal perilaku, bukan cara sesinya direkam.",
+  "limitations": [
+    "n=15 sesi dipakai dari 12 dewasa. AUC pada 15 titik berderau; yang dibaca adalah p permutasi, bukan AUC.",
+    "Identitas peserta tidak terekam pada 22 dari 24 log, jadi grup yang tersedia hanya perangkat. Pengelompokan per orang akan lebih ketat, dan tidak dapat dijalankan.",
+    "Tidak menemukan shortcut bukan membuktikan tidak ada shortcut; ia membuktikan tujuh ukuran mutu ini tidak membawanya.",
+    "Kontrol positif tetap manipulation check pada orang dewasa. Audit ini tidak mengubah lingkup itu."
+  ]
+}

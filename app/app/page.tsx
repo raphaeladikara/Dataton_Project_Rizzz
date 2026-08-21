@@ -60,7 +60,7 @@ import { buildReferralRecommendation, REFERRAL_RULE_VERSION } from "../src/outco
 import { reportBadge } from "../src/outcome/reportBadge";
 import { buildPosteriorOdds } from "../src/outcome/posteriorOdds";
 import { buildSessionVerdict } from "../src/outcome/sessionVerdict";
-import { buildReportPresentation, type ReportSourceKind } from "../src/outcome/reportPresentation";
+import { buildReportNotice, buildReportPresentation, type ReportSourceKind } from "../src/outcome/reportPresentation";
 import { buildStageMirror } from "../src/ui/stageMirror";
 import { CaregiverReport, PrintableReport } from "../src/outcome/reportComponents";
 import { compositeLaneHeadline } from "../src/outcome/referralPresentation";
@@ -1280,6 +1280,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     : recording
       ? "recorded_replay"
       : "synthetic_preview";
+  // Not memoized: it concatenates a handful of literals, so a dependency array
+  // would cost more to keep correct than the call costs to run.
+  const reportNotice = buildReportNotice({
+    demonstrationMode,
+    isEngineeringStudy,
+    sourceKind: reportSourceKind,
+    recordingLabel: recording?.label ?? null,
+    recordingCapturedAt: recording?.capturedAt ?? null,
+  });
   const reportPresentation = useMemo(() => buildReportPresentation({
     qualityPassed: Boolean(quality?.passed && validity?.canScore),
     sourceKind: reportSourceKind,
@@ -3124,17 +3133,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               screens of caveat before the reader reached the conclusion. Same
               sentences, one shell, read in one pass. */}
           <div className="reportNotices">
-            {demonstrationMode && <div className="reportNotice" data-kind="demonstration" role="status">
-              <span aria-hidden="true"><IconResearch size={17} /></span>
-              <p><strong>MODE DEMONSTRASI.</strong> {reportPresentation.demoBanner} Ambang 69% sengaja diterapkan agar bentuk respons arsitektur dapat diperagakan; angkanya tidak sah untuk keputusan apa pun.</p>
-            </div>}
-            <div className="reportNotice" data-kind="limit">
-              <span aria-hidden="true"><IconAlert size={17} /></span>
-              <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : demonstrationMode ? "Ini simulasi pola rujukan pada orang dewasa dan tidak mengeluarkan rujukan." : "Klip lapangan terlalu pendek untuk titik operasi GeoPref terbit, jadi arahan rujukan otomatis ditahan. Indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
+            <div className="reportNotice" data-kind={reportNotice.tone} role="status">
+              <span aria-hidden="true">{reportNotice.tone === "demonstration" ? <IconResearch size={17} /> : <IconAlert size={17} />}</span>
+              <p><strong>{reportNotice.lead}</strong> {reportNotice.body}</p>
             </div>
-            {!isEngineeringStudy && quality.passed && sessionOutcome.recordedSession && (recording
-              ? <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p></div>
-              : <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p></div>)}
           </div>
           {!isEngineeringStudy && <CaregiverReport sections={reportPresentation.sections} surface="screen" />}
           <details className="reportPractitioner">

@@ -76,6 +76,13 @@ CLAIMS: list[tuple[str, str, str, str, str, str]] = [
     ("Bobot lapis 2", "ditolak audit", OURS,
      "Kriteria penolakan ditulis sebelum fitting dijalankan", "model_rujukan.json", "verdict"),
 
+    ("Alas shortcut pada kontrol positif sendiri", "AUC 0,537 · p = 0,26", OURS,
+     "Audit identik dengan yang menolak lapis 2, dijalankan pada data sendiri", "audit_shortcut_sendiri.json", "results.usable_only.auc_oof_nuisance_only"),
+    ("Aturan ambang terhadap selang, pada preferensi 0,69", "menyala 4,8% (aturan titik lama: 52,2%)", OURS,
+     "Simulasi 400 sesi per titik, research/simulate_geopref_interval.py", "", ""),
+    ("Aturan ambang terhadap selang, pada preferensi 0,90", "menyala 99,0%", OURS,
+     "Sumber yang sama; sensitivitas pada preferensi tinggi tidak hilang", "", ""),
+
     # ── Penjaga OOD
     ("Penjaga OOD menerima di domain sumber", "544 dari 547", OURS,
      "Kohort Carette; kalibrasi empiris 99,5% jadi ini pemeriksaan kewarasan", "ood_dua_arah.json", "accepts_on_source_domain.n_passed"),
@@ -143,6 +150,7 @@ EXPECTED: dict[str, tuple[float, float]] = {
     "Penjaga OOD pada stimulus yang dikirim": (1, 0),
     "Keputusan penjaga direproduksi lintas runtime": (23, 0),
     "Beban rujukan titik sensitivitas 0,92": (38.3, 0.05),
+    "Alas shortcut pada kontrol positif sendiri": (0.537, 0.0005),
 }
 
 EXPECTED_TEXT: dict[str, str] = {

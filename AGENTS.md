@@ -199,3 +199,21 @@ Three rules that matter while editing anything public-facing:
   of the result would be a second number to defend.
 - **Stage mirror** (`app/src/ui/stageMirror.ts`) is gated on `isStageDemo` alone and
   `tests/stage-mirror.test.ts` holds that shut. Never let it reach a field session.
+
+## Evidence added 2026-08-21 (second pass)
+
+- **Self shortcut audit** (`research/self_shortcut_audit.py` →
+  `research/hasil/audit_shortcut_sendiri.json`). The audit that rejected Layer 2, run on
+  our own positive control: nuisance-only OOF AUC 0.537, permutation p = 0.26 within
+  device. No shortcut detected. Quote it next to Cilia's 0.905 — the pair is the point,
+  and the pair is what answers "you audited someone else, what about you?".
+  Participant identity was never recorded (22 of 24 logs share one identity string), so
+  device is the only available grouping and the audit says so.
+- **`buildReportNotice`** merged the three stacked warning cards into one. No sentence was
+  dropped; `child-flow-contract.test.ts` now asserts exactly one `.reportNotice` renders
+  and reads the copy from `reportPresentation.ts`. Do not add a second card back.
+- **Deck slide 8** is the CI-vs-threshold contribution: 52.2% → 4.8% at a true preference
+  of 0.69, and 99.0% at 0.90. Always say the second number immediately after the first,
+  or the rule sounds like it blunted the instrument.
+- **`docs/run_sheet.md`** is the one-page stage sheet; **`docs/paket_mitra.md`** is the
+  partner package inventory (10 of 14 items ready). Keep the counts in both honest.

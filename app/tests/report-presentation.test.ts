@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildReportPresentation } from "../src/outcome/reportPresentation";
+import { buildReportNotice, buildReportPresentation } from "../src/outcome/reportPresentation";
 
 const base = {
   qualityPassed: true,
@@ -182,4 +182,67 @@ test("a demonstration report carries neither field instruction", () => {
 
   assert.doesNotMatch(demo.sections[2].body, /Puskesmas/i);
   assert.match(demo.sections[2].body, /peragaan|Panduan & demo/i);
+});
+
+// ── Satu spanduk, bukan tiga.
+//    Kalimatnya tidak berubah; tumpukannya yang berubah. Tiga kartu peringatan
+//    sebelum satu hasil pun terlihat terbaca sebagai permintaan maaf, dan itu
+//    kesan visual pertama juri terhadap keluaran sistem.
+
+test("a demonstration report carries exactly one notice that leads with the mode", () => {
+  const notice = buildReportNotice({
+    demonstrationMode: true,
+    isEngineeringStudy: false,
+    sourceKind: "recorded_replay",
+    recordingLabel: "Pola diproduksi",
+    recordingCapturedAt: "2026-08-19",
+  });
+
+  assert.equal(notice.tone, "demonstration");
+  assert.match(notice.lead, /MODE DEMONSTRASI/);
+  // Every sentence the three cards carried has to survive the merge.
+  assert.match(notice.body, /bukan diagnosis|Bukan diagnosis/i);
+  assert.match(notice.body, /69%/);
+  assert.match(notice.body, /Pola diproduksi/);
+  assert.match(notice.body, /tidak mengeluarkan rujukan/i);
+});
+
+test("a field report still says it is not a diagnosis, and says why the referral is withheld", () => {
+  const notice = buildReportNotice({
+    demonstrationMode: false,
+    isEngineeringStudy: false,
+    sourceKind: "live",
+    recordingLabel: null,
+    recordingCapturedAt: null,
+  });
+
+  assert.equal(notice.tone, "limit");
+  assert.match(notice.lead, /Bukan diagnosis/i);
+  assert.match(notice.body, /ditahan/i);
+  // A live field session is not a replay and must not claim to be one.
+  assert.doesNotMatch(notice.body, /REKAMAN|SIMULASI/);
+});
+
+test("a synthetic preview says the points were generated, not recorded", () => {
+  const notice = buildReportNotice({
+    demonstrationMode: false,
+    isEngineeringStudy: false,
+    sourceKind: "synthetic_preview",
+    recordingLabel: null,
+    recordingCapturedAt: null,
+  });
+
+  assert.match(notice.body, /dibangkitkan/i);
+});
+
+test("an engineering session says it tests the device, not the participant", () => {
+  const notice = buildReportNotice({
+    demonstrationMode: false,
+    isEngineeringStudy: true,
+    sourceKind: "live",
+    recordingLabel: null,
+    recordingCapturedAt: null,
+  });
+
+  assert.match(notice.body, /menguji perangkat/i);
 });
