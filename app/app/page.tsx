@@ -30,7 +30,11 @@ import {
 } from "../src/capture/faceLandmarker";
 import { projectCoverPoint, projectCoverRect } from "../src/capture/videoProjection";
 import { CHILD_TARGETS, TECHNICAL_TARGETS as TARGETS } from "../src/capture/calibrationTargets";
-import { CameraRequestTimeoutError, cameraErrorInfo } from "../src/capture/cameraError";
+import {
+  CameraRequestTimeoutError,
+  cameraErrorInfo,
+  cleanupFailedCameraAcquisition,
+} from "../src/capture/cameraError";
 import type {
   DeviceDiagnostics,
   ModelExport,
@@ -1372,11 +1376,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setDeviceStatus("checking");
     setDeviceMessage("Memuat pemeriksaan wajah lokal…");
     let requestId = cameraRequestIdRef.current;
+    let acquiredStream: MediaStream | null = null;
+    let acquiredLandmarker: Awaited<ReturnType<typeof createFaceLandmarker>> | null = null;
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-        const contextError = new Error();
-        contextError.name = "SecurityError";
-        throw contextError;
+        throw new Error("Camera API unavailable");
       }
       stopCamera();
       requestId = cameraRequestIdRef.current;
@@ -1410,6 +1414,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           },
         );
       });
+      acquiredStream = stream;
       if (requestId !== cameraRequestIdRef.current) {
         stream.getTracks().forEach((track) => track.stop());
         return;
@@ -1421,6 +1426,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       previewVideoRef.current.srcObject = stream;
       await Promise.all([captureVideoRef.current.play(), previewVideoRef.current.play()]);
       landmarkerRef.current ||= await createFaceLandmarker();
+      acquiredLandmarker = landmarkerRef.current;
       let detections = 0;
       const attempts = 12;
       const coverages: number[] = [];
@@ -1494,8 +1500,25 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       }
     } catch (error) {
       if (requestId !== cameraRequestIdRef.current) return;
+      if (acquiredStream) {
+        cleanupFailedCameraAcquisition({
+          acquiredStream,
+          activeStream: streamRef.current,
+          videoElements: [
+            captureVideoRef.current,
+            previewVideoRef.current,
+            calibrationVideoRef.current,
+          ].filter((video): video is HTMLVideoElement => video !== null),
+          acquiredDetector: acquiredLandmarker,
+          activeDetector: landmarkerRef.current,
+          clearActiveStream: () => { streamRef.current = null; },
+          clearActiveDetector: () => { landmarkerRef.current = null; },
+        });
+        setTracking(null);
+      }
       const localizedError = cameraErrorInfo(error, {
         isSecureContext: window.isSecureContext,
+        getUserMediaSupported: Boolean(navigator.mediaDevices?.getUserMedia),
       });
       setDeviceStatus("failed");
       setDeviceMessage(localizedError.message);

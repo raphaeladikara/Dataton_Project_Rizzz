@@ -3,7 +3,10 @@ export type CameraErrorKind =
   | "camera_not_found"
   | "camera_busy"
   | "insecure_context"
+  | "unsupported_browser"
+  | "unsupported_constraints"
   | "request_timeout"
+  | "request_interrupted"
   | "unknown";
 
 export type CameraErrorInfo = {
@@ -46,9 +49,21 @@ const CAMERA_ERRORS: Record<CameraErrorKind, CameraErrorInfo> = {
     kind: "insecure_context",
     message: "Kamera memerlukan HTTPS atau http://localhost. Buka halaman ini melalui koneksi HTTPS, lalu coba lagi.",
   },
+  unsupported_browser: {
+    kind: "unsupported_browser",
+    message: "Browser atau WebView ini tidak mendukung akses kamera. Buka halaman di Chrome, Edge, atau Safari versi terbaru, lalu coba lagi.",
+  },
+  unsupported_constraints: {
+    kind: "unsupported_constraints",
+    message: "Kemampuan kamera tidak memenuhi kebutuhan resolusi sesi ini. Pilih kamera lain atau periksa pengaturan resolusi perangkat, lalu coba lagi.",
+  },
   request_timeout: {
     kind: "request_timeout",
     message: "Kamera tidak merespons dalam 12 detik. Periksa izin dan koneksi kamera, lalu coba lagi.",
+  },
+  request_interrupted: {
+    kind: "request_interrupted",
+    message: "Permintaan kamera terhenti sebelum selesai. Coba lagi; jika berulang, muat ulang halaman.",
   },
   unknown: {
     kind: "unknown",
@@ -58,9 +73,13 @@ const CAMERA_ERRORS: Record<CameraErrorKind, CameraErrorInfo> = {
 
 export function cameraErrorInfo(
   error: unknown,
-  environment: { isSecureContext?: boolean } = {},
+  environment: {
+    isSecureContext?: boolean;
+    getUserMediaSupported?: boolean;
+  } = {},
 ): CameraErrorInfo {
   if (environment.isSecureContext === false) return CAMERA_ERRORS.insecure_context;
+  if (environment.getUserMediaSupported === false) return CAMERA_ERRORS.unsupported_browser;
 
   const name = errorName(error);
   if (name === "NotAllowedError" || name === "PermissionDeniedError")
@@ -70,7 +89,72 @@ export function cameraErrorInfo(
   if (name === "NotReadableError" || name === "TrackStartError")
     return CAMERA_ERRORS.camera_busy;
   if (name === "SecurityError") return CAMERA_ERRORS.insecure_context;
-  if (name === "AbortError" || name === "CameraRequestTimeoutError")
-    return CAMERA_ERRORS.request_timeout;
+  if (name === "OverconstrainedError" || name === "ConstraintNotSatisfiedError")
+    return CAMERA_ERRORS.unsupported_constraints;
+  if (error instanceof CameraRequestTimeoutError) return CAMERA_ERRORS.request_timeout;
+  if (name === "AbortError") return CAMERA_ERRORS.request_interrupted;
   return CAMERA_ERRORS.unknown;
+}
+
+type CameraStreamResource = {
+  getTracks(): ArrayLike<{ stop(): void }>;
+};
+
+type CameraDetectionResource = {
+  close(): void;
+};
+
+export function cleanupFailedCameraAcquisition<
+  TStream extends CameraStreamResource,
+  TDetector extends CameraDetectionResource,
+>({
+  acquiredStream,
+  activeStream,
+  videoElements,
+  acquiredDetector,
+  activeDetector,
+  clearActiveStream,
+  clearActiveDetector,
+}: {
+  acquiredStream: TStream;
+  activeStream: TStream | null;
+  // `HTMLVideoElement.srcObject` is the wider `MediaProvider | null`; keeping
+  // this structural lets the helper remain testable without DOM instances.
+  videoElements: Array<{ srcObject: unknown }>;
+  acquiredDetector: TDetector | null;
+  activeDetector: TDetector | null;
+  clearActiveStream(): void;
+  clearActiveDetector(): void;
+}): boolean {
+  let tracks: ArrayLike<{ stop(): void }> = [];
+  try {
+    tracks = acquiredStream.getTracks();
+  } catch {
+    // Continue clearing bindings even if a browser stream object is damaged.
+  }
+  for (const track of Array.from(tracks)) {
+    try {
+      track.stop();
+    } catch {
+      // One broken track must not leave the remaining camera resources live.
+    }
+  }
+
+  for (const video of videoElements) {
+    if (video.srcObject === acquiredStream) video.srcObject = null;
+  }
+
+  if (activeStream !== acquiredStream) return false;
+  clearActiveStream();
+
+  if (acquiredDetector && activeDetector === acquiredDetector) {
+    try {
+      acquiredDetector.close();
+    } catch {
+      // The failed session still relinquishes the detector reference.
+    } finally {
+      clearActiveDetector();
+    }
+  }
+  return true;
 }
