@@ -155,6 +155,14 @@ def build_produk():
         ("09-monitor-report.png", "(b) Pantau sesuai SDIDTK"),
         ("10-held-report.png", "(c) Skor tidak dikeluarkan"),
     ]
+    hilang = [name for name, _ in panels if not (SHOTS / name).exists()]
+    if hilang:
+        print(
+            "figs/produk.pdf dilewati: tangkapan layar " + ", ".join(hilang) + " tidak ada. "
+            "Set neurogaze-v3 dibuang karena menampilkan baterai dan laporan rujukan yang "
+            "kode sekarang tidak dapat produksi; ambil ulang dari rekaman sesi terdaftar."
+        )
+        return
     fig, axes = plt.subplots(1, 3, figsize=(5.5, 2.6))
     for ax, (filename, caption) in zip(axes, panels):
         # Berkas berekstensi .png namun berisi JPEG; PIL menangani keduanya.
@@ -172,5 +180,5 @@ def build_produk():
 
 if __name__ == "__main__":
     build_hasil_utama()
+    print("figs/hasil_utama.pdf diperbarui")
     build_produk()
-    print("figs/hasil_utama.pdf dan figs/produk.pdf diperbarui")

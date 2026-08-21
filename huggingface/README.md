@@ -14,7 +14,7 @@ license: other
 
 # Neurogaze gaze model
 
-Regresi logistik 13 fitur geometri scanpath dengan kalibrasi Platt. Artefak ini hanya digunakan dalam replay deterministik; sesi kamera live tidak menjalankannya untuk memberi skor ASD.
+Regresi logistik 13 fitur geometri scanpath dengan kalibrasi Platt. Artefak ini dikirim ke perangkat dan dijalankan setiap sesi, tetapi hanya mengisi panel riset: penjaga out-of-distribution memutuskan apakah keluarannya boleh dibaca, dan pada stimulus yang dikirim ia menolak. Model ini tidak pernah memberi skor ASD pada sesi mana pun.
 
 > Model ini bukan alat diagnosis dan belum divalidasi secara klinis pada anak usia 16–30 bulan atau pada layanan Posyandu.
 

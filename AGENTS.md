@@ -110,9 +110,10 @@ Three layers. Do not blur them.
 - No practitioner has been interviewed and no kader has touched the application.
   `docs/wawancara_praktisi.md` holds the protocol for the first; the second is the
   cheapest test left and is still undone.
-- `docs/screenshots/neurogaze-v3/` does not match the running application and
-  `08-refer-report.png` shows an output the current code cannot produce. Do not use
-  that set in the deck or the paper.
+- There are no screenshots of the running application. The `neurogaze-v3` set was
+  deleted: it showed a battery length and a referral report the current code cannot
+  produce, and nothing has replaced it. A new set needs a registered real recording,
+  because the synthetic path is always withheld by the OOD guard.
 - `paper/Rizzz_Paper_Final.pdf` is older than `paper/sumber/paper_final.tex`, and
   neither carries the positive control. Recompile before submitting.
 

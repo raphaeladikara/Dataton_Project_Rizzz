@@ -8,4 +8,3 @@ jupyterlab==4.4.3
 ipykernel==6.29.5
 pytest==9.0.3
 huggingface-hub==1.26.0
-imageio-ffmpeg==0.6.0

@@ -36,3 +36,9 @@ data/
 *.synctex.gz
 .vercel
 .env*
+
+# Berkas kunci Office — muncul saat .pptx/.docx sedang dibuka
+~$*
+
+# Izin Claude Code per-mesin; isinya path lokal, bukan setelan proyek
+.claude/settings.local.json

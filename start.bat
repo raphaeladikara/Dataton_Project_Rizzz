@@ -5,25 +5,22 @@ cd /d "%~dp0"
 if /i "%~1"=="app" goto app
 if /i "%~1"=="test" goto test
 if /i "%~1"=="audit" goto audit
-if /i "%~1"=="verify" goto verify
 if /i "%~1"=="exit" exit /b 0
 
 :menu
 cls
 echo ============================================================
-echo  NEUROGAZE v3.0 - APP, LOG, DAN ROADMAP TOOLKIT
+echo  NEUROGAZE - APP, TEST, DAN ANALISIS LOG
 echo ============================================================
 echo  [1] Jalankan webapp produksi lokal
 echo  [2] Jalankan seluruh test software
 echo  [3] Analisis folder audit log JSON
-echo  [4] Verifikasi roadmap software dan buat laporan
 echo  [0] Keluar
 echo.
 set /p "choice=Pilih menu: "
 if "%choice%"=="1" goto app
 if "%choice%"=="2" goto test
 if "%choice%"=="3" goto audit
-if "%choice%"=="4" goto verify
 if "%choice%"=="0" exit /b 0
 echo Pilihan tidak dikenal.
 pause
@@ -67,8 +64,6 @@ call npm test
 if errorlevel 1 (popd & goto failed)
 call npm run lint
 if errorlevel 1 (popd & goto failed)
-call npm run build:sites
-if errorlevel 1 (popd & goto failed)
 popd
 echo.
 echo [Neurogaze] Semua test dan build lulus.
@@ -94,16 +89,6 @@ echo [Neurogaze] Laporan selesai:
 echo   %REPORT%
 echo   %REPORT:.json=.md%
 start "" "%REPORT:.json=.md%"
-pause
-exit /b 0
-
-:verify
-call :python
-if errorlevel 1 goto failed
-call :node
-if errorlevel 1 goto failed
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\verify_roadmap.ps1"
-if errorlevel 1 goto failed
 pause
 exit /b 0
 

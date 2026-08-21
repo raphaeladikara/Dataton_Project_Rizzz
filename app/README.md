@@ -15,15 +15,18 @@ Kamera browser memerlukan HTTPS atau localhost.
 ## Kontrak produk
 
 - Sesi kamera melaporkan pengukuran dua lapis: persentase fiksasi geometrik terhadap ambang
-  GeoPref 69% (satu-satunya pemicu rujukan otomatis), dan enam indeks perilaku yang
+  GeoPref 69% (satu-satunya pemicu rujukan otomatis), dan lima indeks perilaku yang
   deskriptif. Tidak ada skor gabungan dan tidak ada probabilitas ASD.
 - Regresi logistik Carette tidak pernah memutuskan apa pun; ia hanya mengisi panel riset
   yang dijaga penapis out-of-distribution.
 - Hasil di bawah ambang bukan kabar baik. NPV GeoPref 65%, dan tipe `reassures: false`
   menegakkannya.
-- Gate A memakai sesi dewasa untuk menguji akuisisi teknis.
+- Gate A dan Gate B sudah ditutup. Bukti kanonisnya ada di `research/hasil`, dan tidak
+  ada lagi kontrol di layar utama yang memulai sesinya.
 - Halaman `/validation` memuat snapshot Gate B yang diturunkan dari 30 log agreement Neurogaze–WebGazer.
-- Konsol `/admin` memerlukan `NEUROGAZE_ADMIN_PASSWORD_SHA256` dan `NEUROGAZE_ADMIN_SESSION_SECRET`.
+- Panel teknis `/admin` statis dan tanpa autentikasi: tidak ada server di produk ini, jadi
+  tidak ada yang bisa diautentikasi. Ia membaca berkas bukti terbit yang sama dengan
+  halaman lain dan tidak menyimpan data sesi.
 
 ## Mendaftarkan rekaman untuk Demo cepat
 
