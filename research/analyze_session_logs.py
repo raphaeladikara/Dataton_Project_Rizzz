@@ -43,6 +43,11 @@ def load_logs(paths: Iterable[Path]) -> tuple[list[dict], list[dict]]:
             value = json.loads(path.read_text(encoding="utf-8"))
             if value.get("schemaVersion") not in {2, 3} or not isinstance(value.get("events"), list):
                 raise ValueError("not a supported Neurogaze schemaVersion 2 or 3 audit log")
+            if (
+                value.get("purpose") == "target_population_research"
+                and not bool((value.get("privacy") or {}).get("researchConsent"))
+            ):
+                raise ValueError("target_population_research log has no research consent; excluded from analysis")
             value["_source"] = str(path)
             logs.append(value)
         except Exception as exc:  # audit tools must report, not silently skip

@@ -59,6 +59,7 @@ import {
   createSessionAudit,
   downloadAuditLog,
   renewSessionIdentity,
+  type AuditExportPurpose,
   type SessionAuditLog,
 } from "../src/audit/sessionLog";
 import { processGazeSamples, type GazePipelineDiagnostics } from "../src/gaze/pipeline";
@@ -80,9 +81,8 @@ import {
   type PositiveControlMeta,
 } from "../src/positive/control";
 import {
-  loadFirstRecording,
-  loadRecording,
   loadRecordingManifest,
+  orchestrateRegisteredReplay,
   type RecordedSession,
   type RecordingEntry,
 } from "../src/replay/recording";
@@ -577,8 +577,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [mode, setMode] = useState<Mode>(isAdminCapture ? "live" : "replay");
   const [sessionPurpose, setSessionPurpose] = useState<SessionPurpose>(initialPurpose ?? "demo_replay");
   const [scenario, setScenario] = useState<ReplayScenario>(SCENARIOS[0]);
-  // A recorded session replaces the synthetic scenario when one is shipped;
-  // until then the quick demo falls back and says on screen that it did.
+  // Registered demonstrations require a real recording. Null remains reserved
+  // for the three explicitly synthetic preview scenarios and is never a demo
+  // fallback.
   const [recording, setRecording] = useState<RecordedSession | null>(null);
   const recordingRef = useRef<RecordedSession | null>(null);
   /**
@@ -588,6 +589,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
    * and one of them is a person producing the pattern on instruction.
    */
   const [recordingEntries, setRecordingEntries] = useState<RecordingEntry[]>([]);
+  const [demoReplayError, setDemoReplayError] = useState<string | null>(null);
   const [demoRun, setDemoRun] = useState<"idle" | "calibrating" | "measuring" | "done">("idle");
   /**
    * Stage demonstration of the full rule-in report. Reachable only from replay
@@ -854,10 +856,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStage(isEngineeringStudy ? "device" : "preparation");
   }
 
-  function downloadCurrentAudit() {
+  function downloadCurrentAudit(purpose: AuditExportPurpose) {
     if (!auditRef.current) return;
-    recordAudit("audit.downloaded");
-    downloadAuditLog(auditRef.current);
+    const downloaded = downloadAuditLog(auditRef.current, purpose);
+    if (downloaded) commitAudit(downloaded);
   }
 
   function setResearchLogPermission(on: boolean) {
@@ -1280,18 +1282,21 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
    * the stimulus block, the quality gate, and the same outcome resolver a live
    * session uses. The only difference is where the gaze comes from.
    */
-  async function startQuickDemo(options: { demonstration: true; entry: RecordingEntry } | { demonstration?: false; entry?: RecordingEntry } = {}) {
-    start("replay", SCENARIOS[0], "demo_replay", options);
-    setProfile({ childId: options.demonstration ? "NG-PERAGA-01" : "NG-DEMO-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
-    if (options.demonstration) recordAudit("session.demonstration_mode", { enabled: true, reason: "ambang_69_diterapkan_pada_protokol_dipersingkat" }, "warning");
-    // Naming the recording in the log matters more than it looks: the report
-    // says which condition it replayed, so a screenshot cannot be captioned as
-    // the other one after the fact.
-    if (options.entry) recordAudit("replay.recording_selected", { file: options.entry.file, label: options.entry.label, condition: options.entry.condition ?? null });
-    const found = options.entry ? await loadRecording(options.entry.file) : await loadFirstRecording();
-    recordingRef.current = found;
-    setRecording(found);
-    setDemoRun("calibrating");
+  async function startQuickDemo(options: { demonstration: true; entry: RecordingEntry }) {
+    setDemoReplayError(null);
+    const result = await orchestrateRegisteredReplay(options.entry, (found) => {
+      start("replay", SCENARIOS[0], "demo_replay", options);
+      recordingRef.current = found;
+      setRecording(found);
+      setProfile({ childId: "NG-PERAGA-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
+      recordAudit("session.demonstration_mode", { enabled: true, reason: "ambang_69_diterapkan_pada_protokol_dipersingkat" }, "warning");
+      // Naming the recording in the log matters more than it looks: the report
+      // says which condition it replayed, so a screenshot cannot be captioned as
+      // the other one after the fact.
+      recordAudit("replay.recording_selected", { file: options.entry.file, label: options.entry.label, condition: options.entry.condition ?? null });
+      setDemoRun("calibrating");
+    });
+    if (!result.ok) setDemoReplayError(result.message);
   }
 
   async function runCalibration() {
@@ -2373,6 +2378,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 >
                   <IconCamera size={15} /> Peragakan · kamera langsung
                 </button>
+                {demoReplayError && <p className="demoReplayError" role="alert">{demoReplayError}</p>}
               </div>
             </div>
           </section>
@@ -2596,7 +2602,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           )}
           <div className="calibrationActions">
             <button className="secondary" onClick={() => { void leaveMeasurementFullscreen(); setStage("device"); }}><IconArrowLeft size={15} /> Kembali</button>
-            {auditLog && <button className="secondary" onClick={downloadCurrentAudit}><IconDownload size={15} /> Unduh log analisis</button>}
+            {auditLog && sessionPurpose !== "target_population_research" && <button className="secondary" onClick={() => downloadCurrentAudit("operator_audit")}><IconDownload size={15} /> Unduh log analisis</button>}
             {calibration && calibrationAttempts < 2 && <button className="primary amber" disabled={busy} onClick={beginCalibration}><IconRefresh size={16} /> Ulangi sekali</button>}
             {calibrationAttempts >= 2 && calibrationFailed && <button className="secondary" onClick={goHome}>Akhiri tes</button>}
             <button className="primary dark" disabled={!calibration || calibration.errorDeg > calibrationLimitDeg} onClick={() => setStage("sanity")}>Periksa arah pandangan <IconArrowRight size={16} /></button>
@@ -3026,13 +3032,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </ul>
             <p className="printFooter">Tanda tangan operator: ____________________  ·  Diterima oleh: ____________________</p>
           </section>
-          {sessionPurpose === "target_population_research" && auditLog && <label className="checkRow optional">
+          {sessionPurpose === "target_population_research" && auditLog && <label className="checkRow optional researchExportConsent">
             <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchLogPermission(event.target.checked)} />
-            <span><strong>Izinkan log teknis pseudonim dipakai untuk riset.</strong> Pilihan ini tidak memengaruhi laporan layanan. Berikan izin hanya sebelum log diekspor untuk analisis; video dan titik wajah tetap tidak disimpan.</span>
+            <span id="research-export-help"><strong>Izinkan log teknis pseudonim dipakai untuk riset.</strong> Pilihan ini tidak memengaruhi laporan layanan. Berikan izin hanya sebelum log diekspor untuk analisis; video dan titik wajah tetap tidak disimpan.</span>
           </label>}
           <div className="cardActions">
             <button className="secondary" onClick={() => { if (isAdminCapture) window.location.href = "/admin"; else goHome(); }}><IconCheck size={15} /> {isAdminCapture ? "Kembali ke konsol admin" : "Selesai"}</button>
-            {auditLog && <button className="secondary" onClick={downloadCurrentAudit}><IconDownload size={15} /> Unduh log audit JSON</button>}
+            {auditLog && (sessionPurpose === "target_population_research"
+              ? <button className="secondary" disabled={!researchConsent} aria-describedby="research-export-help" onClick={() => downloadCurrentAudit("research_analysis")}><IconDownload size={15} /> Unduh log analisis riset</button>
+              : <button className="secondary" onClick={() => downloadCurrentAudit("operator_audit")}><IconDownload size={15} /> Unduh log audit JSON</button>)}
             <button className="secondary" onClick={() => window.print()}><IconReport size={15} /> Cetak ringkasan</button>
 
             {auditLog && <button className="textButton danger" onClick={deleteCurrentAudit}><IconTrash size={15} /> Hapus log dari memori</button>}

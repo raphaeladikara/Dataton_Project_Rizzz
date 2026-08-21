@@ -429,6 +429,21 @@ test("ordinary field setup is blank and contains no demo or research-log opt-in"
   assert.match(reportSection, /Izinkan log teknis pseudonim dipakai untuk riset/);
 });
 
+test("field research export is consent-gated and the interactive consent control never prints", () => {
+  const calibrationSection = page.match(/\{stage === "calibration"[\s\S]*?\{stage === "sanity"/)?.[0] ?? "";
+  assert.match(calibrationSection, /sessionPurpose !== "target_population_research"[\s\S]*?Unduh log analisis/);
+  assert.match(page, /disabled=\{!researchConsent\}[\s\S]*?Unduh log analisis riset/);
+  assert.match(page, /className="checkRow optional researchExportConsent"/);
+  assert.match(sessionCss, /@media print \{[\s\S]*?\.researchExportConsent[\s\S]*?display: none !important/);
+});
+
+test("registered replay is loaded before the demonstration session is initialized", () => {
+  const quickDemo = page.match(/async function startQuickDemo[\s\S]*?\n  \}/)?.[0] ?? "";
+  assert.match(quickDemo, /orchestrateRegisteredReplay/);
+  assert.doesNotMatch(quickDemo, /loadFirstRecording/);
+  assert.match(page, /demoReplayError[\s\S]*?role="alert"/);
+});
+
 test("the child calibration target is a face that stays visible while active", () => {
   assert.match(page, /<CalibrationCharacter active=\{calibrationTarget === index\} \/>/);
   assert.doesNotMatch(page, /calibrationTarget === index \? <i \/> : useTechnicalCalibration \? index \+ 1 : <IconChild/);

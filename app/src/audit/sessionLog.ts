@@ -178,6 +178,39 @@ export function serializeAuditLog(log: SessionAuditLog): string {
   return `${JSON.stringify(log, null, 2)}\n`;
 }
 
+export type AuditExportPurpose = "operator_audit" | "research_analysis";
+
+export type AuditExportPreparation =
+  | { ok: true; log: SessionAuditLog }
+  | { ok: false; reason: string };
+
+/**
+ * Prepare the exact log that leaves the device.
+ *
+ * Research analysis is a distinct export purpose: it is refused until consent
+ * is present in the log itself. Appending the download event here means the
+ * serialized file proves that consent was recorded before this export rather
+ * than relying on component state or a button's disabled appearance.
+ */
+export function prepareAuditExport(
+  log: SessionAuditLog,
+  purpose: AuditExportPurpose,
+): AuditExportPreparation {
+  if (purpose === "research_analysis" && !log.privacy.researchConsent) {
+    return { ok: false, reason: "Persetujuan riset belum diberikan untuk log ini." };
+  }
+  const downloadable = appendAuditEvent({
+    ...log,
+    privacy: {
+      ...log.privacy,
+      derivedGazeExported: purpose === "research_analysis" || log.privacy.derivedGazeExported,
+      storage: "download_by_operator",
+      retention: "operator_export",
+    },
+  }, "audit.downloaded", { purpose });
+  return { ok: true, log: downloadable };
+}
+
 export function auditFilename(log: SessionAuditLog): string {
   // A positive control is filed by participant, condition, and attempt, so the
   // name the operator saves is already the name the protocol asks for.
@@ -186,15 +219,18 @@ export function auditFilename(log: SessionAuditLog): string {
   return `neurogaze-audit-${safeChild}-${log.sessionId.slice(0, 8)}.json`;
 }
 
-export function downloadAuditLog(log: SessionAuditLog): void {
-  const downloadable: SessionAuditLog = {
-    ...log,
-    privacy: { ...log.privacy, storage: "download_by_operator", retention: "operator_export" },
-  };
+export function downloadAuditLog(
+  log: SessionAuditLog,
+  purpose: AuditExportPurpose = "operator_audit",
+): SessionAuditLog | null {
+  const prepared = prepareAuditExport(log, purpose);
+  if (!prepared.ok) return null;
+  const downloadable = prepared.log;
   const url = URL.createObjectURL(new Blob([serializeAuditLog(downloadable)], { type: "application/json" }));
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = auditFilename(downloadable);
   anchor.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  return downloadable;
 }

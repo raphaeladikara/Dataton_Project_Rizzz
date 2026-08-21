@@ -5,6 +5,7 @@ import {
   loadFirstRecording,
   loadRecording,
   normaliseRecordingEntries,
+  orchestrateRegisteredReplay,
   recordingFromAuditLog,
 } from "../src/replay/recording";
 
@@ -151,6 +152,20 @@ test("a named recording is loaded instead of whichever file is listed first", as
   const recording = await loadRecording("sesi-produksi.json", fetcher);
   assert.equal(recording?.id, "sesi-produksi.json");
   assert.deepEqual(asked, ["/replay/sesi-produksi.json"]);
+});
+
+test("a broken registered demonstration aborts before initialization", async () => {
+  let initialized = 0;
+  const fetcher = (async () => ({ ok: true, json: async () => ({ gaze: {} }) })) as unknown as typeof fetch;
+  const result = await orchestrateRegisteredReplay(
+    { file: "rusak.json", label: "Kondisi produksi" },
+    () => { initialized += 1; },
+    fetcher,
+  );
+  assert.equal(result.ok, false);
+  assert.equal(initialized, 0);
+  assert.match(result.message ?? "", /Kondisi produksi/);
+  assert.match(result.message ?? "", /tidak dapat dimuat/i);
 });
 
 /**

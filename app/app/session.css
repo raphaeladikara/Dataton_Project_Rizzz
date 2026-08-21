@@ -2540,7 +2540,7 @@ dd {
   .observationReport, .researchPanel, .researchLane, .reportTechnical, .decisionRules,
   .resultNext, .observationAnswer, .qualityGrid, .gateDecision, .warning,
   .reportNotices, .measurementLane, .referralLane, .sessionVerdict,
-  .observationMetrics { display: none !important; }
+  .observationMetrics, .researchExportConsent { display: none !important; }
   .printSummary { display: block; color: #000; font-size: 11pt; }
   .printSummary header { padding-bottom: 8pt; border-bottom: 1.5pt solid #000; }
   .printSummary h1 { margin: 0 0 4pt; font-size: 17pt; }
