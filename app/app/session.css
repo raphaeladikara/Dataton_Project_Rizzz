@@ -27,7 +27,7 @@
 .reportPage select:focus-visible,
 .sessionShell summary:focus-visible,
 .reportPage summary:focus-visible {
-  outline: 3px solid var(--teal-300);
+  outline: 3px solid var(--teal-700);
   outline-offset: 3px;
 }
 
@@ -2426,6 +2426,7 @@ dd {
 }
 
 .reportPractitioner > summary {
+  position: relative;
   display: grid;
   gap: 4px;
   min-height: 56px;
@@ -2435,6 +2436,26 @@ dd {
   font-weight: 750;
   line-height: 1.35;
   cursor: pointer;
+  list-style: none;
+}
+
+.reportPractitioner > summary::-webkit-details-marker { display: none; }
+
+.reportPractitioner > summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--teal-700);
+  border-bottom: 2px solid var(--teal-700);
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.reportPractitioner[open] > summary::after {
+  transform: translateY(-35%) rotate(225deg);
 }
 
 .reportPractitioner > summary small {
@@ -2444,7 +2465,7 @@ dd {
 }
 
 .reportPractitioner > summary:focus-visible {
-  outline: 3px solid var(--teal-300);
+  outline: 3px solid var(--teal-700);
   outline-offset: 3px;
 }
 
@@ -2729,18 +2750,20 @@ dd {
   body { background: #fff; }
   .topbar, .sessionRail, .cardActions, .skipLink, .presentationStrip,
   .reportHeader, .reportPractitioner,
+  .caregiverReport[data-surface="screen"],
   .observationReport, .researchPanel, .researchLane, .reportTechnical, .decisionRules,
   .resultNext, .observationAnswer, .qualityGrid, .gateDecision, .warning,
   .reportNotices, .measurementLane, .referralLane, .sessionVerdict,
   .observationMetrics, .researchExportConsent { display: none !important; }
   .printSummary { display: block; color: #000; font-size: 11pt; }
-  .caregiverReport { display: block; margin: 0 0 12pt; border-color: #777; }
+  .caregiverReport[data-surface="print"] { display: block; margin: 0 0 12pt; border-color: #777; }
   .caregiverReport article { break-inside: avoid; padding: 9pt 0; }
   .caregiverReport h2 { color: #000; font-size: 12pt; }
   .caregiverReport p, .caregiverReport small { color: #222; font-size: 10pt; }
   .printSummary header { padding-bottom: 8pt; border-bottom: 1.5pt solid #000; }
   .printSummary h1 { margin: 0 0 4pt; font-size: 17pt; }
   .printSummary header p { margin: 0; font-size: 9.5pt; }
+  .printDisclaimer { margin: 10pt 0 0; font-size: 10pt; font-weight: 700; }
   .printSummary h2 { margin: 14pt 0 6pt; font-size: 12pt; }
   .printMeta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2pt 18pt; margin: 10pt 0 0; }
   .printMeta div { display: flex; gap: 6pt; font-size: 10pt; }

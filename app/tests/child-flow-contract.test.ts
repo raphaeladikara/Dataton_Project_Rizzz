@@ -44,6 +44,7 @@ test("compact primary navigation keeps guide, evidence, and privacy reachable", 
   assert.match(page, /event\.key === "Escape"/);
   assert.match(page, /pointerdown/);
   assert.match(page, /focusNavigationDestination\(document, destinationId\)/);
+  assert.match(page, /compactNavigationTransition/);
   for (const destination of ["home-heading", "guide-heading", "evidence", "privacy"])
     assert.match(page, new RegExp(`id="${destination}"`));
   assert.match(chromeCss, /:is\(#home-heading, #guide-heading, #evidence, #privacy\):focus-visible\s*\{[^}]*outline:/);
@@ -386,18 +387,19 @@ test("step numbering has one source, so no screen can disagree with the rail", (
 });
 
 test("the report can be handed over on paper, not only as audit.json", () => {
-  assert.match(page, /className="printSummary"/);
+  assert.match(page, /<PrintableReport/);
   assert.match(page, /window\.print\(\)/);
   for (const required of ["Batas klaim", "Ambang rujukan 69%", "sensitivitas ambang ini 17%"])
     assert.ok(page.includes(required), `print summary is missing: ${required}`);
-  assert.match(page, /className="printDemonstration"/);
   const printCss = sessionCss.slice(sessionCss.indexOf("@media print"));
   const hiddenPrintSelectors = printCss.match(/([\s\S]*?)\{ display: none !important; \}/)?.[1] ?? "";
-  assert.doesNotMatch(hiddenPrintSelectors, /\.caregiverReport/);
+  assert.match(hiddenPrintSelectors, /\.caregiverReport\[data-surface="screen"\]/);
   assert.match(hiddenPrintSelectors, /\.cardActions/);
   assert.match(hiddenPrintSelectors, /\.reportPractitioner/);
-  assert.match(printCss, /\.caregiverReport\s*\{[^}]*display:\s*block/);
+  assert.match(printCss, /\.caregiverReport\[data-surface="print"\]\s*\{[^}]*display:\s*block/);
   assert.match(printCss, /\.printDemonstration\s*\{[^}]*display:\s*block/);
+  assert.match(page, /qualityPassed=\{quality\.passed\}/);
+  assert.match(page, /validityCanScore=\{Boolean\(validity\?\.canScore\)\}/);
   assert.match(page, /<p className="printVerdict"[^>]*>\{verdict\.headline\}<\/p>/);
   assert.match(page, /verdict\.reasons\.filter\(\(reason\) => reason\.id === "posterior_odds"\)/);
   assert.match(page, /verdict\.demonstration \? "Respons arsitektur peragaan"/);
@@ -436,7 +438,20 @@ test("mobile evidence and admin controls remain readable and touchable", () => {
 test("operational report and controls use restrained product styling", () => {
   assert.match(cssRule(sessionCss, ".sessionShell :is(input, select, button, summary)"), /font-family:\s*var\(--font-sans-stack\)/);
   assert.match(cssRule(sessionCss, ".observationMetrics strong"), /font-family:\s*var\(--font-sans-stack\)/);
-  assert.match(sessionCss, /select:focus-visible[\s\S]*?summary:focus-visible[\s\S]*?outline:/);
+  for (const selector of [
+    ".sessionShell select:focus-visible",
+    ".reportPage select:focus-visible",
+    ".sessionShell summary:focus-visible",
+    ".reportPage summary:focus-visible",
+  ]) assert.match(cssDeclarationsForSelector(sessionCss, selector), /outline:\s*3px solid var\(--teal-(?:600|700)\)/);
+  for (const selector of [".navMenuButton:focus-visible", ".topnav button:focus-visible"])
+    assert.match(cssDeclarationsForSelector(chromeCss, selector), /outline:\s*3px solid var\(--teal-(?:600|700)\)/);
+  assert.match(cssRule(sessionCss, ".reportPractitioner > summary"), /position:\s*relative/);
+  assert.match(sessionCss, /\.reportPractitioner\s*>\s*summary::after\s*\{[^}]*content:/);
+  assert.match(sessionCss, /\.reportPractitioner\[open\]\s*>\s*summary::after\s*\{[^}]*transform:/);
+  const compactHeader = responsiveCss.slice(responsiveCss.indexOf("@media (max-width: 520px)"));
+  assert.match(cssDeclarationsForSelector(compactHeader, ".topbarInner"), /grid-template-areas:\s*"brand status menu"/);
+  assert.match(cssDeclarationsForSelector(compactHeader, ".topbarInner"), /min-height:\s*\d+px/);
   for (const selector of [
     '.referralLane[data-recommends="true"]',
     '.sessionVerdict[data-tone="follow_up"]',

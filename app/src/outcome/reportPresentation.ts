@@ -13,6 +13,7 @@ export type ReportPresentationSection = {
 
 export type ReportPresentationInput = {
   qualityPassed: boolean;
+  sourceKind: ReportSourceKind;
   demonstrationMode: boolean;
   recommendsFollowUp: boolean;
   emitsReferral: boolean;
@@ -22,6 +23,7 @@ export type ReportPresentationInput = {
 };
 
 export type ReportPresentation = {
+  pageTitle: string;
   sections: [
     ReportPresentationSection,
     ReportPresentationSection,
@@ -30,6 +32,8 @@ export type ReportPresentation = {
   ];
   demoBanner: string | null;
 };
+
+export type ReportSourceKind = "live" | "recorded_replay" | "synthetic_preview";
 
 const DEMONSTRATION_BANNER =
   "Peragaan dengan peserta dewasa dan klip pendek. Ini bukan penilaian klinis dan tidak mengeluarkan rujukan.";
@@ -43,8 +47,10 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
   const followUpShown = input.emitsReferral || input.recommendsFollowUp;
   const whatHappened = !input.qualityPassed
     ? {
-        title: "Rekaman tidak dapat digunakan.",
-        body: input.validityMessage ?? "Data sesi belum cukup baik untuk menghasilkan pengukuran yang dapat dibaca.",
+        title: input.sourceKind === "synthetic_preview"
+          ? "Pratinjau sintetis tidak dapat digunakan."
+          : "Rekaman tidak dapat digunakan.",
+        body: "Pemeriksaan mutu menahan sesi ini sebelum hasil dibuat. Rincian kondisi yang perlu diperbaiki ada pada bagian berikutnya.",
       }
     : input.demonstrationMode
       ? {
@@ -55,7 +61,19 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
         }
       : { title: input.sessionHeadline, body: input.sessionSummary };
 
-  const recordingStatus = input.qualityPassed
+  const recordingStatus = input.sourceKind === "synthetic_preview"
+    ? input.qualityPassed
+      ? {
+          label: "Pratinjau sintetis selesai",
+          title: "Tidak ada rekaman peserta.",
+          body: "Titik tatapan dibangkitkan untuk memperlihatkan alur antarmuka. Tidak ada video, wajah, atau rekaman peserta pada pratinjau ini.",
+        }
+      : {
+          label: "Pratinjau sintetis tidak dapat digunakan",
+          title: "Hasil pratinjau ditahan.",
+          body: input.validityMessage ?? "Data pratinjau belum cukup baik untuk menghasilkan pengukuran yang dapat dibaca.",
+        }
+    : input.qualityPassed
     ? {
         label: "Rekaman dapat digunakan",
         title: "Data sesi cukup untuk dibaca.",
@@ -78,6 +96,13 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
           : "Lanjutkan skrining perkembangan rutin dengan SDIDTK atau M-CHAT-R/F. Bila ada kekhawatiran, bawa ringkasan ini kepada kader, Puskesmas, atau dokter anak.";
 
   return {
+    pageTitle: !input.qualityPassed
+      ? input.demonstrationMode ? "Laporan peragaan — sesi ditahan" : "Laporan sesi ditahan"
+      : input.demonstrationMode
+        ? "Laporan peragaan arsitektur"
+        : input.sourceKind === "synthetic_preview"
+          ? "Laporan pratinjau sintetis"
+          : "Laporan hasil pengukuran",
     sections: [
       { id: "what_happened", label: "Apa yang terjadi", ...whatHappened },
       { id: "recording_status", ...recordingStatus },

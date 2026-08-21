@@ -54,7 +54,8 @@ import { buildReferralRecommendation, REFERRAL_RULE_VERSION } from "../src/outco
 import { reportBadge } from "../src/outcome/reportBadge";
 import { buildPosteriorOdds } from "../src/outcome/posteriorOdds";
 import { buildSessionVerdict } from "../src/outcome/sessionVerdict";
-import { buildReportPresentation } from "../src/outcome/reportPresentation";
+import { buildReportPresentation, type ReportSourceKind } from "../src/outcome/reportPresentation";
+import { CaregiverReport, PrintableReport } from "../src/outcome/reportComponents";
 import { compositeLaneHeadline } from "../src/outcome/referralPresentation";
 import {
   appendAuditEvent,
@@ -142,7 +143,11 @@ import {
 } from "../src/ui/icons";
 import { CalibrationCharacter } from "../src/ui/calibration-character";
 import { HeroDevice } from "../src/ui/hero-device";
-import { focusNavigationDestination } from "../src/ui/navigationFocus";
+import {
+  compactNavigationTransition,
+  focusNavigationDestination,
+  type NavigationDestinationId,
+} from "../src/ui/navigationFocus";
 import { StimulusScene } from "../src/ui/stimulus-scene";
 import {
   createMediaReadinessController,
@@ -1087,7 +1092,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStage("home");
   }
 
-  function moveNavigationFocus(destinationId: "home-heading" | "guide-heading" | "evidence" | "privacy") {
+  function moveNavigationFocus(destinationId: NavigationDestinationId) {
     const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
     requestAnimationFrame(() => {
       document.getElementById(destinationId)?.scrollIntoView({ behavior });
@@ -1095,10 +1100,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     });
   }
 
+  function selectPrimaryNavigation(destinationId: NavigationDestinationId, navigate: () => void) {
+    const transition = compactNavigationTransition(mobileNavOpen, { type: "select", destinationId });
+    setMobileNavOpen(transition.open);
+    navigate();
+    if (transition.focusTarget !== "trigger" && transition.focusTarget) {
+      moveNavigationFocus(transition.focusTarget);
+    }
+  }
+
   function openHomeSection(sectionId: "evidence" | "privacy") {
-    setMobileNavOpen(false);
-    goHome();
-    moveNavigationFocus(sectionId);
+    selectPrimaryNavigation(sectionId, goHome);
   }
 
   // Feature attributions are no longer surfaced: the Carette model does not
@@ -1222,26 +1234,35 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     () => stimulusSeconds(sessionStimulusPhases("duration-probe", { nameCallsDelivered: speakerDeclared })),
     [speakerDeclared],
   );
+  const reportSourceKind: ReportSourceKind = mode === "live"
+    ? "live"
+    : recording
+      ? "recorded_replay"
+      : "synthetic_preview";
   const reportPresentation = useMemo(() => buildReportPresentation({
     qualityPassed: Boolean(quality?.passed && validity?.canScore),
+    sourceKind: reportSourceKind,
     demonstrationMode,
     recommendsFollowUp: referral.recommendsFollowUp,
     emitsReferral: sessionOutcome.emitsReferral,
     sessionHeadline: verdict?.subline ?? sessionOutcome.headline,
     sessionSummary: sessionOutcome.summaryLine,
     validityMessage: validity?.userMessage,
-  }), [quality, demonstrationMode, referral, sessionOutcome, verdict, validity]);
+  }), [quality, reportSourceKind, demonstrationMode, referral, sessionOutcome, verdict, validity]);
 
   useEffect(() => {
     if (!mobileNavOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setMobileNavOpen(false);
-        mobileNavButtonRef.current?.focus();
+        const transition = compactNavigationTransition(mobileNavOpen, { type: "escape" });
+        setMobileNavOpen(transition.open);
+        if (transition.focusTarget === "trigger") mobileNavButtonRef.current?.focus();
       }
     };
     const closeOutside = (event: PointerEvent) => {
-      if (!primaryNavigationRef.current?.contains(event.target as Node)) setMobileNavOpen(false);
+      if (!primaryNavigationRef.current?.contains(event.target as Node)) {
+        setMobileNavOpen(compactNavigationTransition(mobileNavOpen, { type: "outside" }).open);
+      }
     };
     document.addEventListener("keydown", closeOnEscape);
     document.addEventListener("pointerdown", closeOutside);
@@ -2411,13 +2432,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             type="button"
             aria-expanded={mobileNavOpen}
             aria-controls="primary-navigation"
-            onClick={() => setMobileNavOpen((open) => !open)}
+            onClick={() => setMobileNavOpen(compactNavigationTransition(mobileNavOpen, { type: "toggle" }).open)}
           >
             Menu
           </button>
           <nav className="topnav" id="primary-navigation" aria-label="Navigasi utama" data-open={String(mobileNavOpen)}>
-            <button className={stage === "home" ? "active" : ""} onClick={() => { setMobileNavOpen(false); goHome(); moveNavigationFocus("home-heading"); }}>Beranda</button>
-            <button onClick={() => { setMobileNavOpen(false); setStage("guide"); moveNavigationFocus("guide-heading"); }}>Panduan & demo</button>
+            <button className={stage === "home" ? "active" : ""} onClick={() => selectPrimaryNavigation("home-heading", goHome)}>Beranda</button>
+            <button onClick={() => selectPrimaryNavigation("guide-heading", () => setStage("guide"))}>Panduan & demo</button>
             <button onClick={() => openHomeSection("evidence")}>Bukti</button>
             <button onClick={() => openHomeSection("privacy")}>Privasi</button>
           </nav>
@@ -3009,7 +3030,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 {badge.label}
               </span>
             </div>
-            <h1>{demonstrationMode ? reportPresentation.sections[0].title : isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : verdict ? verdict.headline : sessionOutcome.headline}</h1>
+            <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : reportPresentation.pageTitle}</h1>
             <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
           </div>
           {/* One notice stack, one geometry. These used to be two full-width
@@ -3030,16 +3051,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               ? <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p></div>
               : <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p></div>)}
           </div>
-          {!isEngineeringStudy && <section className="caregiverReport" aria-label="Ringkasan untuk orang tua dan pendamping">
-            {reportPresentation.sections.map((section, index) => <article key={section.id} data-section={section.id}>
-              <span className="caregiverStep" aria-hidden="true">{index + 1}</span>
-              <div>
-                <small>{section.label}</small>
-                <h2>{section.title}</h2>
-                <p>{section.body}</p>
-              </div>
-            </article>)}
-          </section>}
+          {!isEngineeringStudy && <CaregiverReport sections={reportPresentation.sections} surface="screen" />}
           <details className="reportPractitioner">
             <summary>
               <span>Detail untuk tenaga kesehatan dan auditor</span>
@@ -3306,24 +3318,23 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           {/* Paper hand-off. A kader gives the Puskesmas a sheet, not audit.json,
               so the printed page carries the result, its provenance, and the
               claim limits without any of the on-screen chrome. */}
-          <section className="printSummary" aria-hidden="true">
-            <header>
-              <h1>Neurogaze — Ringkasan sesi</h1>
-              <p>Bukan alat diagnosis. Dibaca bersama SDIDTK atau M-CHAT-R/F oleh tenaga kesehatan.</p>
-            </header>
-            <dl className="printMeta">
-              <div><dt>ID anak</dt><dd>{profile.childId}</dd></div>
-              <div><dt>Usia</dt><dd>{profile.age ? `${profile.age} bulan` : "—"}</dd></div>
-              <div><dt>Lokasi</dt><dd>{profile.site}</dd></div>
-              <div><dt>Operator</dt><dd>{profile.operator}</dd></div>
-              <div><dt>Waktu</dt><dd>{new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}</dd></div>
-              <div><dt>Sumber sesi</dt><dd>{mode === "live" ? "Sesi kamera langsung" : recording ? `Rekaman ${recording.label}` : "Simulasi, bukan sesi nyata"}</dd></div>
-              <div><dt>Versi aplikasi</dt><dd>app {APP_VERSION}</dd></div>
-            </dl>
-            {/* The sheet leaves the room without the screen. A demonstration that
-                printed as an ordinary session was a demonstration only the people
-                who saw the banner knew about. */}
-            {demonstrationMode && <p className="printDemonstration"><strong>MODE DEMONSTRASI — bukan hasil sesi lapangan.</strong> {reportPresentation.demoBanner} Ambang 69% sengaja diterapkan agar respons arsitektur dapat diperagakan; angkanya tidak sah untuk keputusan apa pun.</p>}
+          <PrintableReport
+            title="Neurogaze — Ringkasan sesi"
+            metadata={[
+              { label: "ID anak", value: profile.childId },
+              { label: "Usia", value: profile.age ? `${profile.age} bulan` : "—" },
+              { label: "Lokasi", value: profile.site },
+              { label: "Operator", value: profile.operator },
+              { label: "Waktu", value: new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" }) },
+              { label: "Sumber sesi", value: reportSourceKind === "live" ? "Sesi kamera langsung" : reportSourceKind === "recorded_replay" && recording ? `Rekaman ${recording.label}` : "Pratinjau sintetis, tanpa rekaman peserta" },
+              { label: "Versi aplikasi", value: `app ${APP_VERSION}` },
+            ]}
+            sections={reportPresentation.sections}
+            disclaimer="Bukan alat diagnosis. Dibaca bersama SDIDTK atau M-CHAT-R/F oleh tenaga kesehatan."
+            demonstrationBanner={reportPresentation.demoBanner}
+            qualityPassed={quality.passed}
+            validityCanScore={Boolean(validity?.canScore)}
+            technicalSummary={<>
             {/* The sheet leads with the same sentence the screen led with. A
                 printout whose first line is a percentage hands the reader the
                 job of drawing the conclusion, which is the job the report is
@@ -3376,7 +3387,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <li>Keputusan rujukan tetap milik tenaga kesehatan, bukan aplikasi ini.</li>
             </ul>
             <p className="printFooter">Tanda tangan operator: ____________________  ·  Diterima oleh: ____________________</p>
-          </section>
+            </>}
+          />
           {sessionPurpose === "target_population_research" && auditLog && <label className="checkRow optional researchExportConsent">
             <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchLogPermission(event.target.checked)} />
             <span id="research-export-help"><strong>Izinkan log teknis pseudonim dipakai untuk riset.</strong> Pilihan ini tidak memengaruhi laporan layanan. Berikan izin hanya sebelum log diekspor untuk analisis; video dan titik wajah tetap tidak disimpan.</span>
