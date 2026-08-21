@@ -2681,6 +2681,11 @@ dd {
   .tutorialButtons, .tutorialActions { align-items: stretch; flex-direction: column; }
   .tutorialButtons button, .tutorialActions button { width: 100%; }
   .sanityStage { min-height: 280px; }
+  .reportHeader .eyebrow,
+  .reportHeader p,
+  .decisionBadge,
+  .reportNotice p,
+  .observationStatus,
   .reportPractitioner > summary small,
   .laneHead small,
   .laneHead p,

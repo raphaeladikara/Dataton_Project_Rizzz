@@ -3052,7 +3052,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     {verdict.tone === "follow_up" ? <IconAlert size={26} /> : <IconCheck size={26} />}
                   </span>
                   <div>
-                    <small>Dasar kesimpulan · {verdict.tone === "follow_up" ? "disarankan pemeriksaan lanjutan" : "tanpa rekomendasi pemeriksaan"}</small>
+                    <small>{verdict.demonstration ? "Respons arsitektur peragaan" : `Dasar kesimpulan · ${verdict.tone === "follow_up" ? "disarankan pemeriksaan lanjutan" : "tanpa rekomendasi pemeriksaan"}`}</small>
                     <h2 id="verdict-heading">{verdict.subline}</h2>
                   </div>
                 </div>

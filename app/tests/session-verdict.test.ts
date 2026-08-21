@@ -61,28 +61,35 @@ function verdictFor(input: {
   });
 }
 
-test("both signals deviant: the verdict names the place to go, and says it is a demonstration", () => {
+const CLINICAL_ACTION = /Puskesmas|rumah sakit|SDIDTK|M-CHAT|tenaga kesehatan|bawa hasil|memeriksa|pemeriksaan lanjutan|menyarankan rujukan|skrining perkembangan rutin/i;
+
+test("a produced-pattern demonstration reports only the architecture response", () => {
   const verdict = verdictFor({ geopref: geopref({}), cue: cue({}) });
   assert.ok(verdict);
   assert.equal(verdict.tone, "follow_up");
-  assert.equal(verdict.headline, VERDICT_FOLLOW_UP);
-  assert.match(verdict.headline, /Puskesmas|rumah sakit/);
-  assert.match(verdict.subline, /2 dari 2 sinyal menyimpang/);
-  assert.match(verdict.caveat, /peragaan/i);
-  assert.match(verdict.caveat, /bukan rujukan resmi/);
+  assert.match(verdict.headline, /arsitektur/i);
+  assert.match(verdict.headline, /pola produksi/i);
+  assert.match(verdict.subline, /respons arsitektur/i);
+  assert.match(verdict.subline, /2 dari 2 sinyal/i);
+  assert.match(verdict.caveat, /peserta dewasa/i);
+  const visibleVerdict = [verdict.headline, verdict.subline, verdict.caveat, ...verdict.reasons.map((reason) => reason.body)].join(" ");
+  assert.doesNotMatch(visibleVerdict, CLINICAL_ACTION);
 });
 
-test("both signals normal: the verdict is just as short, and refuses to read as an all-clear", () => {
+test("an ordinary-control demonstration reports only the architecture response", () => {
   const verdict = verdictFor({
     geopref: geopref({ percentGeometric: 0.35, percentGeometricCi: [0.27, 0.44], outcome: "NO_GEOMETRIC_PREFERENCE_DEMONSTRATION" }),
     cue: cue({ verdict: "FOLLOWS_CUES", trialsFollowed: 8, trialsEnteringTarget: 8, pValue: 0.0039 }),
   });
   assert.ok(verdict);
   assert.equal(verdict.tone, "no_follow_up");
-  assert.equal(verdict.headline, VERDICT_NO_FOLLOW_UP);
-  assert.match(verdict.subline, /2 dari 2 sinyal dinilai/);
-  assert.match(verdict.caveat, /bukan tanda aman/);
-  assert.match(verdict.caveat, /17%/);
+  assert.match(verdict.headline, /arsitektur/i);
+  assert.match(verdict.headline, /kontrol biasa/i);
+  assert.match(verdict.subline, /respons arsitektur/i);
+  assert.match(verdict.subline, /2 dari 2 sinyal/i);
+  assert.match(verdict.caveat, /peserta dewasa/i);
+  const visibleVerdict = [verdict.headline, verdict.subline, verdict.caveat, ...verdict.reasons.map((reason) => reason.body)].join(" ");
+  assert.doesNotMatch(visibleVerdict, CLINICAL_ACTION);
 });
 
 /**
@@ -98,7 +105,7 @@ test("one signal normal and one unassessable still prints the same headline as t
   });
   assert.ok(verdict);
   assert.equal(verdict.tone, "no_follow_up");
-  assert.equal(verdict.headline, VERDICT_NO_FOLLOW_UP);
+  assert.match(verdict.headline, /kontrol biasa/i);
   // The nuance is not deleted — it moves down here, with its reason attached.
   assert.match(verdict.subline, /1 sinyal tidak dapat dinilai/);
   const geometricReason = verdict.reasons.find((item) => item.id === "geometric_preference");
@@ -112,9 +119,9 @@ test("one deviant and one normal stays below the threshold and says so in the su
   });
   assert.ok(verdict);
   assert.equal(verdict.tone, "no_follow_up");
-  assert.equal(verdict.headline, VERDICT_NO_FOLLOW_UP);
-  assert.match(verdict.subline, /1 dari 2 sinyal menyimpang/);
-  assert.match(verdict.subline, /di bawah batas 2/);
+  assert.match(verdict.headline, /kontrol biasa/i);
+  assert.match(verdict.subline, /1 dari 2 sinyal/i);
+  assert.doesNotMatch(verdict.subline, /rujukan|pemeriksaan/i);
 });
 
 test("a withheld session gets no verdict at all", () => {
@@ -141,7 +148,32 @@ test("the follow-up verdict carries the posterior as a reason, never as the head
   assert.ok(posterior, "posterior reason missing");
   assert.match(posterior.measured, /1,0% → 7,9%/);
   assert.match(posterior.body, /16,75/);
+  assert.doesNotMatch(posterior.body, CLINICAL_ACTION);
   assert.ok(!verdict!.headline.includes("7,9"));
+});
+
+test("validated field rule-in keeps its clinical hand-off unchanged", () => {
+  const verdict = verdictFor({
+    geopref: geopref({ outcome: "GEOMETRIC_PREFERENCE" }),
+    cue: cue({}),
+    demonstrationMode: false,
+  });
+  assert.ok(verdict);
+  assert.equal(verdict.headline, VERDICT_FOLLOW_UP);
+  assert.match(verdict.headline, /Puskesmas|rumah sakit/);
+  assert.match(verdict.caveat, /SDIDTK|M-CHAT/);
+});
+
+test("validated field ordinary result keeps its safety language unchanged", () => {
+  const verdict = verdictFor({
+    geopref: geopref({ percentGeometric: 0.35, percentGeometricCi: [0.27, 0.44], outcome: "NO_GEOMETRIC_PREFERENCE" }),
+    cue: cue({ verdict: "FOLLOWS_CUES", trialsFollowed: 8, trialsEnteringTarget: 8, pValue: 0.0039 }),
+    demonstrationMode: false,
+  });
+  assert.ok(verdict);
+  assert.equal(verdict.headline, VERDICT_NO_FOLLOW_UP);
+  assert.match(verdict.caveat, /bukan tanda aman/i);
+  assert.match(verdict.caveat, /17%/);
 });
 
 test("every reason names what was measured and where its direction comes from", () => {

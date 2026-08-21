@@ -41,14 +41,19 @@ const DEMONSTRATION_BANNER =
  */
 export function buildReportPresentation(input: ReportPresentationInput): ReportPresentation {
   const followUpShown = input.emitsReferral || input.recommendsFollowUp;
-  const whatHappened = input.demonstrationMode
+  const whatHappened = !input.qualityPassed
     ? {
+        title: "Rekaman tidak dapat digunakan.",
+        body: input.validityMessage ?? "Data sesi belum cukup baik untuk menghasilkan pengukuran yang dapat dibaca.",
+      }
+    : input.demonstrationMode
+      ? {
         title: "Arsitektur respons berhasil diperagakan.",
         body: followUpShown
           ? "Sistem memperagakan jalur pemeriksaan lanjutan ketika kedua sinyal yang dapat dinilai bergerak ke arah yang ditentukan aturan."
           : "Sistem memperagakan jalur tanpa arahan pemeriksaan ketika aturan tidak terpenuhi.",
-      }
-    : { title: input.sessionHeadline, body: input.sessionSummary };
+        }
+      : { title: input.sessionHeadline, body: input.sessionSummary };
 
   const recordingStatus = input.qualityPassed
     ? {
@@ -62,15 +67,15 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
         body: input.validityMessage ?? "Data sesi belum cukup baik untuk menghasilkan pengukuran yang dapat dibaca.",
       };
 
-  const nextSteps = input.demonstrationMode
-    ? followUpShown
-      ? "Respons arsitektur untuk pola produksi sudah terlihat. Jalankan kontrol biasa setelahnya, lalu kembali ke Panduan & demo."
-      : "Respons arsitektur untuk kontrol biasa sudah terlihat. Bandingkan dengan pola produksi, lalu kembali ke Panduan & demo."
-    : input.qualityPassed
+  const nextSteps = !input.qualityPassed
+    ? "Perbaiki posisi wajah, cahaya, dan jarak tablet, lalu ulangi sesi saat peserta nyaman. Hasil yang ditahan bukan hasil risiko."
+    : input.demonstrationMode
       ? followUpShown
-        ? "Bawa ringkasan ini bersama hasil SDIDTK atau M-CHAT-R/F kepada kader, Puskesmas, atau dokter anak. Tenaga kesehatan menentukan apakah pemeriksaan lanjutan diperlukan."
-        : "Lanjutkan skrining perkembangan rutin dengan SDIDTK atau M-CHAT-R/F. Bila ada kekhawatiran, bawa ringkasan ini kepada kader, Puskesmas, atau dokter anak."
-      : "Perbaiki posisi wajah, cahaya, dan jarak tablet, lalu ulangi sesi saat peserta nyaman. Hasil yang ditahan bukan hasil risiko.";
+        ? "Respons arsitektur untuk pola produksi sudah terlihat. Jalankan kontrol biasa setelahnya, lalu kembali ke Panduan & demo."
+        : "Respons arsitektur untuk kontrol biasa sudah terlihat. Bandingkan dengan pola produksi, lalu kembali ke Panduan & demo."
+      : followUpShown
+          ? "Bawa ringkasan ini bersama hasil SDIDTK atau M-CHAT-R/F kepada kader, Puskesmas, atau dokter anak. Tenaga kesehatan menentukan apakah pemeriksaan lanjutan diperlukan."
+          : "Lanjutkan skrining perkembangan rutin dengan SDIDTK atau M-CHAT-R/F. Bila ada kekhawatiran, bawa ringkasan ini kepada kader, Puskesmas, atau dokter anak.";
 
   return {
     sections: [
@@ -79,11 +84,11 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
       {
         id: "next_steps",
         label: "Langkah berikutnya",
-        title: input.demonstrationMode
-          ? "Bandingkan dua respons peragaan."
-          : input.qualityPassed
-            ? "Tetap gunakan skrining perkembangan yang tervalidasi."
-            : "Ulangi hanya setelah kondisi diperbaiki.",
+        title: !input.qualityPassed
+          ? "Ulangi hanya setelah kondisi diperbaiki."
+          : input.demonstrationMode
+            ? "Bandingkan dua respons peragaan."
+            : "Tetap gunakan skrining perkembangan yang tervalidasi.",
         body: nextSteps,
       },
       {

@@ -71,3 +71,25 @@ for (const [label, recommendsFollowUp] of [
     assert.match(report.demoBanner ?? "", /tidak mengeluarkan rujukan/i);
   });
 }
+
+for (const recommendsFollowUp of [true, false]) {
+  test(`an unusable demonstration recording takes precedence over recommendation=${recommendsFollowUp}`, () => {
+    const report = buildReportPresentation({
+      ...base,
+      qualityPassed: false,
+      demonstrationMode: true,
+      recommendsFollowUp,
+      validityMessage: "Wajah terlalu sering keluar dari bingkai.",
+    });
+
+    assert.match(report.sections[0].title, /rekaman.*tidak dapat digunakan/i);
+    assert.match(report.sections[0].body, /Wajah terlalu sering keluar dari bingkai/);
+    assert.doesNotMatch(report.sections[0].title + report.sections[0].body, /berhasil|respons.*terlihat|jalur.*diperagakan/i);
+    assert.equal(report.sections[1].label, "Rekaman tidak dapat digunakan");
+    assert.match(report.sections[2].title, /ulangi/i);
+    assert.match(report.sections[2].body, /posisi wajah|cahaya|jarak tablet/i);
+    assert.doesNotMatch(report.sections[2].body, /kontrol biasa|pola produksi/i);
+    assert.match(report.demoBanner ?? "", /peserta dewasa/i);
+    assert.match(report.demoBanner ?? "", /bukan penilaian klinis/i);
+  });
+}
