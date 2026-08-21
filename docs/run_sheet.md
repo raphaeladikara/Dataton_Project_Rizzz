@@ -1,6 +1,7 @@
 # Run sheet — 10 menit, satu halaman, dibawa ke panggung
 
-Bukan naskah. Naskahnya di [`pitch_10_menit.md`](pitch_10_menit.md). Ini yang dipegang
+Bukan naskah. Naskah kata-per-katanya di [`naskah_lengkap.md`](naskah_lengkap.md), dan
+alasan di balik urutannya di [`pitch_10_menit.md`](pitch_10_menit.md). Ini yang dipegang
 saat berdiri: apa yang di layar, apa yang diklik, dan kalimat yang tidak boleh keluar
 salah.
 

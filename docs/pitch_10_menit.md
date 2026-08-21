@@ -1,8 +1,21 @@
-# Pitch kompetisi 10–12 menit
+# Pitch kompetisi 10–12 menit — struktur dan alasannya
 
-Ini naskah aktif. Jalankan satu sesi kamera langsung pada orang dewasa yang
-memproduksi pola. Jangan memendekkan bagian sebelum dan sesudah demo; dua kalimat itu
-yang mencegah hasil peragaan dibaca sebagai penilaian kesehatan.
+> **Naskah kata-per-katanya ada di [`naskah_lengkap.md`](naskah_lengkap.md).** Itu yang
+> dibaca saat latihan. Dokumen ini menjelaskan **kenapa** naskahnya berbentuk begitu:
+> urutan, alokasi waktu, dan jawaban tanya jawab yang lengkap. Kalau keduanya berbeda,
+> yang benar adalah `naskah_lengkap.md` — perbaiki dokumen ini.
+>
+> Tiga dokumen, tiga tugas:
+>
+> | Berkas | Isinya | Dipakai saat |
+> |---|---|---|
+> | [`naskah_lengkap.md`](naskah_lengkap.md) | Apa yang **diucapkan**, kata per kata | Latihan dan hafalan |
+> | [`run_sheet.md`](run_sheet.md) | Apa yang **dilakukan**, satu halaman | Dipegang di panggung |
+> | `pitch_10_menit.md` | **Kenapa** begitu, dan tanya jawab lengkap | Menyiapkan dan menyunting |
+
+Jalankan satu sesi kamera langsung pada orang dewasa yang memproduksi pola. Jangan
+memendekkan bagian sebelum dan sesudah demo; dua kalimat itu yang mencegah hasil peragaan
+dibaca sebagai penilaian kesehatan.
 
 ## Urutan dan waktu
 

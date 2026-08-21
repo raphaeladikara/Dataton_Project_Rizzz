@@ -9,7 +9,9 @@
 - [`arah_pitch.md`](arah_pitch.md): bingkai presentasi — apa yang dijual, kalimat yang tidak boleh keluar, dan kenapa urutannya mengikuti bobot rubrik. **Mulai dari sini, dan baca sebelum menyunting naskah mana pun.**
 - [`pitch_7_menit.md`](pitch_7_menit.md): naskah presentasi semifinal beserta peta waktu, jawaban pertanyaan, dan sumber tiap angka.
 - [`skenario_panggung.md`](skenario_panggung.md): urutan dua babak untuk demonstrasi panggung — tombol mana yang dipencet, kapan centang "Peragaan demo" dipasang, dan jaring pengaman kalau kamera gagal di tempat.
-- [`pitch_10_menit.md`](pitch_10_menit.md): naskah sesi demo 10 menit — satu rekaman, satu sesi langsung dari penonton sebagai kontrol negatif, dan bahasa yang wajib dipakai saat memperagakan pola.
+- **[`naskah_lengkap.md`](naskah_lengkap.md): naskah presentasi kata per kata, 10 menit, dengan narasi 67 detik demo dan kalimat yang wajib diucapkan persis. Ini yang dibaca saat latihan.**
+- [`run_sheet.md`](run_sheet.md): satu halaman yang dipegang di panggung — tab mana sudah terbuka, klik apa di menit berapa, dan larangan per baris.
+- [`pitch_10_menit.md`](pitch_10_menit.md): struktur dan alasan di balik naskah, plus jawaban tanya jawab yang lengkap.
 - [`wawancara_praktisi.md`](wawancara_praktisi.md): protokol wawancara guru ASD dan tenaga kesehatan, pertanyaannya, dan aturan yang menjaganya tidak menjadi validasi yang tidak mungkin gagal.
 - [`form_pengumpulan_bukti.html`](form_pengumpulan_bukti.html): formulir isian untuk usability test, wawancara ahli, dan log penolakan institusi. Bagian Gate A di dalamnya sudah terlampaui — gerbangnya lulus dengan 100 sesi.
 - [`wawancara_guru_15_menit.md`](wawancara_guru_15_menit.md): versi padat protokol itu untuk satu sesi 15 menit dengan guru SLS — lima pertanyaan yang jawabannya tidak bisa didapat dari tempat lain, naskah kalimat per kalimat, peta waktu, dan kartu contekan satu halaman.
@@ -21,7 +23,11 @@
 - [`readiness_matrix.md`](readiness_matrix.md): status kanonis lima kapabilitas—yang siap diperagakan, yang sudah ditunjukkan pada orang dewasa, dan yang masih ditahan atau belum diuji. Berkas ini dihasilkan bersama JSON publik oleh `research/export_readiness_matrix.py`.
 - [`model_dikarantina.md`](model_dikarantina.md): kenapa CNN 0,882 dan CNN wajah 0,932 tidak dipakai, uji berpasangan yang menggantikan argumen "CI bertumpang tindih", dan apakah keduanya bisa dibuat berguna.
 - [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md): klaim dampak yang bisa dipertahankan, biaya per pemeriksaan, jalur integrasi, dan jalur pengumpulan data Gate C.
-- [`pitch_10_menit.md`](pitch_10_menit.md): naskah kompetisi aktif. `pitch_7_menit.md` dipertahankan sebagai penunjuk dan tidak lagi menjadi sumber klaim.
+- [`naskah_lengkap.md`](naskah_lengkap.md): naskah kompetisi aktif, kata per kata. `pitch_10_menit.md` memuat alasan dan tanya jawab; `pitch_7_menit.md` dipertahankan sebagai penunjuk dan tidak lagi menjadi sumber klaim.
+- [`paket_mitra.md`](paket_mitra.md): inventaris paket mitra Gate C — apa yang siap dikirim hari ini dan apa yang menuntut mitra.
+- [`wawancara_praktisi_hasil.md`](wawancara_praktisi_hasil.md): hasil wawancara praktisi pertama, beserta batas yang berlaku padanya.
+- [`daftar_klaim.md`](daftar_klaim.md): setiap angka yang diucapkan di panggung, sumbernya, dan apakah ia milik proyek ini. Dihasilkan skrip yang gagal kalau ada yang tidak cocok.
+- [`bingkai_kompetisi.md`](bingkai_kompetisi.md): klaim utama, bingkai constraint etik, dan restrukturisasi panggung.
 - [`provenance/harness_gate_a_b.md`](provenance/harness_gate_a_b.md): apa yang bisa dan tidak bisa diperiksa tentang asal bukti Gate A/B, plus aturan perekaman berikutnya.
 - [`pembersihan_dataset_wajah.md`](pembersihan_dataset_wajah.md): mengeluarkan dataset wajah dari riwayat Git sebelum repositori dipublikkan.
 - [`keputusan_ilmiah.md`](keputusan_ilmiah.md): alasan di balik keputusan yang menentukan batas klaim.
