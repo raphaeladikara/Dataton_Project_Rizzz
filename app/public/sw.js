@@ -51,15 +51,25 @@ function cacheSuccessfulResponse(request, response) {
   return caches.open(CACHE).then((cache) => cache.put(request, copy));
 }
 
+async function cachedOk(request) {
+  const cache = await caches.open(CACHE);
+  const response = await cache.match(request);
+  return response?.ok ? response : undefined;
+}
+
+async function navigationFallback(request, networkFailure) {
+  return (await cachedOk(request)) || (await cachedOk("/")) || networkFailure;
+}
+
 self.addEventListener("install", (event) => {
   const precache = (async () => {
-      const cache = await caches.open(CACHE);
-      const shellResponse = await fetch("/", { cache: "reload" });
-      if (!shellResponse.ok) throw new Error("OFFLINE_SHELL_FETCH_FAILED");
-      const shellHtml = await shellResponse.clone().text();
-      const buildAssets = buildAssetsFromShell(shellHtml);
-      await cache.put("/", shellResponse);
-      await cache.addAll([...new Set([...CORE.filter((path) => path !== "/"), ...buildAssets])]);
+    const cache = await caches.open(CACHE);
+    const shellResponse = await fetch("/", { cache: "reload" });
+    if (!shellResponse.ok) throw new Error("OFFLINE_SHELL_FETCH_FAILED");
+    const shellHtml = await shellResponse.clone().text();
+    const buildAssets = buildAssetsFromShell(shellHtml);
+    await cache.put("/", shellResponse);
+    await cache.addAll([...new Set([...CORE.filter((path) => path !== "/"), ...buildAssets])]);
   })();
   event.waitUntil(Promise.all([precache, self.skipWaiting()]));
 });
@@ -78,6 +88,7 @@ self.addEventListener("message", (event) => {
       replyPort.postMessage({
         type: "NEUROGAZE_OFFLINE_STATUS",
         requestId: event.data.requestId,
+        cacheVersion: CACHE,
         complete: missing.length === 0,
         missing,
       });
@@ -85,6 +96,7 @@ self.addEventListener("message", (event) => {
       replyPort.postMessage({
         type: "NEUROGAZE_OFFLINE_STATUS",
         requestId: event.data.requestId,
+        cacheVersion: CACHE,
         complete: false,
         missing: [...CORE],
       });
@@ -103,6 +115,8 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
   if (event.request.mode === "navigate") {
     const networkResponse = fetch(event.request);
     const cacheWrite = networkResponse
@@ -110,15 +124,15 @@ self.addEventListener("fetch", (event) => {
       .catch(() => undefined);
     event.respondWith(
       networkResponse
-        .catch(async () => {
-          const cache = await caches.open(CACHE);
-          return (await cache.match(event.request)) || cache.match("/");
-        }),
+        .then((response) =>
+          response.ok ? response : navigationFallback(event.request, response),
+        )
+        .catch(() => navigationFallback(event.request)),
     );
     event.waitUntil(cacheWrite);
     return;
   }
-  const path = new URL(event.request.url).pathname;
+  const path = requestUrl.pathname;
   if (ALWAYS_FRESH.some((prefix) => path.startsWith(prefix))) {
     const networkResponse = fetch(event.request);
     const cacheWrite = networkResponse
@@ -126,7 +140,10 @@ self.addEventListener("fetch", (event) => {
       .catch(() => undefined);
     event.respondWith(
       networkResponse
-        .catch(() => caches.match(event.request)),
+        .then(async (response) =>
+          response.ok ? response : (await cachedOk(event.request)) || response,
+        )
+        .catch(() => cachedOk(event.request)),
     );
     event.waitUntil(cacheWrite);
     return;

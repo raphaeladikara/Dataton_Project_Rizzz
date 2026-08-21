@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  OFFLINE_CACHE_VERSION,
   deriveOfflineReadiness,
   monitorOfflineReadiness,
   verifyCriticalOfflineAssets,
@@ -77,10 +78,12 @@ test("critical verification uses a request-response channel and reports missing 
     postMessage(message: unknown, transfer: Transferable[]) {
       const request = message as { type: string; requestId: string };
       assert.equal(request.type, "NEUROGAZE_VERIFY_OFFLINE");
+      assert.equal((message as { expectedCacheVersion?: string }).expectedCacheVersion, OFFLINE_CACHE_VERSION);
       const port = transfer[0] as MessagePort;
       port.postMessage({
         type: "NEUROGAZE_OFFLINE_STATUS",
         requestId: request.requestId,
+        cacheVersion: OFFLINE_CACHE_VERSION,
         complete: false,
         missing: ["/stimuli/geopref-social-geometric-ccby.mp4"],
       });
@@ -91,6 +94,28 @@ test("critical verification uses a request-response channel and reports missing 
   assert.deepEqual(result, {
     complete: false,
     missing: ["/stimuli/geopref-social-geometric-ccby.mp4"],
+    cacheVersion: OFFLINE_CACHE_VERSION,
+  });
+});
+
+test("critical verification rejects a complete cache from an older release", async () => {
+  const worker = {
+    postMessage(message: unknown, transfer: Transferable[]) {
+      const request = message as { requestId: string };
+      (transfer[0] as MessagePort).postMessage({
+        type: "NEUROGAZE_OFFLINE_STATUS",
+        requestId: request.requestId,
+        cacheVersion: "neurogaze-shell-v19-model-operating-points",
+        complete: true,
+        missing: [],
+      });
+    },
+  };
+
+  assert.deepEqual(await verifyCriticalOfflineAssets(worker, 100), {
+    complete: false,
+    missing: [],
+    cacheVersion: "neurogaze-shell-v19-model-operating-points",
   });
 });
 
@@ -132,6 +157,7 @@ test("monitor waits for first-install control, then verifies on controllerchange
       (transfer[0] as MessagePort).postMessage({
         type: "NEUROGAZE_OFFLINE_STATUS",
         requestId: request.requestId,
+        cacheVersion: OFFLINE_CACHE_VERSION,
         complete: true,
         missing: [],
       });
@@ -215,6 +241,40 @@ test("an existing controller does not delay checking for a fresh worker", async 
   stop();
 });
 
+test("an old verified controller cannot become ready when its update fails", async () => {
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: {
+        postMessage(message, transfer) {
+          const request = message as { requestId: string };
+          (transfer[0] as MessagePort).postMessage({
+            type: "NEUROGAZE_OFFLINE_STATUS",
+            requestId: request.requestId,
+            cacheVersion: "neurogaze-shell-v19-model-operating-points",
+            complete: true,
+            missing: [],
+          });
+        },
+      },
+      register: async () => Promise.reject(new Error("update failed")),
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+    timeoutMs: 100,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(states.at(-1), "incomplete");
+  stop();
+});
+
 test("a failed first install becomes incomplete when the installing worker is redundant", async () => {
   const workerListeners = new Set<() => void>();
   const installing = {
@@ -248,6 +308,34 @@ test("a failed first install becomes incomplete when the installing worker is re
   stop();
 });
 
+test("a registration that is already redundant is incomplete without another statechange", async () => {
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: null,
+      register: async () => ({
+        installing: {
+          state: "redundant",
+          addEventListener() {},
+          removeEventListener() {},
+        },
+      }),
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(states.at(-1), "incomplete");
+  stop();
+});
+
 test("a first install without control eventually becomes incomplete", async () => {
   const states: string[] = [];
   const stop = monitorOfflineReadiness({
@@ -269,4 +357,74 @@ test("a first install without control eventually becomes incomplete", async () =
   await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(states.at(-1), "incomplete");
   stop();
+});
+
+test("a long but actively installing worker stays preparing past the no-progress deadline", async () => {
+  const installing = {
+    state: "installing",
+    addEventListener() {},
+    removeEventListener() {},
+  };
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: null,
+      register: async () => ({ installing }),
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+    installationTimeoutMs: 5,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(states.at(-1), "preparing");
+  stop();
+});
+
+test("stopping during registration prevents late install listeners and timers", async () => {
+  let resolveRegistration!: (registration: {
+    installing: {
+      state: string;
+      addEventListener(name: "statechange", listener: () => void): void;
+      removeEventListener(name: "statechange", listener: () => void): void;
+    };
+  }) => void;
+  const registration = new Promise<Parameters<typeof resolveRegistration>[0]>((resolve) => {
+    resolveRegistration = resolve;
+  });
+  let listenersAdded = 0;
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: null,
+      register: async () => registration,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+    installationTimeoutMs: 5,
+  });
+
+  stop();
+  resolveRegistration({
+    installing: {
+      state: "installing",
+      addEventListener() { listenersAdded += 1; },
+      removeEventListener() {},
+    },
+  });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(listenersAdded, 0);
+  assert.equal(states.length, 2);
 });
