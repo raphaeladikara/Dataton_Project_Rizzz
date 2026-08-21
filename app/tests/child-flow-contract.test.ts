@@ -14,6 +14,22 @@ const adminConsole = readFileSync(new URL("../app/admin/admin-console.tsx", impo
 const heroDevice = readFileSync(new URL("../src/ui/hero-device.tsx", import.meta.url), "utf8");
 const gateBPublic = readFileSync(new URL("../public/validation/gate-b-public.json", import.meta.url), "utf8");
 
+function cssRule(source: string, selector: string) {
+  const start = source.indexOf(`${selector} {`);
+  assert.ok(start >= 0, `missing CSS rule for ${selector}`);
+  const end = source.indexOf("}", start);
+  assert.ok(end > start, `unterminated CSS rule for ${selector}`);
+  return source.slice(start, end + 1);
+}
+
+function cssDeclarationsForSelector(source: string, selector: string) {
+  const declarations = [...source.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter((match) => match[1].split(",").some((candidate) => candidate.trim() === selector))
+    .map((match) => match[2]);
+  assert.ok(declarations.length, `missing CSS declarations for ${selector}`);
+  return declarations.join("\n");
+}
+
 test("admin is reachable from a separate footer control", () => {
   assert.match(page, /className="adminAccess" href="\/admin"/);
   assert.doesNotMatch(page.match(/<nav className="topnav"[\s\S]*?<\/nav>/)?.[0] ?? "", /\/admin/);
@@ -27,6 +43,10 @@ test("compact primary navigation keeps guide, evidence, and privacy reachable", 
     assert.match(page, new RegExp(`>${label}<`));
   assert.match(page, /event\.key === "Escape"/);
   assert.match(page, /pointerdown/);
+  assert.match(page, /focusNavigationDestination\(document, destinationId\)/);
+  for (const destination of ["home-heading", "guide-heading", "evidence", "privacy"])
+    assert.match(page, new RegExp(`id="${destination}"`));
+  assert.match(chromeCss, /:is\(#home-heading, #guide-heading, #evidence, #privacy\):focus-visible\s*\{[^}]*outline:/);
   assert.doesNotMatch(chromeCss, /@media \(max-width: 1000px\)[\s\S]*?\.topnav\s*\{[^}]*display:\s*none/);
 });
 
@@ -367,7 +387,13 @@ test("the report can be handed over on paper, not only as audit.json", () => {
   for (const required of ["Batas klaim", "Ambang rujukan 69%", "sensitivitas ambang ini 17%"])
     assert.ok(page.includes(required), `print summary is missing: ${required}`);
   assert.match(page, /className="printDemonstration"/);
-  assert.match(sessionCss, /@media print \{[\s\S]*?\.cardActions[\s\S]*?display: none !important/);
+  const printCss = sessionCss.slice(sessionCss.indexOf("@media print"));
+  const hiddenPrintSelectors = printCss.match(/([\s\S]*?)\{ display: none !important; \}/)?.[1] ?? "";
+  assert.doesNotMatch(hiddenPrintSelectors, /\.caregiverReport/);
+  assert.match(hiddenPrintSelectors, /\.cardActions/);
+  assert.match(hiddenPrintSelectors, /\.reportPractitioner/);
+  assert.match(printCss, /\.caregiverReport\s*\{[^}]*display:\s*block/);
+  assert.match(printCss, /\.printDemonstration\s*\{[^}]*display:\s*block/);
 });
 
 test("deleting the in-memory audit log requires confirmation", () => {
@@ -377,9 +403,32 @@ test("deleting the in-memory audit log requires confirmation", () => {
 });
 
 test("mobile evidence and admin controls remain readable and touchable", () => {
-  assert.match(validationCss, /@media\s*\(max-width:\s*720px\)[\s\S]*?font-size:\s*14px/);
+  const mobileValidation = validationCss.slice(validationCss.indexOf("@media (max-width: 720px)"));
+  for (const selector of [".definition p", ".metrics span", ".metrics small", ".card dt", ".card dd", ".card li", ".nextEvidence p"])
+    assert.match(cssDeclarationsForSelector(mobileValidation, selector), /font-size:\s*14px/);
+  const mobileReport = sessionCss.slice(sessionCss.indexOf("@media (max-width: 520px)"), sessionCss.indexOf("@media (prefers-reduced-motion: reduce)"));
+  for (const selector of [".reportPractitioner > summary small", ".observationMetrics span", ".observationMetrics p", ".referralReason", ".referralSignals li small", ".verdictReasons li small"])
+    assert.match(cssDeclarationsForSelector(mobileReport, selector), /font-size:\s*14px/);
+  assert.match(cssDeclarationsForSelector(chromeCss.slice(chromeCss.indexOf("@media (max-width: 520px)")), ".presentationStrip small"), /font-size:\s*14px/);
   assert.match(adminCss, /@media \(max-width: 900px\)[\s\S]*?\.navToggle\s*\{[^}]*min-height:\s*44px/);
   assert.match(chromeCss, /\.navMenuButton\s*\{[\s\S]*?min-height:\s*44px/);
+});
+
+test("operational report and controls use restrained product styling", () => {
+  assert.match(cssRule(sessionCss, ".sessionShell :is(input, select, button, summary)"), /font-family:\s*var\(--font-sans-stack\)/);
+  assert.match(cssRule(sessionCss, ".observationMetrics strong"), /font-family:\s*var\(--font-sans-stack\)/);
+  assert.match(sessionCss, /select:focus-visible[\s\S]*?summary:focus-visible[\s\S]*?outline:/);
+  for (const selector of [
+    '.referralLane[data-recommends="true"]',
+    '.sessionVerdict[data-tone="follow_up"]',
+    '.sessionVerdict[data-tone="no_follow_up"]',
+    ".observationAnswer",
+    ".decisionRuleGrid article.current",
+  ])
+    assert.doesNotMatch(cssRule(sessionCss, selector), /gradient|box-shadow/);
+  assert.match(cssRule(sessionCss, ".decisionBadge.refer"), /var\(--coral-/);
+  assert.doesNotMatch(cssRule(sessionCss, '.reportNotice[data-kind="demonstration"]'), /var\(--coral-/);
+  assert.doesNotMatch(cssRule(sessionCss, ".ruleIcon.alert"), /var\(--coral-/);
 });
 
 test("every screen change is announced and skippable", () => {

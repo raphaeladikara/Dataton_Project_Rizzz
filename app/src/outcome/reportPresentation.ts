@@ -62,11 +62,15 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
         body: input.validityMessage ?? "Data sesi belum cukup baik untuk menghasilkan pengukuran yang dapat dibaca.",
       };
 
-  const nextSteps = input.qualityPassed
+  const nextSteps = input.demonstrationMode
     ? followUpShown
-      ? "Bawa ringkasan ini bersama hasil SDIDTK atau M-CHAT-R/F kepada kader, Puskesmas, atau dokter anak. Tenaga kesehatan menentukan apakah pemeriksaan lanjutan diperlukan."
-      : "Lanjutkan skrining perkembangan rutin dengan SDIDTK atau M-CHAT-R/F. Bila ada kekhawatiran, bawa ringkasan ini kepada kader, Puskesmas, atau dokter anak."
-    : "Perbaiki posisi wajah, cahaya, dan jarak tablet, lalu ulangi sesi saat peserta nyaman. Hasil yang ditahan bukan hasil risiko.";
+      ? "Respons arsitektur untuk pola produksi sudah terlihat. Jalankan kontrol biasa setelahnya, lalu kembali ke Panduan & demo."
+      : "Respons arsitektur untuk kontrol biasa sudah terlihat. Bandingkan dengan pola produksi, lalu kembali ke Panduan & demo."
+    : input.qualityPassed
+      ? followUpShown
+        ? "Bawa ringkasan ini bersama hasil SDIDTK atau M-CHAT-R/F kepada kader, Puskesmas, atau dokter anak. Tenaga kesehatan menentukan apakah pemeriksaan lanjutan diperlukan."
+        : "Lanjutkan skrining perkembangan rutin dengan SDIDTK atau M-CHAT-R/F. Bila ada kekhawatiran, bawa ringkasan ini kepada kader, Puskesmas, atau dokter anak."
+      : "Perbaiki posisi wajah, cahaya, dan jarak tablet, lalu ulangi sesi saat peserta nyaman. Hasil yang ditahan bukan hasil risiko.";
 
   return {
     sections: [
@@ -75,7 +79,11 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
       {
         id: "next_steps",
         label: "Langkah berikutnya",
-        title: input.qualityPassed ? "Tetap gunakan skrining perkembangan yang tervalidasi." : "Ulangi hanya setelah kondisi diperbaiki.",
+        title: input.demonstrationMode
+          ? "Bandingkan dua respons peragaan."
+          : input.qualityPassed
+            ? "Tetap gunakan skrining perkembangan yang tervalidasi."
+            : "Ulangi hanya setelah kondisi diperbaiki.",
         body: nextSteps,
       },
       {

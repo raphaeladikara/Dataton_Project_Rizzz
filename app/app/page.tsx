@@ -141,6 +141,7 @@ import {
 } from "../src/ui/icons";
 import { CalibrationCharacter } from "../src/ui/calibration-character";
 import { HeroDevice } from "../src/ui/hero-device";
+import { focusNavigationDestination } from "../src/ui/navigationFocus";
 import { StimulusScene } from "../src/ui/stimulus-scene";
 import {
   createMediaReadinessController,
@@ -1085,11 +1086,18 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStage("home");
   }
 
+  function moveNavigationFocus(destinationId: "home-heading" | "guide-heading" | "evidence" | "privacy") {
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    requestAnimationFrame(() => {
+      document.getElementById(destinationId)?.scrollIntoView({ behavior });
+      focusNavigationDestination(document, destinationId);
+    });
+  }
+
   function openHomeSection(sectionId: "evidence" | "privacy") {
     setMobileNavOpen(false);
     goHome();
-    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-    requestAnimationFrame(() => document.getElementById(sectionId)?.scrollIntoView({ behavior }));
+    moveNavigationFocus(sectionId);
   }
 
   // Feature attributions are no longer surfaced: the Carette model does not
@@ -2400,8 +2408,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             Menu
           </button>
           <nav className="topnav" id="primary-navigation" aria-label="Navigasi utama" data-open={String(mobileNavOpen)}>
-            <button className={stage === "home" ? "active" : ""} onClick={() => { setMobileNavOpen(false); goHome(); }}>Beranda</button>
-            <button onClick={() => { setMobileNavOpen(false); setStage("guide"); }}>Panduan & demo</button>
+            <button className={stage === "home" ? "active" : ""} onClick={() => { setMobileNavOpen(false); goHome(); moveNavigationFocus("home-heading"); }}>Beranda</button>
+            <button onClick={() => { setMobileNavOpen(false); setStage("guide"); moveNavigationFocus("guide-heading"); }}>Panduan & demo</button>
             <button onClick={() => openHomeSection("evidence")}>Bukti</button>
             <button onClick={() => openHomeSection("privacy")}>Privasi</button>
           </nav>
@@ -2440,7 +2448,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <i aria-hidden="true"><IconEye size={13} /></i>
                 Pendamping skrining untuk Posyandu
               </span>
-              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>melalui baterai pengukuran {sessionSeconds} detik</em>.</h1>
+              <h1 id="home-heading" tabIndex={-1} style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>melalui baterai pengukuran {sessionSeconds} detik</em>.</h1>
               <p className="lead" style={{ "--i": 2 } as CSSProperties}>
                 Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi. Total waktu kunjungan juga mencakup persetujuan, penyiapan, dan kalibrasi.
               </p>
@@ -2609,7 +2617,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         <section className="workspace guide">
           <button className="back" onClick={goHome}><IconArrowLeft size={16} /> Beranda</button>
           <span className="eyebrow">Panduan operator · mulai dari sini</span>
-          <h1>Ikuti satu langkah pada satu waktu.</h1>
+          <h1 id="guide-heading" tabIndex={-1}>Ikuti satu langkah pada satu waktu.</h1>
           <p className="guideLead">Tonton panduan singkat ini sebelum mendampingi anak. Anak tidak perlu melihat atau mengikuti instruksinya.</p>
           <GuideFilm />
           <div className="guideEssentials" aria-label="Tiga aturan pendamping">

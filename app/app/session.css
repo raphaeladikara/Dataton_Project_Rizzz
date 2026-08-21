@@ -15,6 +15,22 @@
   font-family: var(--font-sans-stack);
 }
 
+.sessionShell :is(input, select, button, summary) {
+  font-family: var(--font-sans-stack);
+}
+
+.reportPage :is(input, select, button, summary) {
+  font-family: var(--font-sans-stack);
+}
+
+.sessionShell select:focus-visible,
+.reportPage select:focus-visible,
+.sessionShell summary:focus-visible,
+.reportPage summary:focus-visible {
+  outline: 3px solid var(--teal-300);
+  outline-offset: 3px;
+}
+
 .sessionShell .sectionHeading h1,
 .reportPage h1,
 .reportPage h2,
@@ -109,7 +125,7 @@
   border-radius: var(--r-xs);
   background: #fff;
   color: var(--ink-800);
-  font-family: var(--font-mono-stack);
+  font-family: var(--font-sans-stack);
   font-size: 14px;
   transition:
     border-color var(--dur-fast) ease,
@@ -1533,9 +1549,9 @@
 
 .reportNotice[data-kind="demonstration"] { border-style: dashed; border-color: var(--slate-200); background: var(--slate-50); }
 .reportNotice[data-kind="demonstration"] > span { color: var(--slate-700); }
-.reportNotice[data-kind="limit"] { border-color: var(--coral-200); background: var(--coral-50); }
+.reportNotice[data-kind="limit"] { border-color: var(--amber-200); background: var(--amber-50); }
 .reportNotice[data-kind="limit"] > span,
-.reportNotice[data-kind="limit"] strong { color: var(--coral-700); }
+.reportNotice[data-kind="limit"] strong { color: var(--amber-700); }
 .reportNotice[data-kind="replay"] { border-color: var(--amber-200); background: var(--amber-50); }
 .reportNotice[data-kind="replay"] > span,
 .reportNotice[data-kind="replay"] strong { color: var(--amber-700); }
@@ -2334,8 +2350,8 @@ dd {
      as every other screen. */
   --rpt-gap: 16px;
   --rpt-pad: clamp(20px, 2.2vw, 26px);
-  --rpt-radius: 18px;
-  --rpt-radius-inner: 12px;
+  --rpt-radius: 12px;
+  --rpt-radius-inner: 8px;
 }
 
 .reportPage .decisionBadge,
@@ -2423,7 +2439,7 @@ dd {
 
 .reportPractitioner > summary small {
   color: var(--ink-500);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -2509,7 +2525,7 @@ dd {
 .observationMetrics strong {
   display: block;
   margin-top: 11px;
-  font-family: var(--font-display-stack);
+  font-family: var(--font-sans-stack);
   font-size: 2.05rem;
   line-height: 1;
   letter-spacing: -.02em;
@@ -2544,7 +2560,7 @@ dd {
 /* Lane 2: the composite rule. Deliberately not the coral of the GeoPref
    rule-in — a rule we wrote ourselves must never be mistaken on sight for the
    one threshold we took from a published cohort. */
-.referralLane[data-recommends="true"] { border-color: var(--amber-200); background: linear-gradient(150deg, var(--amber-50), var(--paper) 70%); }
+.referralLane[data-recommends="true"] { border-color: var(--amber-200); background: var(--amber-50); }
 .referralSignals { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
 .referralSignals li { padding: 15px 16px; border: 1px solid var(--line-soft); border-radius: var(--rpt-radius-inner); background: rgba(255, 255, 255, .78); }
 .referralSignalTop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
@@ -2583,10 +2599,10 @@ dd {
   border: 1px solid var(--line);
   border-radius: var(--rpt-radius);
   background: var(--paper);
-  box-shadow: var(--e2);
+  box-shadow: none;
 }
-.sessionVerdict[data-tone="follow_up"] { border-color: var(--amber-200); border-top: 4px solid var(--amber-500); background: linear-gradient(150deg, var(--amber-50), var(--paper) 62%); }
-.sessionVerdict[data-tone="no_follow_up"] { border-color: var(--teal-200); border-top: 4px solid var(--teal-500); background: linear-gradient(150deg, var(--teal-100), #f8fffc 62%); }
+.sessionVerdict[data-tone="follow_up"] { border-color: var(--amber-200); border-top: 4px solid var(--amber-500); background: var(--amber-50); }
+.sessionVerdict[data-tone="no_follow_up"] { border-color: var(--teal-200); border-top: 4px solid var(--teal-500); background: var(--teal-50); }
 .verdictHead { display: flex; gap: 16px; align-items: flex-start; }
 .verdictMark { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; }
 .sessionVerdict[data-tone="follow_up"] .verdictMark { color: var(--amber-700); background: rgba(207,149,29,.16); }
@@ -2621,7 +2637,7 @@ dd {
 
 .observationStatus { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 14px; padding: 6px 11px; border: 1px solid rgba(9,106,92,.16); border-radius: var(--r-pill); color: var(--teal-800); background: rgba(255,255,255,.7); font-size: 11px; font-weight: 750; }
 .observationStatus i { width: 1px; height: 13px; background: var(--teal-200); }
-.observationAnswer { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 17px; padding: 24px; border: 1px solid var(--amber-100); border-radius: 20px; background: linear-gradient(135deg, var(--amber-50), var(--paper)); }
+.observationAnswer { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 17px; padding: 24px; border: 1px solid var(--amber-100); border-radius: var(--rpt-radius); background: var(--amber-50); }
 .observationQuestion { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; color: #714a0b; background: var(--amber-100); }
 .observationAnswer small { color: #8b5c0b; font: 750 10px var(--font-mono-stack); letter-spacing: .08em; text-transform: uppercase; }
 .observationAnswer h2 { margin: 5px 0 8px; font-size: clamp(1.35rem, 2.5vw, 1.8rem); }
@@ -2633,8 +2649,8 @@ dd {
 .decisionRules { background: var(--sand-50); }
 .decisionRuleGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 10px; margin: 18px 0 0; }
 .decisionRuleGrid article { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 11px; min-width: 0; padding: 15px; border: 1px solid var(--line-soft); border-radius: var(--rpt-radius-inner); background: var(--paper); }
-.decisionRuleGrid article.current { border-color: var(--teal-300); background: linear-gradient(150deg, var(--teal-50), var(--paper)); box-shadow: 0 6px 18px rgba(9,106,92,.08); }
-.ruleIcon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; }.ruleIcon.withheld { color: var(--slate-700); background: var(--slate-100); }.ruleIcon.measured { color: var(--teal-700); background: var(--teal-100); }.ruleIcon.alert { color: var(--coral-700); background: var(--coral-100); }
+.decisionRuleGrid article.current { border-color: var(--teal-300); background: var(--teal-50); }
+.ruleIcon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; }.ruleIcon.withheld { color: var(--slate-700); background: var(--slate-100); }.ruleIcon.measured { color: var(--teal-700); background: var(--teal-100); }.ruleIcon.alert { color: var(--amber-700); background: var(--amber-100); }
 .decisionRuleGrid small, .decisionRuleGrid strong { display: block; }
 .decisionRuleGrid small { color: var(--ink-500); font: 700 11px/1 var(--font-mono-stack); letter-spacing: .08em; text-transform: uppercase; }
 .decisionRuleGrid strong { margin-top: 7px; font-size: .875rem; line-height: 1.3; }
@@ -2665,6 +2681,29 @@ dd {
   .tutorialButtons, .tutorialActions { align-items: stretch; flex-direction: column; }
   .tutorialButtons button, .tutorialActions button { width: 100%; }
   .sanityStage { min-height: 280px; }
+  .reportPractitioner > summary small,
+  .laneHead small,
+  .laneHead p,
+  .observationMetrics span,
+  .observationMetrics p,
+  .researchLaneGrid span,
+  .researchLaneGrid small,
+  .referralReason,
+  .referralSignals li small,
+  .referralLimit,
+  .signalStatus,
+  .verdictHead small,
+  .verdictReasons li p,
+  .verdictReasons li small,
+  .verdictCaveat,
+  .decisionRuleGrid small,
+  .decisionRuleGrid p,
+  .resultNext small,
+  .resultNext p,
+  .reportTechnical p,
+  .reportTechnical small {
+    font-size: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2684,12 +2723,16 @@ dd {
   /* Only the summary prints. Everything else is operator chrome. */
   body { background: #fff; }
   .topbar, .sessionRail, .cardActions, .skipLink, .presentationStrip,
-  .reportHeader, .caregiverReport, .reportPractitioner,
+  .reportHeader, .reportPractitioner,
   .observationReport, .researchPanel, .researchLane, .reportTechnical, .decisionRules,
   .resultNext, .observationAnswer, .qualityGrid, .gateDecision, .warning,
   .reportNotices, .measurementLane, .referralLane, .sessionVerdict,
   .observationMetrics, .researchExportConsent { display: none !important; }
   .printSummary { display: block; color: #000; font-size: 11pt; }
+  .caregiverReport { display: block; margin: 0 0 12pt; border-color: #777; }
+  .caregiverReport article { break-inside: avoid; padding: 9pt 0; }
+  .caregiverReport h2 { color: #000; font-size: 12pt; }
+  .caregiverReport p, .caregiverReport small { color: #222; font-size: 10pt; }
   .printSummary header { padding-bottom: 8pt; border-bottom: 1.5pt solid #000; }
   .printSummary h1 { margin: 0 0 4pt; font-size: 17pt; }
   .printSummary header p { margin: 0; font-size: 9.5pt; }
@@ -2703,7 +2746,7 @@ dd {
   .printVerdict { margin: 0 0 5pt; font-size: 17pt; font-weight: 800; line-height: 1.15; }
   .printVerdict[data-tone="follow_up"] { padding: 5pt 7pt; border: 2pt solid #000; }
   /* Loud on paper, because the sheet leaves the room without the screen. */
-  .printDemonstration { margin: 10pt 0 0; padding: 6pt 8pt; border: 1.5pt solid #000; font-size: 10pt; }
+  .printDemonstration { display: block; margin: 10pt 0 0; padding: 6pt 8pt; border: 1.5pt solid #000; font-size: 10pt; }
   .printSummary table { width: 100%; border-collapse: collapse; font-size: 10pt; }
   .printSummary th, .printSummary td { padding: 4pt 6pt; border-bottom: 0.5pt solid #999; text-align: left; vertical-align: top; }
   .printSummary th[scope="row"] { width: 30%; font-weight: 700; }

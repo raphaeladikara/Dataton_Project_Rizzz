@@ -42,17 +42,32 @@ test("a withheld session says the recording cannot be used", () => {
   assert.match(report.sections[2].body, /ulangi/i);
 });
 
-test("demonstration leads with the architecture response and a persistent safety banner", () => {
-  const report = buildReportPresentation({
-    ...base,
-    demonstrationMode: true,
-    recommendsFollowUp: true,
-  });
+for (const [label, recommendsFollowUp] of [
+  ["produced-pattern response", true],
+  ["ordinary-control response", false],
+] as const) {
+  test(`demonstration presents all four safe sections for the ${label}`, () => {
+    const report = buildReportPresentation({
+      ...base,
+      demonstrationMode: true,
+      recommendsFollowUp,
+    });
 
-  assert.match(report.sections[0].title, /arsitektur/i);
-  assert.match(report.sections[0].body, /jalur pemeriksaan lanjutan/i);
-  assert.match(report.demoBanner ?? "", /peserta dewasa/i);
-  assert.match(report.demoBanner ?? "", /klip pendek/i);
-  assert.match(report.demoBanner ?? "", /bukan penilaian klinis/i);
-  assert.match(report.demoBanner ?? "", /tidak mengeluarkan rujukan/i);
-});
+    assert.deepEqual(
+      report.sections.map((section) => section.id),
+      ["what_happened", "recording_status", "next_steps", "result_limits"],
+    );
+    assert.match(report.sections[0].title, /arsitektur/i);
+    assert.match(report.sections[0].body, recommendsFollowUp ? /jalur pemeriksaan lanjutan/i : /jalur tanpa arahan pemeriksaan/i);
+    assert.match(report.sections[1].label, /Rekaman dapat digunakan/);
+    assert.match(report.sections[2].title, /peragaan|panduan/i);
+    assert.match(report.sections[2].body, /kontrol biasa|panduan/i);
+    assert.doesNotMatch(report.sections[2].body, /kader|Puskesmas|dokter|rujukan|kesehatan/i);
+    assert.match(report.sections[3].body, /bukan diagnosis/i);
+    assert.match(report.sections[3].body, /bukan tanda aman/i);
+    assert.match(report.demoBanner ?? "", /peserta dewasa/i);
+    assert.match(report.demoBanner ?? "", /klip pendek/i);
+    assert.match(report.demoBanner ?? "", /bukan penilaian klinis/i);
+    assert.match(report.demoBanner ?? "", /tidak mengeluarkan rujukan/i);
+  });
+}
