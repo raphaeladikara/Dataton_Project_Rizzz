@@ -211,6 +211,55 @@ def composite_rule_break_even(
     }
 
 
+def referral_load_multiples(arms: list[dict[str, Any]]) -> dict[str, Any]:
+    """Each operating point's referral load as a multiple of the shipped one.
+
+    The capacity argument used to be arithmetic against a stated assumption. It
+    now has one field observation beside it: a practitioner asked whether the
+    service could absorb three times the current referrals answered that it
+    probably could not, because families already wait weeks to months for some
+    services (docs/wawancara_praktisi_hasil.md, blok C).
+
+    That is one person's judgement about their own district and it is not a
+    capacity measurement. What it does is fix the unit. Expressing every arm as a
+    multiple of the shipped GeoPref rate makes the comparison the same one the
+    question asked, instead of leaving the reader to divide percentages.
+    """
+    baseline = next(
+        (arm for arm in arms if arm["id"] == "geopref_published"), None)
+    if baseline is None:
+        return {"status": "baseline_arm_missing"}
+    base_rate = baseline["operational_projection"]["referral_rate"]
+    return {
+        "id": "referral_load_multiples",
+        "status": "arithmetic_over_stated_assumptions",
+        "baseline_arm": "geopref_published",
+        "baseline_referral_rate": base_rate,
+        "multiples": {
+            arm["id"]: round(arm["operational_projection"]["referral_rate"] / base_rate, 1)
+            for arm in arms
+        },
+        "field_anchor": {
+            "source": "docs/wawancara_praktisi_hasil.md, blok C",
+            "n": 1,
+            "asked": "Kalau anak yang disarankan diperiksa lanjut menjadi tiga kali lebih banyak, sanggup?",
+            "answered": "Sepertinya akan sulit; tenaga dan jadwal yang tersedia mungkin kewalahan.",
+            "current_wait": "beberapa minggu sampai beberapa bulan, tergantung tempat dan tenaga",
+        },
+        "what_this_shows": (
+            "Titik kerja yang dikirim menghasilkan beban rujukan paling rendah di antara seluruh "
+            "lengan. Lengan yang paling menggoda dipamerkan — sensitivitas 0,92 — menghasilkan "
+            "beban puluhan kali lipat dari itu, jauh di atas kelipatan tiga yang sudah dinilai "
+            "sulit oleh satu praktisi."
+        ),
+        "not_claimed": [
+            "Satu wawancara bukan pengukuran kapasitas, dan angkanya tidak dipakai sebagai kapasitas.",
+            "Praktisi tersebut tidak melihat tabel ini dan tidak menilai titik kerja mana pun.",
+            "Kelipatan di sini adalah rasio laju rujukan yang diproyeksikan, bukan jumlah anak yang teramati.",
+        ],
+    }
+
+
 def gate_c_simulation(
     *,
     cohort_size: int = COHORT_SIZE,
@@ -238,6 +287,7 @@ def gate_c_simulation(
         },
         "arms": arms,
         "composite_rule": composite_rule_break_even(prevalence=prevalence),
+        "referral_load": referral_load_multiples(arms),
         "limitations": [
             "Tidak ada balita prospektif yang direkrut; setiap angka adalah ekspektasi, bukan observasi.",
             "Lengan regresi logistik berasal dari 54 partisipan Carette usia sekolah pada 250 Hz dan tidak berlaku untuk balita.",

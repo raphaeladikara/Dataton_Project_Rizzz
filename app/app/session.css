@@ -2964,3 +2964,73 @@ dd {
   letter-spacing: 0;
   color: var(--ink-400);
 }
+
+/* ── Cermin panggung.
+   Hanya hidup di stage_demo. Ia duduk di bawah kanvas stimulus, bukan di
+   atasnya: layar peserta tetap milik stimulus, dan strip ini untuk penyaji
+   serta penonton. Warnanya sengaja rendah kontras supaya tidak menarik
+   tatapan peserta yang duduk menghadap layar yang sama. */
+.stageMirror {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 4;
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border: 1px solid rgba(125, 202, 180, .22);
+  border-radius: 16px;
+  color: #cfe3dc;
+  background: rgba(9, 26, 23, .82);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+.stageMirrorNarration {
+  margin: 0;
+  color: #eaf4f0;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.stageMirrorRows {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.stageMirrorRows > div {
+  padding-left: 10px;
+  border-left: 2px solid rgba(125, 202, 180, .28);
+}
+.stageMirrorRows > div[data-tone="live"] { border-left-color: #7dcab4; }
+.stageMirrorRows > div[data-tone="waiting"] { border-left-color: #b9a25e; }
+.stageMirrorRows > div[data-tone="lost"] { border-left-color: #c98069; }
+.stageMirrorRows dt {
+  color: #8fb0a8;
+  font-family: var(--font-mono), monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.stageMirrorRows dd {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.stageMirror small {
+  color: #7f9d95;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+@media (max-width: 820px) {
+  .stageMirrorRows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageMirror { backdrop-filter: none; }
+}

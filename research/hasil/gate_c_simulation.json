@@ -136,6 +136,31 @@
     "note": "Blok ini sengaja tidak mengasumsikan sensitivitas dan spesifisitas aturan komposit. Keduanya belum diukur pada balita, dan mengarangnya akan mengulang persis kesalahan yang dihindari lengan-lengan lain. Yang dihitung adalah syarat yang harus dipenuhi.",
     "unlocks": "docs/jalur_rujukan.md, langkah 3"
   },
+  "referral_load": {
+    "id": "referral_load_multiples",
+    "status": "arithmetic_over_stated_assumptions",
+    "baseline_arm": "geopref_published",
+    "baseline_referral_rate": 0.0215,
+    "multiples": {
+      "lr_target_sensitivity": 38.3,
+      "lr_youden": 8.6,
+      "geopref_published": 1.0,
+      "gate_c_target": 9.2
+    },
+    "field_anchor": {
+      "source": "docs/wawancara_praktisi_hasil.md, blok C",
+      "n": 1,
+      "asked": "Kalau anak yang disarankan diperiksa lanjut menjadi tiga kali lebih banyak, sanggup?",
+      "answered": "Sepertinya akan sulit; tenaga dan jadwal yang tersedia mungkin kewalahan.",
+      "current_wait": "beberapa minggu sampai beberapa bulan, tergantung tempat dan tenaga"
+    },
+    "what_this_shows": "Titik kerja yang dikirim menghasilkan beban rujukan paling rendah di antara seluruh lengan. Lengan yang paling menggoda dipamerkan — sensitivitas 0,92 — menghasilkan beban puluhan kali lipat dari itu, jauh di atas kelipatan tiga yang sudah dinilai sulit oleh satu praktisi.",
+    "not_claimed": [
+      "Satu wawancara bukan pengukuran kapasitas, dan angkanya tidak dipakai sebagai kapasitas.",
+      "Praktisi tersebut tidak melihat tabel ini dan tidak menilai titik kerja mana pun.",
+      "Kelipatan di sini adalah rasio laju rujukan yang diproyeksikan, bukan jumlah anak yang teramati."
+    ]
+  },
   "limitations": [
     "Tidak ada balita prospektif yang direkrut; setiap angka adalah ekspektasi, bukan observasi.",
     "Lengan regresi logistik berasal dari 54 partisipan Carette usia sekolah pada 250 Hz dan tidak berlaku untuk balita.",

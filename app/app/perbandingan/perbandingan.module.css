@@ -1,0 +1,247 @@
+/* Sized for a projector, not a desk. The deciding numbers are the largest
+   thing on the page and the scope banner sits above them, because a caveat
+   read after the number has already landed is a caveat nobody read. */
+
+.page {
+  min-height: 100dvh;
+  padding: 18px clamp(18px, 5vw, 74px) 48px;
+  color: #17302c;
+  background: #f4f0e7;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1180px;
+  min-height: 66px;
+  margin: 0 auto;
+  padding: 0 20px;
+  border: 1px solid rgba(23, 48, 44, .1);
+  border-radius: 24px;
+  background: rgba(255, 253, 248, .82);
+}
+.topbar > span {
+  color: #62736f;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  color: #17302c;
+  font-family: var(--font-display), serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.brand span { color: #0d665d; }
+
+.scope {
+  display: flex;
+  gap: 12px;
+  max-width: 1180px;
+  margin: 20px auto 0;
+  padding: 16px 20px;
+  border: 1px solid rgba(190, 76, 54, .18);
+  border-radius: 18px;
+  color: #754a40;
+  background: rgba(255, 241, 236, .8);
+}
+.scope svg { flex: 0 0 auto; }
+.scope p { margin: 0; font-size: 12.5px; line-height: 1.6; text-wrap: pretty; }
+
+.title {
+  max-width: 1180px;
+  margin: 28px auto 6px;
+  font-family: var(--font-display), serif;
+  font-size: clamp(30px, 4.6vw, 54px);
+  line-height: 1.02;
+}
+.lede {
+  max-width: 1180px;
+  margin: 0 auto;
+  color: #62736f;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: .03em;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 1180px;
+  margin: 22px auto 0;
+}
+.column {
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid rgba(23, 48, 44, .1);
+  border-radius: 26px;
+  background: rgba(255, 253, 248, .92);
+}
+.column[data-condition="produced"] {
+  border-color: rgba(13, 102, 93, .22);
+  background: #e6f2ee;
+}
+.column h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display), serif;
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.1;
+}
+.instruction {
+  margin: 0 0 18px;
+  min-height: 3.2em;
+  color: #4a605b;
+  font-size: 12.5px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.fired {
+  display: block;
+  color: #17302c;
+  font-family: var(--font-display), serif;
+  font-size: clamp(52px, 8vw, 84px);
+  font-weight: 700;
+  line-height: .9;
+}
+.fired span { color: #7d908b; font-size: .42em; }
+.column[data-condition="produced"] .fired { color: #0d665d; }
+.firedLabel {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.denominator {
+  margin: 8px 0 0;
+  color: #62736f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.card {
+  max-width: 1180px;
+  margin: 14px auto 0;
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid rgba(23, 48, 44, .1);
+  border-radius: 26px;
+  background: rgba(255, 253, 248, .92);
+  overflow-x: auto;
+}
+.card h2 {
+  margin: 0 0 20px;
+  font-family: var(--font-display), serif;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1;
+}
+
+.signals { width: 100%; border-collapse: collapse; }
+.signals th,
+.signals td {
+  padding: 14px 10px;
+  border-top: 1px solid rgba(23, 48, 44, .08);
+  text-align: right;
+  vertical-align: top;
+}
+.signals thead th {
+  color: #62736f;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.signals thead th:first-child,
+.signals tbody th { text-align: left; }
+.signals tbody th {
+  max-width: 340px;
+  padding-left: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.signals tbody th small {
+  display: block;
+  margin-top: 4px;
+  color: #5f716c;
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.signals tbody td {
+  color: #4a605b;
+  font-family: var(--font-mono), monospace;
+  font-size: 19px;
+}
+/* The side the index runs high on. Weight, not colour: the reader should be
+   able to tell which column the signal favours without relying on hue. */
+.signals tbody td[data-strong="true"] { color: #17302c; font-weight: 700; }
+.signals tbody td small {
+  display: block;
+  margin-top: 4px;
+  color: #7d908b;
+  font-size: 10px;
+  font-weight: 400;
+}
+.gap { color: #0d665d !important; font-weight: 700; }
+
+.note {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(23, 48, 44, .08);
+  color: #4a605b;
+  font-size: 11.5px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.notClaimed { display: grid; gap: 10px; margin: 0; padding-left: 18px; color: #5f716c; }
+.notClaimed li { padding-left: 4px; font-size: 12.5px; line-height: 1.55; text-wrap: pretty; }
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 1180px;
+  margin: 28px auto 0;
+  font-size: 11px;
+}
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  color: #0d665d;
+  font-weight: 700;
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+
+@media (max-width: 820px) {
+  .page { padding-inline: 14px; }
+  .columns { grid-template-columns: 1fr; }
+  .instruction { min-height: 0; }
+  .signals tbody th { max-width: none; }
+  .footer { align-items: flex-start; flex-direction: column; gap: 0; }
+}
+
+@media (max-width: 720px) {
+  .scope p,
+  .lede,
+  .instruction,
+  .firedLabel,
+  .denominator,
+  .note,
+  .notClaimed li,
+  .footer,
+  .signals tbody th,
+  .signals tbody th small { font-size: 14px; }
+}

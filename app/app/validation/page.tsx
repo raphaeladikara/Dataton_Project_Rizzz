@@ -55,7 +55,7 @@ export default function ValidationPage() {
 
     <section className={styles.card}>
       <h2>Matriks kesiapan</h2>
-      <table className={styles.blandTable}>
+      <table className={`${styles.blandTable} ${styles.proseTable}`}>
         <thead><tr><th scope="col">Kapabilitas</th><th scope="col">Status</th><th scope="col">Batas</th></tr></thead>
         <tbody>{readiness.capabilities.map((item) => <tr key={item.id}><th scope="row">{item.capability}</th><td>{item.statusLabel}</td><td>{item.boundary}</td></tr>)}</tbody>
       </table>

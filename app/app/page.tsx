@@ -8,6 +8,7 @@
    than newly true. Re-enable and fix for real if these functions ever move out
    of the component body. */
 
+import Link from "next/link";
 import {
   useEffect,
   useMemo,
@@ -60,6 +61,7 @@ import { reportBadge } from "../src/outcome/reportBadge";
 import { buildPosteriorOdds } from "../src/outcome/posteriorOdds";
 import { buildSessionVerdict } from "../src/outcome/sessionVerdict";
 import { buildReportPresentation, type ReportSourceKind } from "../src/outcome/reportPresentation";
+import { buildStageMirror } from "../src/ui/stageMirror";
 import { CaregiverReport, PrintableReport } from "../src/outcome/reportComponents";
 import { compositeLaneHeadline } from "../src/outcome/referralPresentation";
 import {
@@ -1252,6 +1254,27 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     () => stimulusSeconds(sessionStimulusPhases("duration-probe", { nameCallsDelivered: speakerDeclared })),
     [speakerDeclared],
   );
+  /**
+   * Presenter-facing telemetry, and only on a stage.
+   *
+   * 67 silent seconds is a ninth of a ten minute pitch. The child-facing screen
+   * still shows nothing but the stimulus — this strip is the operator side of a
+   * `stage_demo`, where the participant is a consenting adult under a banner.
+   * `isStageDemo` is the gate; tests/stage-mirror.test.ts holds it shut.
+   */
+  const stageMirror = useMemo(() => buildStageMirror({
+    isStageDemo,
+    running: busy,
+    paused: stimulusPaused,
+    phaseLabel: stimulusPhase?.label ?? null,
+    phaseId: stimulusPhase?.id ?? null,
+    progress,
+    totalSeconds: sessionSeconds,
+    tracking: tracking ? { accepted: tracking.accepted, eyeOpen: tracking.eyeOpen } : null,
+    cueActive: stimulusCueActive,
+    ostensiveActive: stimulusOstensiveActive,
+  }), [isStageDemo, busy, stimulusPaused, stimulusPhase, progress, sessionSeconds, tracking, stimulusCueActive, stimulusOstensiveActive]);
+
   const reportSourceKind: ReportSourceKind = mode === "live"
     ? "live"
     : recording
@@ -2634,6 +2657,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               </article>
             </div>
             <div className="evidenceActions">
+              {/* One click from the home page on purpose: this is the screen
+                  that answers "does it just refer everyone", and hunting for it
+                  under stage pressure is how that answer goes unshown. */}
+              <Link className="secondary" href="/perbandingan">
+                <IconScanpathFocus size={15} /> Bandingkan dua kondisi
+              </Link>
               <button className="secondary" onClick={() => setStage("guide")}>
                 <IconBook size={15} /> Baca panduan validasi
               </button>
@@ -3469,6 +3498,20 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         <section className="stimulusPage">
           {!busy && <div className="stimulusHeader"><Logo /><span>{isEngineeringStudy ? "Uji peserta dewasa" : "Anak cukup menonton"} · siap</span>{mode === "live" && <span className={`stimulusTracking ${tracking?.accepted ? "good" : "bad"}`}><i />{trackingCopy(tracking).title}</span>}<button onClick={restart}><IconArrowLeft size={15} /> Kembali</button></div>}
           {busy && <div className="stimulusOperatorControls"><button onClick={toggleStimulusPause} aria-pressed={stimulusPaused}>{stimulusPaused ? <><IconPlay size={14} /> Lanjutkan</> : "Jeda"}</button><button onClick={restart} aria-label="Hentikan stimulus"><IconArrowLeft size={14} /> Hentikan</button></div>}
+          {stageMirror && (
+            <aside className="stageMirror" aria-label="Cermin panggung" aria-live="polite">
+              <p className="stageMirrorNarration">{stageMirror.narration}</p>
+              <dl className="stageMirrorRows">
+                {stageMirror.rows.map((row) => (
+                  <div key={row.id} data-tone={row.tone}>
+                    <dt>{row.label}</dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <small>{stageMirror.notice}</small>
+            </aside>
+          )}
           <div className={`stimulusCanvas phase-${stimulusPhase?.id ?? "ready"}`} aria-label="Adegan perhatian bersama dengan wajah dan dua mainan">
             <StimulusScene
               visualCue={stimulusPhase?.visualCue ?? "attention"}

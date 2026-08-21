@@ -55,13 +55,27 @@ prediksi **0,93**. CNN-nya bukan model yang lebih pintar; ia model yang lebih ru
 untuk sinyal yang sama.
 [`research/hasil/perbandingan_model.json`](research/hasil/perbandingan_model.json)
 
-### 3. Penjaga out-of-distribution yang berjalan di perangkat
+### 3. Penjaga out-of-distribution yang berjalan di perangkat, dan terbukti dua arah
 
 Regresi logistik dikirim ke tablet dan dijalankan **setiap sesi**. Penjaga lalu
 memutuskan apakah keluarannya boleh dibaca — dan pada stimulus ini ia menolak, sambil
-menyebut fitur mana yang di luar distribusi beserta jaraknya (9,1 z, Mahalanobis 87,9).
-Penolakan itu tercetak di laporan, bukan disembunyikan.
-[`app/src/quality/ood.ts`](app/src/quality/ood.ts)
+menyebut fitur mana yang di luar distribusi beserta jaraknya. Penolakan itu tercetak di
+laporan, bukan disembunyikan.
+
+Penjaga yang hanya pernah menolak tidak dapat dibedakan dari `false` yang dipasang tetap,
+jadi ia dijalankan pada dua populasi:
+
+| | Diterima | Mahalanobis median |
+|---|---:|---:|
+| Domain sumber Carette, 547 vektor | **544** | 10,8 |
+| Stimulus yang dikirim, 23 sesi kontrol positif | **1** | 199,2 |
+
+Referensinya dikalibrasi pada persentil 99,5 kohort itu, jadi baris pertama adalah
+pemeriksaan kewarasan dan bukan uji generalisasi. Yang menjadi bukti adalah kontrasnya,
+dan bahwa seluruh 23 keputusan yang dibuat TypeScript di peramban **dihitung ulang oleh
+Python dari log dan menghasilkan verdict yang sama**.
+[`app/src/quality/ood.ts`](app/src/quality/ood.ts) ·
+[`research/hasil/ood_dua_arah.json`](research/hasil/ood_dua_arah.json)
 
 ### 4. Tata kelola yang dijaga type checker
 
@@ -69,7 +83,28 @@ Penolakan itu tercetak di laporan, bukan disembunyikan.
 Menggabungkan lajur berambang-terbit dengan lajur deskriptif bukan sesuatu yang kami
 janjikan tidak akan dilakukan — itu sesuatu yang **tidak dapat dikompilasi**.
 
-Bingkai presentasi untuk keempatnya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md).
+### 5. Bobot dari data anak terbit, dan audit yang menolaknya
+
+Memasang bobot antar indeks tidak menuntut merekam balita: data anak berlabel sudah
+terbit. Cilia dkk. 2022 (CC BY 4.0, 59 anak, 2,25 juta baris koordinat) dipakai untuk
+menghitung indeks di ruang perilaku, bukan ruang piksel. Empat audit beserta kriteria
+penolakannya ditulis sebelum fitting dijalankan. Dua gagal, dan yang menentukan adalah ini:
+
+| Prediktor tunggal | AUC |
+|---|---:|
+| Rasio pelacakan alat | 0,853 |
+| Fraksi kedip | 0,847 |
+| Fraksi fiksasi | 0,826 |
+| Mengikuti isyarat arah *(perilaku)* | **0,504** |
+
+Alas yang tidak memuat satu pun fitur perilaku mencapai AUC 0,905; model indeks perilaku
+hanya 0,784. **Pada dataset itu, seberapa baik alatnya merekam seorang anak lebih
+memprediksi labelnya daripada apa yang ditatap anak itu.** Bobot tidak dipromosikan,
+lapis likelihood-ratio dikirim sendirian, dan penolakannya diterbitkan sebagai hasil.
+[`research/hasil/model_rujukan.json`](research/hasil/model_rujukan.json)
+
+Bingkai presentasi untuk kelimanya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md) dan
+[`docs/bingkai_kompetisi.md`](docs/bingkai_kompetisi.md).
 
 ---
 
@@ -203,8 +238,9 @@ Alasan di balik keputusan yang menentukan batas klaim ada di
   fairness/kegagalan, dan validasi prospektif. Ini bukan urusan satu persetujuan administratif.
 - Blok target-diketahui Gate B sudah terpasang di sisi analisis, tetapi belum ada sesi
   yang merekamnya.
-- Belum ada wawancara praktisi yang terekam.
-  [`docs/wawancara_praktisi.md`](docs/wawancara_praktisi.md)
+- Riset primer berhenti di **satu** wawancara praktisi — seorang guru SLB di Jambi, n=1,
+  berbasis ingatan. Ia memvalidasi masalahnya, bukan instrumennya, dan tidak menggeser
+  satu angka pun. [`docs/wawancara_praktisi_hasil.md`](docs/wawancara_praktisi_hasil.md)
 - Belum ada kader yang menguji alur, waktu, kegagalan, pelatihan, atau dukungan.
 
 Status kanonis lima kapabilitas ada di
