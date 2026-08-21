@@ -30,6 +30,7 @@ import {
 } from "../src/capture/faceLandmarker";
 import { projectCoverPoint, projectCoverRect } from "../src/capture/videoProjection";
 import { CHILD_TARGETS, TECHNICAL_TARGETS as TARGETS } from "../src/capture/calibrationTargets";
+import { CameraRequestTimeoutError, cameraErrorInfo } from "../src/capture/cameraError";
 import type {
   DeviceDiagnostics,
   ModelExport,
@@ -821,6 +822,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       // eslint-disable-next-line react-hooks/exhaustive-deps
       geoprefVideoRef.current?.pause();
       mediaControllerRef.current?.dispose();
+      // Invalidate an in-flight getUserMedia request. If it resolves after
+      // unmount, the request-id guard below stops every track immediately.
+      cameraRequestIdRef.current += 1;
       streamRef.current?.getTracks().forEach((track) => track.stop());
       landmarkerRef.current?.close();
     };
@@ -1369,8 +1373,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setDeviceMessage("Memuat pemeriksaan wajah lokal…");
     let requestId = cameraRequestIdRef.current;
     try {
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia)
-        throw new Error("Kamera memerlukan HTTPS atau http://localhost.");
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        const contextError = new Error();
+        contextError.name = "SecurityError";
+        throw contextError;
+      }
       stopCamera();
       requestId = cameraRequestIdRef.current;
       let cameraRequestExpired = false;
@@ -1386,11 +1393,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       const stream = await new Promise<MediaStream>((resolve, reject) => {
         const timer = window.setTimeout(() => {
           cameraRequestExpired = true;
-          reject(
-            new Error(
-              "Kamera tidak merespons dalam 12 detik. Periksa izin kamera browser lalu coba lagi.",
-            ),
-          );
+          reject(new CameraRequestTimeoutError());
         }, 12_000);
         cameraRequest.then(
           (openedStream) => {
@@ -1491,15 +1494,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       }
     } catch (error) {
       if (requestId !== cameraRequestIdRef.current) return;
+      const localizedError = cameraErrorInfo(error, {
+        isSecureContext: window.isSecureContext,
+      });
       setDeviceStatus("failed");
-      setDeviceMessage(
-        error instanceof Error
-          ? error.message
-          : "Izin kamera ditolak atau perangkat tidak tersedia.",
-      );
+      setDeviceMessage(localizedError.message);
       recordAudit(
         "device.error",
-        { message: error instanceof Error ? error.message : String(error) },
+        { kind: localizedError.kind, message: localizedError.message },
         "error",
       );
     } finally {
