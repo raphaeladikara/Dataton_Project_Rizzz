@@ -45,9 +45,14 @@ async function criticalOfflinePaths(cache) {
   return [...new Set([...CORE, ...buildAssetsFromShell(shellHtml)])];
 }
 
+function cacheSuccessfulResponse(request, response) {
+  if (!response.ok) return Promise.resolve();
+  const copy = response.clone();
+  return caches.open(CACHE).then((cache) => cache.put(request, copy));
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    (async () => {
+  const precache = (async () => {
       const cache = await caches.open(CACHE);
       const shellResponse = await fetch("/", { cache: "reload" });
       if (!shellResponse.ok) throw new Error("OFFLINE_SHELL_FETCH_FAILED");
@@ -55,9 +60,8 @@ self.addEventListener("install", (event) => {
       const buildAssets = buildAssetsFromShell(shellHtml);
       await cache.put("/", shellResponse);
       await cache.addAll([...new Set([...CORE.filter((path) => path !== "/"), ...buildAssets])]);
-    })(),
-  );
-  self.skipWaiting();
+  })();
+  event.waitUntil(Promise.all([precache, self.skipWaiting()]));
 });
 
 self.addEventListener("message", (event) => {
@@ -89,65 +93,56 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))),
-      ),
-  );
-  self.clients.claim();
+  const cleanup = caches
+    .keys()
+    .then((keys) =>
+      Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))),
+    );
+  event.waitUntil(Promise.all([cleanup, self.clients.claim()]));
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (event.request.mode === "navigate") {
+    const networkResponse = fetch(event.request);
+    const cacheWrite = networkResponse
+      .then((response) => cacheSuccessfulResponse(event.request, response))
+      .catch(() => undefined);
     event.respondWith(
-      fetch(event.request)
-        .then(async (response) => {
-          if (!response.ok) return response;
-          const copy = response.clone();
-          const cache = await caches.open(CACHE).catch(() => null);
-          if (cache) await cache.put(event.request, copy).catch(() => undefined);
-          return response;
-        })
+      networkResponse
         .catch(async () => {
           const cache = await caches.open(CACHE);
           return (await cache.match(event.request)) || cache.match("/");
         }),
     );
+    event.waitUntil(cacheWrite);
     return;
   }
   const path = new URL(event.request.url).pathname;
   if (ALWAYS_FRESH.some((prefix) => path.startsWith(prefix))) {
+    const networkResponse = fetch(event.request);
+    const cacheWrite = networkResponse
+      .then((response) => cacheSuccessfulResponse(event.request, response))
+      .catch(() => undefined);
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (!response.ok) return response;
-          const copy = response.clone();
-          caches
-            .open(CACHE)
-            .then((cache) => cache.put(event.request, copy))
-            .catch(() => undefined);
-          return response;
-        })
+      networkResponse
         .catch(() => caches.match(event.request)),
     );
+    event.waitUntil(cacheWrite);
     return;
   }
-  event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request).then((response) => {
-          if (!response.ok) return response;
-          const copy = response.clone();
-          caches
-            .open(CACHE)
-            .then((cache) => cache.put(event.request, copy))
-            .catch(() => undefined);
-          return response;
-        }),
-    ),
+  const responseAndCache = caches.match(event.request).then(async (cached) => {
+    if (cached) return { response: cached, cacheWrite: Promise.resolve() };
+    const response = await fetch(event.request);
+    return {
+      response,
+      cacheWrite: cacheSuccessfulResponse(event.request, response),
+    };
+  });
+  event.respondWith(responseAndCache.then(({ response }) => response));
+  event.waitUntil(
+    responseAndCache
+      .then(({ cacheWrite }) => cacheWrite)
+      .catch(() => undefined),
   );
 });
