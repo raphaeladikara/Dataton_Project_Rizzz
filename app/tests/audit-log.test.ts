@@ -111,3 +111,20 @@ test("a field research export requires consent and records consent before downlo
   assert.equal(prepared.log.privacy.researchConsent, true);
   assert.equal(prepared.log.privacy.storage, "download_by_operator");
 });
+
+test("a failed field-session diagnostic export stays outside the research-analysis lane", () => {
+  const field = createSessionAudit({
+    appVersion: "test", stimulusVersion: "test", mode: "live", purpose: "target_population_research",
+    profile: { childId: "NG-01", age: "24", site: "Posyandu", operator: "K-1" }, researchConsent: false,
+  });
+
+  const diagnostic = prepareAuditExport(field, "operator_audit");
+  assert.equal(diagnostic.ok, true);
+  if (!diagnostic.ok) return;
+  assert.equal(diagnostic.log.privacy.researchConsent, false);
+  assert.equal(diagnostic.log.privacy.derivedGazeExported, false);
+  assert.deepEqual(diagnostic.log.events.at(-1)?.data, { purpose: "operator_audit" });
+
+  const researchExport = prepareAuditExport(diagnostic.log, "research_analysis");
+  assert.equal(researchExport.ok, false);
+});

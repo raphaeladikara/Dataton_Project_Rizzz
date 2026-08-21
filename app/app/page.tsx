@@ -2586,7 +2586,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           </div>
           <div className={`calibrationOutcome ${calibrationMessage ? "visible" : ""}`}>
           {calibrationMessage && !calibrationFailed && <p className="calibrationMessage passed" role="status" aria-live="polite"><IconCheck size={17} /> {calibrationMessage}</p>}
-          {calibrationFailed && <div className="recoveryCard" role="alert"><span><IconAlert size={20} /></span><div><small>{calibrationAttempts >= 2 ? "Batas percobaan tercapai" : "Kenapa belum berhasil"}</small><strong>{recovery.title}</strong><p>{calibrationAttempts >= 2 ? "Hentikan pengulangan. Unduh log lalu lanjutkan hanya sebagai uji sinyal yang hasilnya otomatis ditahan." : recovery.action}</p></div>{calibrationAttempts < 2 && <button className="secondary" disabled={busy} onClick={beginCalibration}><IconRefresh size={15} /> Ulangi sekali</button>}</div>}
+          {calibrationFailed && <div className="recoveryCard" role="alert"><span><IconAlert size={20} /></span><div><small>{calibrationAttempts >= 2 ? "Batas percobaan tercapai" : "Kenapa belum berhasil"}</small><strong>{recovery.title}</strong><p>{calibrationAttempts >= 2 ? (sessionPurpose === "target_population_research" ? "Hentikan pengulangan. Unduh log diagnostik lalu akhiri tes." : "Hentikan pengulangan. Unduh log analisis lalu akhiri tes.") : recovery.action}</p></div>{calibrationAttempts < 2 && <button className="secondary" disabled={busy} onClick={beginCalibration}><IconRefresh size={15} /> Ulangi sekali</button>}</div>}
           {calibration?.diagnostics && (
             <details className="calibrationTechnical">
               <summary>Detail teknis kalibrasi</summary>
@@ -2603,6 +2603,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <div className="calibrationActions">
             <button className="secondary" onClick={() => { void leaveMeasurementFullscreen(); setStage("device"); }}><IconArrowLeft size={15} /> Kembali</button>
             {auditLog && sessionPurpose !== "target_population_research" && <button className="secondary" onClick={() => downloadCurrentAudit("operator_audit")}><IconDownload size={15} /> Unduh log analisis</button>}
+            {auditLog && sessionPurpose === "target_population_research" && calibrationAttempts >= 2 && calibrationFailed && <button className="secondary" onClick={() => downloadCurrentAudit("operator_audit")}><IconDownload size={15} /> Unduh log diagnostik</button>}
             {calibration && calibrationAttempts < 2 && <button className="primary amber" disabled={busy} onClick={beginCalibration}><IconRefresh size={16} /> Ulangi sekali</button>}
             {calibrationAttempts >= 2 && calibrationFailed && <button className="secondary" onClick={goHome}>Akhiri tes</button>}
             <button className="primary dark" disabled={!calibration || calibration.errorDeg > calibrationLimitDeg} onClick={() => setStage("sanity")}>Periksa arah pandangan <IconArrowRight size={16} /></button>
