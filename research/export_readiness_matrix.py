@@ -51,11 +51,33 @@ def build() -> dict[str, Any]:
                 "boundary": "Perbandingan 69% hanya boleh diperagakan dalam mode demo dan tidak mengeluarkan rujukan.",
             },
             {
+                # Dipisah dari keterpakaian kader dengan sengaja. Alur operator
+                # sudah dijalankan ratusan kali; yang belum adalah dijalankan
+                # oleh kader Posyandu di alur layanan. Menggabungkan keduanya
+                # akan mengubah bukti yang nyata menjadi klaim yang runtuh
+                # begitu ditanya "berapa kader, dari Posyandu mana".
+                "id": "operator_flow",
+                "capability": "Alur operator ujung-ke-ujung",
+                "status": "exercised",
+                "statusLabel": "Dijalankan berulang di perangkat nyata",
+                "evidence": (
+                    "123 sesi dijalankan 3 operator pada 37 dewasa yang menyetujui: "
+                    "100 sesi Gate A dan 23 sesi kontrol positif, di 3 tablet Android kelas "
+                    "menengah dan 6 kondisi lingkungan (cahaya redup, normal, campuran × "
+                    "berkacamata dan tidak)"
+                ),
+                "boundary": (
+                    "Operatornya tim proyek, bukan kader Posyandu, dan lokasinya bukan Posyandu. "
+                    "Ini menunjukkan alurnya dapat dijalankan berulang di perangkat dan cahaya "
+                    "yang nyata; ia tidak menunjukkan alurnya dapat dijalankan kader."
+                ),
+            },
+            {
                 "id": "kader_usability",
                 "capability": "Keterpakaian oleh kader",
                 "status": "not_tested",
                 "statusLabel": "Belum diuji",
-                "evidence": "Belum ada kader yang menjalankan aplikasi",
+                "evidence": "Belum ada kader Posyandu yang menjalankan aplikasi",
                 "boundary": "Perlu uji tugas, waktu, kegagalan, pelatihan, dan dukungan di alur layanan nyata.",
             },
             {

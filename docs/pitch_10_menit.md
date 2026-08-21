@@ -13,7 +13,8 @@ yang mencegah hasil peragaan dibaca sebagai penilaian kesehatan.
 | 2:00–3:00 | Layar perbandingan dua kondisi | `/perbandingan` — satu klik dari beranda |
 | 3:00–4:30 | Satu sesi kamera langsung, penyaji sebagai peserta | `Panduan & demo` → `Peragakan · kamera langsung` |
 | 4:30–5:00 | Interpretasi dan batas demo | banner demo dan laporan |
-| 5:00–6:40 | Empat bagian AI | pengukuran, seleksi, robustness, tata kelola |
+| 5:00–5:30 | Bukti lapangan: 123 sesi, 3 perangkat, 6 kondisi | slide foto dokumentasi |
+| 5:30–6:40 | Empat bagian AI | pengukuran, seleksi, robustness, tata kelola |
 | 6:40–7:30 | Tangga bukti dan kesiapan | `readiness_matrix.md` |
 | 7:30–9:00 | Dampak bersyarat | skenario biaya dan biaya operasi yang belum diukur |
 | 9:00–10:30 | Roadmap dan permintaan mitra | protokol etik/klinis prospektif |
@@ -116,6 +117,26 @@ bentuk pola rujukan yang diperagakan. Lalu tunjuk banner demo dan status
 Kalau ada waktu, putar rekaman terdaftar kondisi menonton biasa. Jangan mengandalkan
 peserta acak sebagai kontrol negatif: dari delapan percobaan, kurang dari tujuh respons
 berhasil tidak mencapai p < 0,05 dan akan dibaca “tidak dapat dinilai”, bukan normal.
+
+## 3c. Bukti lapangan — sebutkan, jangan lewatkan
+
+Bagian ini sebelumnya tidak ada di naskah mana pun, padahal angkanya sudah lama tersedia.
+
+> Yang baru saja Anda lihat bukan simulasi, dan bukan satu sesi yang kebetulan berhasil.
+> Rantai ini sudah dijalankan **123 kali ujung-ke-ujung** — 100 sesi Gate A dan 23 sesi
+> kontrol positif — pada **37 orang dewasa** yang menyetujui, oleh **tiga operator**, di
+> **tiga tablet Android kelas menengah**: Galaxy Tab A8, Lenovo Tab M10, Redmi Note 13.
+> Dan bukan di satu kondisi ideal: **enam kondisi lingkungan**, cahaya redup, normal, dan
+> campuran, dengan dan tanpa kacamata.
+
+Lalu batasnya, di kalimat yang sama dan sebelum ditanya:
+
+> Yang diuji di situ alat ukurnya, bukan kadernya. Operatornya tim kami dan lokasinya
+> bukan Posyandu. Keterpakaian oleh kader adalah baris terpisah di matriks kesiapan kami,
+> dan baris itu masih kosong.
+
+**Jangan pernah menyebut ini "uji kader".** Pertanyaan pertama yang datang adalah berapa
+kader dan dari Posyandu mana, dan jawabannya nol.
 
 ## 4. Empat bagian AI
 
@@ -293,6 +314,26 @@ penggunaan rekaman untuk keputusan proxy dapat dipertanggungjawabkan.
 > samping simulasi kapasitas rujukan kami, dan satu kekurangan produk yang tidak kami
 > lihat sendiri: setelah hasil keluar, harus jelas siapa yang mendampingi orang tua.
 > Bagian langkah berikutnya di laporan berubah karena itu.
+
+### “Ambang dua sinyal itu kalian karang sendiri, kan?”
+
+> Tidak ada yang menerbitkannya, betul, dan tipe datanya menyebut dirinya begitu. Tapi ia
+> punya turunan. Aturan hanya menyala kalau kedua sinyal menyimpang, jadi laju positif
+> palsunya P(A dan B), dan itu tidak pernah melebihi yang terkecil di antara keduanya.
+> Preferensi geometrik membawa spesifisitas terbit 98 persen, jadi **spesifisitas lajur
+> komposit sekurang-kurangnya 98 persen — batas, bukan estimasi, dan tanpa mengandaikan
+> kedua sinyal saling bebas.** Turunkan ke satu, pertidaksamaannya berbalik dan
+> spesifisitasnya paling banter 98 persen. Dua adalah satu-satunya nilai yang tidak dapat
+> memperburuk titik operasi yang divalidasi orang lain.
+
+### “Kenapa tidak pakai posterior odds saja sebagai pemutus?”
+
+> Karena dengan dua sinyal yang kami kirim, mengikuti isyarat selalu ber-LR 1 — paradigmanya
+> melaporkan perbedaan antar kelompok, bukan sensitivitas dan spesifisitas. Jadi posteriornya
+> cuma punya tiga nilai, dan ketiganya ditentukan GeoPref sendirian. Ambang apa pun di
+> atasnya secara aritmetika sama dengan "GeoPref menyimpang" — aturan satu sinyal, yang
+> justru dilarang kode kami sendiri. Posteriornya tetap dihitung dan tercetak sebagai
+> alasan; yang memutuskan tetap aturan dua sinyal.
 
 ### “Apa nilai model Carette?”
 

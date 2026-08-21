@@ -6,12 +6,16 @@ Setiap angka yang diucapkan di panggung, sumbernya, dan apakah ia milik proyek i
 > membaca nilai kanonis dari berkas bukti dan berhenti dengan galat kalau ada yang
 > tidak cocok, jadi tabel ini tidak dapat melenceng dari buktinya diam-diam.
 
-**24 klaim milik sendiri · 5 dikutip · 3 asumsi dinyatakan.**
+**28 klaim milik sendiri · 5 dikutip · 3 asumsi dinyatakan.**
 
 | Klaim | Yang disebut | Milik | Sumber | Berkas bukti |
 |---|---|---|---|---|
 | Sesi Gate A lulus mutu | 94 dari 100 | milik sendiri | Gate A, 25 dewasa, 3 perangkat | `research/hasil/gate_a/gate_a_summary.json` |
 | Galat kalibrasi median Gate A | 2,207° | milik sendiri | Gate A; konversi sudut lama tanpa jarak pandang per sesi | `research/hasil/gate_a/gate_a_summary.json` |
+| Sesi Gate A dijalankan | 100 | milik sendiri | 25 dewasa, 3 operator, 3 tablet Android kelas menengah | `research/hasil/gate_a/gate_a_summary.json` |
+| Kondisi lingkungan Gate A | 6 — cahaya redup/normal/campuran × berkacamata dan tidak | milik sendiri | Terekam di kolom site tiap log sesi | — |
+| Total sesi ujung-ke-ujung | 123 — 100 Gate A + 23 kontrol positif | milik sendiri | 37 dewasa menyetujui. Operatornya tim proyek, BUKAN kader Posyandu | — |
+| Spesifisitas minimum lajur komposit | ≥ 98% | milik sendiri | Batas turunan: P(A dan B) ≤ min(P(A), P(B)), dengan spesifisitas GeoPref terbit 0,98. Tidak mengandaikan independensi | — |
 | Pasangan Gate B siap dibandingkan | 27 dari 30 | milik sendiri | Perbandingan simultan terhadap WebGazer.js 3.5.3 | `research/hasil/gate_b/gate_b_summary.json` |
 | Galat antar aliran ternormalisasi median | 0,040997 | milik sendiri | Gate B; WebGazer adalah implementasi referensi, bukan ground truth | `research/hasil/gate_b/gate_b_summary.json` |
 | Peserta kontrol positif | 12 dewasa | milik sendiri | Semua menyetujui untuk dirinya sendiri | `research/hasil/kontrol_positif/ringkasan.json` |

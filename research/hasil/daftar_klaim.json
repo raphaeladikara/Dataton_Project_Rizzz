@@ -8,7 +8,7 @@
     "asumsi dinyatakan": "Aritmetika atas asumsi yang dinyatakan. Bukan hasil pengukuran."
   },
   "counts": {
-    "milik sendiri": 24,
+    "milik sendiri": 28,
     "dikutip": 5,
     "asumsi dinyatakan": 3
   },
@@ -30,6 +30,42 @@
       "evidence_file": "research/hasil/gate_a/gate_a_summary.json",
       "evidence_path": "medianCalibrationErrorDeg",
       "canonical_value": 2.207
+    },
+    {
+      "claim": "Sesi Gate A dijalankan",
+      "shown": "100",
+      "ownership": "milik sendiri",
+      "source": "25 dewasa, 3 operator, 3 tablet Android kelas menengah",
+      "evidence_file": "research/hasil/gate_a/gate_a_summary.json",
+      "evidence_path": "sessions",
+      "canonical_value": 100
+    },
+    {
+      "claim": "Kondisi lingkungan Gate A",
+      "shown": "6 — cahaya redup/normal/campuran × berkacamata dan tidak",
+      "ownership": "milik sendiri",
+      "source": "Terekam di kolom site tiap log sesi",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Total sesi ujung-ke-ujung",
+      "shown": "123 — 100 Gate A + 23 kontrol positif",
+      "ownership": "milik sendiri",
+      "source": "37 dewasa menyetujui. Operatornya tim proyek, BUKAN kader Posyandu",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Spesifisitas minimum lajur komposit",
+      "shown": "≥ 98%",
+      "ownership": "milik sendiri",
+      "source": "Batas turunan: P(A dan B) ≤ min(P(A), P(B)), dengan spesifisitas GeoPref terbit 0,98. Tidak mengandaikan independensi",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
     },
     {
       "claim": "Pasangan Gate B siap dibandingkan",

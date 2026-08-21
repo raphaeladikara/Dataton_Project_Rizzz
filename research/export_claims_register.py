@@ -46,6 +46,15 @@ CLAIMS: list[tuple[str, str, str, str, str, str]] = [
     ("Galat kalibrasi median Gate A", "2,207°", OURS,
      "Gate A; konversi sudut lama tanpa jarak pandang per sesi", "gate_a/gate_a_summary.json", "medianCalibrationErrorDeg"),
 
+    ("Sesi Gate A dijalankan", "100", OURS,
+     "25 dewasa, 3 operator, 3 tablet Android kelas menengah", "gate_a/gate_a_summary.json", "sessions"),
+    ("Kondisi lingkungan Gate A", "6 — cahaya redup/normal/campuran × berkacamata dan tidak", OURS,
+     "Terekam di kolom site tiap log sesi", "", ""),
+    ("Total sesi ujung-ke-ujung", "123 — 100 Gate A + 23 kontrol positif", OURS,
+     "37 dewasa menyetujui. Operatornya tim proyek, BUKAN kader Posyandu", "", ""),
+    ("Spesifisitas minimum lajur komposit", "≥ 98%", OURS,
+     "Batas turunan: P(A dan B) ≤ min(P(A), P(B)), dengan spesifisitas GeoPref terbit 0,98. Tidak mengandaikan independensi", "", ""),
+
     # ── Gate B
     ("Pasangan Gate B siap dibandingkan", "27 dari 30", OURS,
      "Perbandingan simultan terhadap WebGazer.js 3.5.3", "gate_b/gate_b_summary.json", "nPairsReady"),
@@ -135,6 +144,7 @@ CLAIMS: list[tuple[str, str, str, str, str, str]] = [
 # tolerance; exact ones use zero.
 EXPECTED: dict[str, tuple[float, float]] = {
     "Sesi Gate A lulus mutu": (94, 0),
+    "Sesi Gate A dijalankan": (100, 0),
     "Galat kalibrasi median Gate A": (2.207, 0.0005),
     "Pasangan Gate B siap dibandingkan": (27, 0),
     "Galat antar aliran ternormalisasi median": (0.040997, 1e-6),

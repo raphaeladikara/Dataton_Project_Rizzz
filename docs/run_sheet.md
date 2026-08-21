@@ -32,20 +32,23 @@ puluh detik dan setiap detiknya terlihat.
 | **0:00** | Tab 3 — panel penjaga | **Pembuka dingin.** "Ini model kami sendiri. Sistem kami sendiri baru saja menolak membiarkan Anda membacanya." | Jangan buka dengan salam panjang |
 | 0:20 | Slide 1–2 | Tesis, lalu 56/32 bulan + kutipan guru | Jangan sebut 56 bulan sebagai angka Indonesia |
 | 1:00 | Slide 3 | Celah: ceklis vs EarliPoint vs yang belum ada | — |
-| **2:00** | **Tab 1 — `/perbandingan`** | Sebut keberatannya sendiri: *"bagaimana kalau alat ini cuma merujuk semua orang?"* Lalu tunjuk 0/9 vs 4/6 dan kolom jarak terdekat | Jangan jual AUC 1,00 |
-| **3:00** | **Tab 2 — kamera langsung** | Baca skrip mode demonstrasi. **Kamu** pesertanya. Selama 67 detik: **narasikan cermin panggung** | Jangan diam. Jangan pilih relawan sekarang |
-| 4:30 | Laporan | Tunjuk "2 dari 2 sinyal menyimpang", lalu spanduk demonstrasi dan `emitsReferral: false` | Jangan sebut ini hasil kesehatan siapa pun |
-| 5:00 | Slide 6–8 | Arsitektur → degradasi 69,4/1,6 → **ambang vs selang: 52,2% jadi 4,8%** | Setelah 4,8%, **langsung** sebut 99,0% di 0,90 |
-| 6:20 | Slide 9 | Penjaga dua arah: 544/547 vs 1/23, parity 23/23 | Sebut sendiri kalibrasi persentil 99,5 |
-| 7:00 | Slide 10 | **Titik kerja.** Kutipan kapasitas, lalu 38,3× | Jangan bilang praktisi menyetujui titik kerjanya |
-| 7:45 | Slide 11 | Cilia: 0,905 vs 0,784, lalu audit-diri 0,537 | Jangan ceritakan ulang dataset wajah |
-| 8:30 | Slide 12–13 | Biaya bersyarat, jalur adopsi | Sebut "skenario" sebelum angkanya |
-| 9:15 | Slide 14 | Penutup + permintaan mitra | Jangan tutup dengan "lima lembaga menolak kami" |
+| **2:00** | **Tab 1 — `/perbandingan`** | Sebut keberatannya sendiri: *"bagaimana kalau alat ini cuma merujuk semua orang?"* Lalu 0/9 vs 4/6 dan kolom jarak terdekat | Jangan jual AUC 1,00 |
+| **3:00** | **Tab 2 — kamera langsung** | Skrip mode demonstrasi. **Kamu** pesertanya. Selama 67 detik: **narasikan cermin panggung** | Jangan diam. Jangan pilih relawan sekarang |
+| 4:30 | Laporan | "2 dari 2 sinyal menyimpang", lalu spanduk demo dan `emitsReferral: false` | Jangan sebut ini hasil kesehatan siapa pun |
+| **5:00** | **Slide 6 — bukti lapangan** | **123 sesi · 37 dewasa · 3 tablet · 6 kondisi.** Lalu batasnya: operator = tim, bukan kader | **Jangan sebut "uji kader"** |
+| 5:30 | Slide 7–8 | Arsitektur → degradasi 69,4 vs 1,6 | — |
+| 6:10 | Slide 9 | **Ambang vs selang: 52,2% jadi 4,8%** | Langsung sebut 99,0% di 0,90 sesudahnya |
+| 6:45 | Slide 10 | Penjaga dua arah: 544/547 vs 1/23, parity 23/23 | Sebut sendiri kalibrasi persentil 99,5 |
+| 7:15 | Slide 11 | **Titik kerja.** Kutipan kapasitas, lalu 38,3× | Jangan bilang praktisi menyetujui titik kerjanya |
+| 7:50 | Slide 12 | Cilia 0,905 vs 0,784, lalu audit-diri 0,537 | Jangan ceritakan ulang dataset wajah |
+| **8:20** | **Slide 13 — sudah diserahkan** | Instrumennya ada, 10/14 paket mitra siap | Jangan buka dampak dengan tabel biaya |
+| 8:50 | Slide 14–15 | Biaya bersyarat, jalur adopsi | Sebut "skenario" sebelum angkanya |
+| 9:20 | Slide 16 | Penutup + permintaan mitra | Jangan tutup dengan "lima lembaga menolak kami" |
 | 9:45 | — | **Tawarkan tablet ke juri** untuk dicoba sesudah sesi | — |
 
 ---
 
-## Enam kalimat yang harus keluar persis
+## Tujuh kalimat yang harus keluar persis
 
 1. *"Ini kontrol positif pada orang dewasa yang mengikuti instruksi. Hasil ini bukan
    penilaian autisme dan tidak mengeluarkan rujukan."* — sebelum demo
@@ -55,11 +58,12 @@ puluh detik dan setiap detiknya terlihat.
 4. *"Tiga kali lipat saja sudah dinilai sulit. Baris ini 38 kali."*
 5. *"Yang paling memprediksi autisme di dataset itu adalah seberapa baik alatnya
    merekam anaknya."*
-6. *"Yang belum kami punya itu labelnya, bukan sistemnya."*
+6. *"Yang diuji di situ alat ukurnya, bukan kadernya. Operatornya tim kami."* — segera sesudah 123 sesi
+7. *"Yang belum kami punya itu labelnya, bukan sistemnya."*
 
 ---
 
-## Enam kalimat yang tidak boleh keluar
+## Tujuh kalimat yang tidak boleh keluar
 
 | Jangan | Pakai |
 |---|---|
@@ -69,6 +73,7 @@ puluh detik dan setiap detiknya terlihat.
 | "Guru SLB memvalidasi alat kami" | "Beliau memvalidasi masalahnya, bukan alatnya" |
 | "Kami sudah mengganti ambang dengan likelihood ratio" | "Lapis LR terpasang; yang memutuskan masih aturan pencacahan" |
 | "Lima lembaga menolak kami" *(sebagai penutup)* | Sebut di isi atau tanya jawab saja |
+| "Kader kami sudah menguji aplikasinya" | "37 dewasa jadi peserta; operatornya tim kami, bukan kader" |
 
 ---
 
@@ -84,7 +89,7 @@ dan itu sebabnya ia dijalankan lebih dulu.
 
 ---
 
-## Lima pertanyaan yang paling mungkin datang
+## Delapan pertanyaan yang paling mungkin datang
 
 | Pertanyaan | Kalimat pertama jawaban |
 |---|---|
@@ -93,5 +98,8 @@ dan itu sebabnya ia dijalankan lebih dulu.
 | "Bobot Cilia ditolak, berarti gagal?" | "Yang gagal hipotesisnya. Auditnya berhasil, dan menemukan sesuatu yang berlaku di luar proyek kami." |
 | "Satu wawancara kan bukan bukti?" | "Bukan, dan kami tidak memakainya sebagai bukti. Tidak ada satu angka pun yang digeser olehnya." |
 | "Sensitivitas 17% itu buruk?" | "Kalau kapasitas rujukannya tak terbatas, ya. Kapasitasnya tidak." |
+| "Ambang dua sinyal itu dikarang?" | "Tidak diterbitkan siapa pun, betul — tapi punya turunan: P(A dan B) ≤ min(P(A), P(B))." |
+| "Kenapa tidak pakai posterior saja?" | "Karena isyarat selalu ber-LR 1, jadi ambang apa pun di atasnya = aturan satu sinyal." |
+| "Jadi kader sudah menguji?" | "Belum. Yang 37 orang itu peserta yang diukur; operatornya tim kami." |
 
 Jawaban lengkap di [`pitch_10_menit.md`](pitch_10_menit.md) bagian tanya jawab.

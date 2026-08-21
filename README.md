@@ -192,6 +192,24 @@ asal tiap gambar ada di
 
 ---
 
+## Bukti lapangan yang sudah ada
+
+Sebelum bicara apa yang belum diuji, ini yang sudah dijalankan — dan seluruhnya pada
+manusia sungguhan, perangkat sungguhan, dan cahaya sungguhan.
+
+| | |
+|---|---|
+| Sesi dijalankan ujung-ke-ujung | **123** — 100 Gate A, 23 kontrol positif |
+| Dewasa yang menyetujui dan diukur | **37** — 25 Gate A, 12 kontrol positif |
+| Operator | 3 |
+| Tablet Android kelas menengah | 3 — Galaxy Tab A8, Lenovo Tab M10, Redmi Note 13 |
+| Kondisi lingkungan | 6 — cahaya redup, normal, campuran × berkacamata dan tidak |
+
+Batasnya disebut bersama angkanya: **operatornya tim proyek, bukan kader Posyandu, dan
+lokasinya bukan Posyandu.** Yang ditunjukkan ini adalah alur operator yang berjalan
+berulang di perangkat dan pencahayaan yang realistis. Keterpakaian oleh kader adalah baris
+terpisah di matriks kesiapan, dan baris itu masih kosong.
+
 ## Status bukti
 
 Bukti terkuat di sini adalah **kontrol positif**: 12 orang dewasa yang menyetujui untuk

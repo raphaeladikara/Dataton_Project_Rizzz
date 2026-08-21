@@ -4,6 +4,7 @@ import {
   buildReferralRecommendation,
   QUARANTINED_SIGNALS,
   REFERRAL_DEVIANT_THRESHOLD,
+  REFERRAL_THRESHOLD_RATIONALE,
   type ReferralInput,
 } from "../src/outcome/referralRecommendation";
 
@@ -368,4 +369,48 @@ test("the produced pattern and an ordinary viewer reach opposite recommendations
     assert.equal(item.validatedOnToddlers, false);
     assert.equal(item.thresholdStatus, "design_choice_not_validated_cutoff");
   }
+});
+
+// ── Kenapa ambangnya dua, dan kenapa itu bukan angka yang dikarang.
+//    Turunannya tidak butuh data baru dan tidak mengandaikan independensi.
+
+test("the threshold of two carries a derivation, not just a design-choice label", () => {
+  const rationale = REFERRAL_THRESHOLD_RATIONALE;
+
+  // Status literalnya tidak melunak: ia tetap bukan cutoff tervalidasi.
+  assert.equal(
+    buildReferralRecommendation({ geopref: null, jointAttention: null }).thresholdStatus,
+    "design_choice_not_validated_cutoff",
+  );
+  // Yang bertambah adalah alasannya.
+  assert.match(rationale.bound, /98/);
+  assert.ok(rationale.derivation.length >= 2);
+  assert.ok(rationale.assumesIndependence === false);
+});
+
+test("requiring both signals cannot be less specific than the published cutoff alone", () => {
+  const { specificityFloor, thresholdOneSpecificityCeiling } = REFERRAL_THRESHOLD_RATIONALE;
+
+  // P(A dan B) <= min(P(A), P(B)), jadi laju positif palsu komposit tidak
+  // pernah melebihi laju GeoPref sendirian. Itu batas, bukan estimasi, dan ia
+  // berlaku tanpa mengandaikan kedua sinyal saling bebas.
+  assert.ok(specificityFloor >= 0.98);
+  // Ambang satu membalik pertidaksamaannya: P(A atau B) >= max(P(A), P(B)).
+  assert.ok(thresholdOneSpecificityCeiling <= 0.98);
+  assert.ok(specificityFloor > thresholdOneSpecificityCeiling
+    || specificityFloor === thresholdOneSpecificityCeiling);
+});
+
+test("firing requires the published signal, so the lane cannot outgrow its own operating point", () => {
+  // Dengan ambang dua dan dua sinyal, aturan tidak dapat menyala tanpa GeoPref
+  // menyimpang. Rujukan lajur komposit karena itu himpunan bagian dari lajur
+  // GeoPref, dan bebannya tidak dapat melebihi 2,2% titik operasi terbit.
+  const cueOnly = buildReferralRecommendation({
+    geopref: null,
+    jointAttention: { verdict: "FAILS_CUES", trialsScored: 8, trialsFollowed: 0, pValue: 0.004 },
+  });
+
+  assert.equal(cueOnly.deviantCount, 1);
+  assert.equal(cueOnly.recommendsFollowUp, false);
+  assert.equal(REFERRAL_THRESHOLD_RATIONALE.subsetOfPublishedLane, true);
 });
