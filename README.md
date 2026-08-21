@@ -104,6 +104,22 @@ tetap muncul di laporan sebagai ukuran deskriptif.
 klip; mengikuti isyarat membandingkan pasca-isyarat terhadap pra-isyarat di dalam
 percobaan vektor yang sama; respons nama adalah deteksi kejadian di dalam blok vektor.
 
+### Laporan yang benar-benar keluar
+
+Dua peragaan dari rekaman terdaftar yang sama-sama lulus mutu: yang kiri memenuhi
+aturan, yang kanan tidak. Keduanya membawa spanduk mode demonstrasi dan `emitsReferral`
+tetap `false`, karena pesertanya orang dewasa dan klipnya dipersingkat.
+
+| Aturan menyala | Aturan tidak menyala |
+|---|---|
+| ![Laporan peragaan, aturan menyala](docs/tangkapan_layar/03-laporan-peragaan-pola-diproduksi.png) | ![Laporan peragaan, aturan tidak menyala](docs/tangkapan_layar/04-laporan-peragaan-menonton-biasa.png) |
+
+Lapis pengasuh muncul lebih dulu — apa yang terjadi, apakah rekamannya terpakai, langkah
+berikutnya, batas hasil — sedangkan indeks, selang kepercayaan, p-value, jalur keputusan,
+status OOD, dan metadata teknis berada di balik satu pengungkapan. Set lengkap beserta
+asal tiap gambar ada di
+[`docs/tangkapan_layar/`](docs/tangkapan_layar/README.md).
+
 ---
 
 ## Status bukti
