@@ -7,15 +7,23 @@ from research.analyze_session_logs import load_logs
 
 
 class ResearchConsentFilterTest(unittest.TestCase):
-    def test_unconsented_field_log_is_rejected_before_analysis(self) -> None:
+    def test_unconsented_field_operator_audit_is_rejected_before_analysis(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "field.json"
             path.write_text(json.dumps({
                 "schemaVersion": 3,
                 "sessionId": "field-1",
                 "purpose": "target_population_research",
-                "privacy": {"researchConsent": False},
-                "events": [],
+                "privacy": {
+                    "researchConsent": False,
+                    "derivedGazeExported": False,
+                    "storage": "download_by_operator",
+                    "retention": "operator_export",
+                },
+                "events": [{
+                    "type": "audit.downloaded",
+                    "data": {"purpose": "operator_audit"},
+                }],
             }), encoding="utf-8")
             logs, rejected = load_logs([path])
 

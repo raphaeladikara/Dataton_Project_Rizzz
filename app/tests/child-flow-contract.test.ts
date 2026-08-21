@@ -437,6 +437,19 @@ test("field research export is consent-gated and the interactive consent control
   assert.match(sessionCss, /@media print \{[\s\S]*?\.researchExportConsent[\s\S]*?display: none !important/);
 });
 
+test("a second failed field calibration offers only a non-research diagnostic export", () => {
+  const calibrationSection = page.match(/\{stage === "calibration"[\s\S]*?\{stage === "sanity"/)?.[0] ?? "";
+  assert.match(
+    calibrationSection,
+    /sessionPurpose === "target_population_research" && calibrationAttempts >= 2 && calibrationFailed[\s\S]*?downloadCurrentAudit\("operator_audit"\)[\s\S]*?Unduh log diagnostik/,
+  );
+  assert.match(
+    calibrationSection,
+    /calibrationAttempts >= 2 \? \(sessionPurpose === "target_population_research"[\s\S]*?"Hentikan pengulangan\. Unduh log diagnostik lalu akhiri tes\."/,
+  );
+  assert.doesNotMatch(calibrationSection, /downloadCurrentAudit\("research_analysis"\)/);
+});
+
 test("registered replay is loaded before the demonstration session is initialized", () => {
   const quickDemo = page.match(/async function startQuickDemo[\s\S]*?\n  \}/)?.[0] ?? "";
   assert.match(quickDemo, /orchestrateRegisteredReplay/);
