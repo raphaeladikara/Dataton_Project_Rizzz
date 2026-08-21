@@ -10,10 +10,11 @@ yang mencegah hasil peragaan dibaca sebagai penilaian kesehatan.
 |---|---|---|
 | 0:00–1:00 | Keterlambatan lintas negara dan celah Indonesia | sumber masalah, bukan angka produk |
 | 1:00–2:00 | Yang bekerja hari ini | kamera, kalibrasi, gerbang mutu, laporan |
-| 2:00–4:00 | Kontrol positif dewasa langsung | `Panduan & demo` → `Peragakan · kamera langsung` |
-| 4:00–4:40 | Interpretasi dan batas demo | banner demo dan laporan |
-| 4:40–6:20 | Empat bagian AI | pengukuran, seleksi, robustness, tata kelola |
-| 6:20–7:30 | Tangga bukti dan kesiapan | `readiness_matrix.md` |
+| 2:00–3:00 | Layar perbandingan dua kondisi | `/perbandingan` — satu klik dari beranda |
+| 3:00–4:30 | Satu sesi kamera langsung, penyaji sebagai peserta | `Panduan & demo` → `Peragakan · kamera langsung` |
+| 4:30–5:00 | Interpretasi dan batas demo | banner demo dan laporan |
+| 5:00–6:40 | Empat bagian AI | pengukuran, seleksi, robustness, tata kelola |
+| 6:40–7:30 | Tangga bukti dan kesiapan | `readiness_matrix.md` |
 | 7:30–9:00 | Dampak bersyarat | skenario biaya dan biaya operasi yang belum diukur |
 | 9:00–10:30 | Roadmap dan permintaan mitra | protokol etik/klinis prospektif |
 | 10:30–12:00 | Cadangan | tanya jawab atau pemulihan demo |
@@ -43,7 +44,43 @@ Jangan mengatakan “diagnosis Indonesia rata-rata 56 bulan”.
 > balita. Satu-satunya tempat aturan itu terlihat adalah mode demonstrasi dewasa, dan
 > `emitsReferral` tetap `false`.
 
-## 3. Demo langsung: kontrol positif dewasa
+## 3a. Layar perbandingan — jalankan ini lebih dulu
+
+Buka `/perbandingan` (tombol **Bandingkan dua kondisi** di bagian bukti beranda). Satu
+klik, tanpa kamera, tanpa risiko gerbang mutu.
+
+> **Keberatan yang paling wajar terhadap alat seperti ini: bagaimana kalau ia cuma
+> merujuk semua orang? Alat yang selalu bilang "periksa lebih lanjut" akan lolos demo
+> mana pun tanpa mengukur apa pun. Jadi ini bukan satu sesi yang berhasil — ini dua
+> kondisi dari 15 sesi yang lulus mutu, berdampingan. Aturan menyala pada 0 dari 9 sesi
+> menonton biasa dan 4 dari 6 sesi pola diproduksi. Pesertanya orang dewasa yang
+> mengikuti naskah, jadi tidak ada sensitivitas, spesifisitas, atau pernyataan apa pun
+> tentang autisme di layar ini.**
+
+Tunjuk kolom **jarak terdekat**, bukan AUC. Sebut sendiri bahwa separuh sesi pola
+diproduksi gugur di gerbang mutu dan penyebutnya tercetak apa adanya.
+
+Mengucapkan keberatannya sendiri sebelum juri memikirkannya adalah gerakan berbiaya nol
+dengan imbalan terbesar di seluruh pitch.
+
+## 3b. Demo langsung: kontrol positif dewasa
+
+**Penyaji yang menjadi peserta, bukan relawan dari kursi juri.** Meminta orang maju tanpa
+briefing di dalam jam berwaktu adalah taruhan besar berhadiah kecil: kalau tidak ada yang
+maju ada jeda mati, dan kalau yang maju bergerak berlebihan gerbang mutu menahan sesinya —
+6 dari 12 sesi pola diproduksi memang gugur di sana, dan itu ada di data sendiri.
+
+Relawan tetap ditawarkan, sesudah pitch:
+
+> **Tabletnya ada di sini setelah sesi ini. Siapa pun yang mau menguji sendiri apakah alat
+> ini merujuk semua orang, silakan coba.**
+
+Selama 67 detik berjalan, **jangan diam** — cermin panggung hidup di mode ini dan
+menampilkan bagian yang sedang diukur, apakah arah pandangan terbaca, dan status isyarat.
+Narasikan itu. Kalimat yang paling berguna muncul ketika sampel ditolak:
+
+> Wajahnya terlihat, tapi arah pandangan belum cukup jelas. Sampel detik ini ditolak,
+> bukan ditebak. Itu seluruh produk ini dalam satu detik.
 
 ### Sebelum menekan mulai — ucapkan persis
 
@@ -111,6 +148,33 @@ berhasil tidak mencapai p < 0,05 dan akan dibaca “tidak dapat dinilai”, buka
 > tidak berpindah. `combinedScore` tetap `null`; indeks lapis B tidak digabung. Untuk
 > lajur lapangan, protokol pendek juga menahan titik operasi 69 persen. Menolak angka
 > yang belum layak dibaca adalah keluaran sistem, bukan error.
+>
+> Dan penjaga itu bukan penolakan yang dipasang tetap — kami menjalankannya dua arah. Pada
+> 547 vektor domain sumber ia menerima 544; pada 23 sesi kontrol positif di atas stimulus
+> yang dikirim ia menerima 1. Referensinya dikalibrasi di persentil 99,5 sehingga angka
+> pertama adalah pemeriksaan kewarasan, bukan uji generalisasi — kami menyebutnya sendiri.
+> Yang menjadi buktinya adalah kontrasnya, dan bahwa Python menghitung ulang seluruh 23
+> keputusan peramban itu dan mendapat verdict yang sama.
+
+### Bobot dari data anak yang sudah terbit — dan audit yang menolaknya
+
+Ini bagian AI terkuat yang baru, dan ia berbentuk hasil negatif.
+
+> Untuk memasang bobot antar indeks kami tidak butuh merekam balita: data anak berlabel
+> sudah terbit. Kami unduh Cilia dkk. 2022 — CC BY 4.0, 59 anak, 2,25 juta baris koordinat
+> — lalu hitung indeks di ruang perilaku, bukan ruang piksel. Empat audit ditulis sebelum
+> fitting dijalankan, lengkap dengan kriteria penolakannya. Dua gagal.
+>
+> Yang menentukan: alas yang tidak memuat satu pun fitur perilaku — jumlah sampel, rasio
+> pelacakan, fraksi kedip, fraksi fiksasi — mencapai AUC 0,905, sementara model indeks
+> perilaku kami hanya 0,784. Prediktor tunggal terkuat di dataset itu adalah **seberapa
+> baik alatnya merekam anaknya**, bukan apa yang ditatap anaknya. Mengikuti isyarat arah
+> berada di 0,504, yaitu kebetulan. Anak ASD terbaca 13 percobaan, anak TD 20.
+>
+> Jadi bobotnya tidak dipromosikan dan penolakannya kami terbitkan. Konsekuensinya lebih
+> luas dari proyek kami: setiap klasifikator pada dataset ini yang tidak menjalankan alas
+> semacam ini berisiko melaporkan performa yang sebagian bersumber dari perbedaan
+> pengumpulan data antar kelompok.
 
 ## 5. Tangga bukti dan matriks kesiapan
 
@@ -144,6 +208,22 @@ daripada galat antar-aliran, sehingga angka itu hampir pasti tinggi.
 Nilai hari ini bukan “kasus ditemukan”, melainkan pengurangan biaya rekayasa menuju
 studi prospektif: pipeline, refusal state, dan audit trail sudah dapat dibawa ke mitra
 tanpa dibangun ulang.
+
+### Kapasitas rujukan — argumen dampak yang paling kuat, dan sekarang punya jangkar
+
+> Alat skrining gagal di layanan primer bukan karena melewatkan kasus. Ia gagal karena
+> membanjiri kapasitas rujukan yang ada. Kami menanyakan itu ke seorang guru SLB di Jambi:
+> kalau anak yang disarankan diperiksa lanjut jadi tiga kali lebih banyak, sanggup?
+> Jawabannya tidak — tenaga dan jadwal yang tersedia mungkin kewalahan, dan keluarga sudah
+> menunggu beberapa minggu sampai beberapa bulan untuk layanan tertentu.
+>
+> Titik kerja yang kami kirim menghasilkan beban rujukan paling rendah di antara seluruh
+> lengan. Baris yang paling menggoda dipamerkan — sensitivitas 92 persen — menghasilkan
+> **38,3 kali** beban itu. Tiga kali saja sudah dinilai sulit. Kami memilih baris yang
+> paling sedikit menemukan karena itu satu-satunya yang muat.
+
+Batasnya disebut di kalimat yang sama: satu wawancara bukan pengukuran kapasitas,
+narasumbernya tidak melihat tabel itu, dan kesimpulan tentang titik kerja tetap milik kami.
 
 ## 7. Roadmap berizin etik dan permintaan mitra
 
@@ -188,6 +268,31 @@ penggunaan rekaman untuk keputusan proxy dapat dipertanggungjawabkan.
 > Tidak. Angka 2,36 derajat adalah konversi lama pada Gate A tanpa jarak pandang yang
 > direkam per sesi. Angka 4,17 derajat berasal dari perangkat dan protokol lain. Gate B
 > sendiri mengukur agreement perangkat lunak, bukan akurasi target head-to-head.
+
+### “Kalau bobot Cilia ditolak, berarti bagian AI kalian gagal dong?”
+
+> Yang gagal adalah hipotesisnya, dan itu memang tugas audit. Yang berhasil adalah
+> auditnya: kriteria penolakannya ditulis sebelum fitting dijalankan, jadi hasilnya tidak
+> dipilih setelah melihat angkanya. Dan audit itu menemukan sesuatu yang berlaku di luar
+> proyek kami — pada dataset itu, rasio pelacakan alat lebih memprediksi label daripada
+> perilaku anaknya. Kami lebih memilih menerbitkan itu daripada mengirim bobot yang
+> sebagian mempelajari cara datanya dikumpulkan.
+
+### “544 dari 547 diterima itu kan hampir pasti tinggi?”
+
+> Betul, dan kami menyebutnya sendiri di slide: referensinya dikalibrasi pada persentil
+> 99,5 dari kohort itu, jadi tingkat penerimaan di sana adalah pemeriksaan kewarasan,
+> bukan uji generalisasi. Yang menjadi bukti adalah kontrasnya dengan 1 dari 23 pada
+> stimulus yang dikirim, plus fakta bahwa penolakannya menyebut fitur tata letak — persis
+> alasan yang kami nyatakan di muka.
+
+### “Satu wawancara kan bukan bukti?”
+
+> Bukan, dan kami tidak memakainya sebagai bukti. Tidak ada satu angka pun di makalah atau
+> di deck yang digeser oleh wawancara itu. Yang ia berikan adalah observasi lapangan di
+> samping simulasi kapasitas rujukan kami, dan satu kekurangan produk yang tidak kami
+> lihat sendiri: setelah hasil keluar, harus jelas siapa yang mendampingi orang tua.
+> Bagian langkah berikutnya di laporan berubah karena itu.
 
 ### “Apa nilai model Carette?”
 

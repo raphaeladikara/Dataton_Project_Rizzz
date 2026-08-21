@@ -102,14 +102,18 @@ Three layers. Do not blur them.
   does, no absolute-accuracy comparison against WebGazer is a head-to-head: the 4.17°
   figure was measured on different hardware under a different protocol, and
   `gate_a_summary.json` says so in `angleConventionCorrection`.
-- The likelihood-ratio layer in `docs/model_rujukan.md` is designed and not built.
-  `REFERRAL_DEVIANT_THRESHOLD = 2` still ships. The Cilia et al. dataset has not been
-  downloaded. **Never write about either in the past tense.**
+- The likelihood-ratio layer (Layer 1) ships and is wired through `sessionVerdict` into
+  the report; `REFERRAL_DEVIANT_THRESHOLD = 2` still decides, and the posterior appears as
+  a reason rather than as the rule. Layer 2 ran and was **rejected**: see
+  `research/hasil/model_rujukan.json`. Do not describe Layer 2 as pending, and do not
+  describe its weights as available.
 - No toddler appears in any evidence here, and no instrument used here has been
   validated in Indonesia.
-- No practitioner has been interviewed and no kader has touched the application.
-  `docs/wawancara_praktisi.md` holds the protocol for the first; the second is the
-  cheapest test left and is still undone.
+- One practitioner has been interviewed — a special-school teacher in Jambi, n=1,
+  recollection-based; results in `docs/wawancara_praktisi_hasil.md`, protocol in
+  `docs/wawancara_praktisi.md`. It validated the problem, not the instrument, and moved no
+  number. **Attribution consent is not on record**, so public surfaces name the role only.
+  No kader has touched the application; that is still the cheapest test left.
 - Screenshots of the running application live in `docs/tangkapan_layar`, taken from a
   production build on 2026-08-21. Both report shots come from the registered
   recordings, never from the synthetic path, which the OOD guard always withholds.
@@ -117,8 +121,10 @@ Three layers. Do not blur them.
   What is still missing is a live-camera session with a real participant, which needs
   consent to publish someone's face, and a field referral report, which
   `target_population_research` cannot produce by design.
-- `paper/Rizzz_Paper_Final.pdf` is older than `paper/sumber/paper_final.tex`, and
-  neither carries the positive control. Recompile before submitting.
+- `paper/Rizzz_Paper_Final.pdf` was recompiled on 2026-08-21 from `paper_final.tex` with
+  Tectonic 0.15.0 (28 pages, no undefined references). It carries the positive control,
+  the two-way OOD result, the Layer 2 rejection, and the practitioner interview. No LaTeX
+  toolchain is installed on this machine; fetch Tectonic to rebuild.
 
 ## Pitch and framing
 
@@ -164,3 +170,32 @@ Three rules that matter while editing anything public-facing:
 - **The badge is `src/outcome/reportBadge.ts`, not an expression in the report JSX.**
   Coral belongs to `emitsReferral` and to nothing else; a demonstration gets its own
   slate tone and says which of the two outcomes it is demonstrating.
+
+## Evidence added 2026-08-21
+
+- **Two-way OOD** (`research/verify_ood_guard.py` → `research/hasil/ood_dua_arah.json`).
+  544/547 accepted on the Carette source domain, 1/23 on the shipped stimulus, and all 23
+  browser decisions reproduced in Python within 1e-6. Always state that the reference is
+  calibrated at the 99.5th percentile of that cohort, so the source-domain acceptance rate
+  is a sanity check and not a generalisation test — quoting it bare invites the obvious
+  rebuttal.
+- **Layer 2 rejected** (`research/cilia_indices.py`, `research/fit_referral_weights.py` →
+  `research/hasil/model_rujukan.json`). Session-level nuisances alone reach OOF AUC 0.905
+  against the behavioural index model's 0.784; tracking ratio alone is 0.853 and cue
+  following is 0.504. Two of four audits failed and the weights were not promoted. The
+  finding to lead with is about the dataset, not about us: recording quality predicts the
+  label better than behaviour does. Scanpath coverage correlates r=0.83 with sample count
+  and only r=0.18 with tracking ratio, so `ink_frac`-style features partly encode how much
+  data was collected.
+- **Referral load multiples** (`gate_c_simulation.json` → `referral_load`). The shipped
+  operating point is the baseline; the 0.92-sensitivity arm is 38.3x it. The practitioner
+  interview asked about 3x and was told it would likely overwhelm the service. One
+  interview is not a capacity measurement and the register says so.
+- **Claims register** (`research/export_claims_register.py` → `docs/daftar_klaim.md`).
+  Regenerate it after any evidence change: it asserts the pitch numbers still match the
+  canonical files and exits non-zero when they do not.
+- **`/perbandingan`** renders the discrimination proof on one screen from
+  `gate-b-public.json`. It recomputes nothing. Keep it that way — a second implementation
+  of the result would be a second number to defend.
+- **Stage mirror** (`app/src/ui/stageMirror.ts`) is gated on `isStageDemo` alone and
+  `tests/stage-mirror.test.ts` holds that shut. Never let it reach a field session.

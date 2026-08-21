@@ -1,0 +1,319 @@
+{
+  "schemaVersion": "neurogaze-ood-dua-arah-v1",
+  "question": "Apakah penjaga OOD benar-benar membedakan, atau ia menolak apa pun yang diberikan kepadanya?",
+  "reference": {
+    "source": "Kohort Carette, sama dengan yang membangun ood_reference.json",
+    "featureSchemaHash": "c6dc0930eb466c45cb89820746381b0f3a06ad7d195a31b9bc8c144265ed6008",
+    "distanceMax": 74.84971900756715,
+    "calibration": "empirical_99.5pct_regularized_robust_mahalanobis"
+  },
+  "accepts_on_source_domain": {
+    "n": 547,
+    "n_passed": 544,
+    "pass_rate": 0.9945155393053017,
+    "mahalanobis_median": 10.84671121790826,
+    "mahalanobis_p95": 34.475118623552376
+  },
+  "refuses_on_shipped_stimulus": {
+    "n_sessions": 23,
+    "n_passed": 1,
+    "mahalanobis_median": 199.163459619893,
+    "max_robust_z_median": 14.003781467297346,
+    "most_flagged_features": {
+      "ink_frac": 22,
+      "n_active_cells": 13,
+      "centroid_y": 12,
+      "bbox_fill": 11,
+      "radial_mean": 4,
+      "std_x": 2,
+      "std_y": 1,
+      "span_y": 1
+    }
+  },
+  "cross_runtime_parity": {
+    "n_checked": 23,
+    "n_reproduced": 23,
+    "tolerance": 1e-06,
+    "mismatches": [],
+    "note": "Keputusan aslinya dibuat TypeScript di browser saat sesi berjalan; angka di sini dihitung ulang Python dari nilai fitur yang tersimpan."
+  },
+  "interpretation": "Penjaga menerima sebagian besar vektor domain sumber dan menolak setiap sesi pada stimulus yang dikirim. Ia membedakan; ia bukan penolakan yang dipasang tetap. Yang membuatnya menolak juga dapat dinamai: fitur tata letak yang mengkodekan di mana isi stimulus studi itu duduk di layar, dan stimulus sekarang berbeda.",
+  "not_claimed": [
+    "Menerima di domain sumber bukan berarti keluarannya sahih untuk balita.",
+    "Kohort Carette adalah data yang membangun referensinya, jadi tingkat penerimaan di sana adalah pemeriksaan kewarasan, bukan uji generalisasi."
+  ],
+  "sessions": [
+    {
+      "session": "kp-a-biasa-1.json",
+      "passed": false,
+      "maxRobustZ": 23.657565432442027,
+      "multivariateDistance": 530.2386854860032,
+      "flaggedFeatures": [
+        "ink_frac",
+        "n_active_cells",
+        "bbox_fill"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-biasa-2.json",
+      "passed": false,
+      "maxRobustZ": 12.981967557930194,
+      "multivariateDistance": 298.51527611425155,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "bbox_fill"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-biasa-3.json",
+      "passed": false,
+      "maxRobustZ": 16.869107473803826,
+      "multivariateDistance": 355.99564735343637,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "std_x"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-biasa-4.json",
+      "passed": false,
+      "maxRobustZ": 17.94922848190908,
+      "multivariateDistance": 344.07391222849327,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-produksi-1.json",
+      "passed": false,
+      "maxRobustZ": 9.309340178154773,
+      "multivariateDistance": 127.784977455915,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "radial_mean"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-produksi-2.json",
+      "passed": false,
+      "maxRobustZ": 8.84432306970026,
+      "multivariateDistance": 191.089392834593,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "radial_mean"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-produksi-3.json",
+      "passed": false,
+      "maxRobustZ": 7.204885818144298,
+      "multivariateDistance": 115.68227074121167,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "std_x"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-a-produksi-4.json",
+      "passed": false,
+      "maxRobustZ": 14.206056711067806,
+      "multivariateDistance": 213.13602432052983,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-biasa-1.json",
+      "passed": false,
+      "maxRobustZ": 20.52661819835085,
+      "multivariateDistance": 397.96204750153987,
+      "flaggedFeatures": [
+        "ink_frac",
+        "n_active_cells",
+        "bbox_fill"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-biasa-2.json",
+      "passed": false,
+      "maxRobustZ": 20.136824445675746,
+      "multivariateDistance": 423.6688427365707,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-biasa-3.json",
+      "passed": false,
+      "maxRobustZ": 20.86674294098979,
+      "multivariateDistance": 399.33914874931804,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-biasa-4.json",
+      "passed": false,
+      "maxRobustZ": 16.275958716270516,
+      "multivariateDistance": 228.62485203672216,
+      "flaggedFeatures": [
+        "ink_frac",
+        "n_active_cells",
+        "bbox_fill"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-produksi-1.json",
+      "passed": false,
+      "maxRobustZ": 10.330434246796765,
+      "multivariateDistance": 133.35603356886594,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "radial_mean"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-produksi-2.json",
+      "passed": false,
+      "maxRobustZ": 16.207573847380147,
+      "multivariateDistance": 259.3457434766045,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-produksi-3.json",
+      "passed": false,
+      "maxRobustZ": 16.75429287814052,
+      "multivariateDistance": 262.59033157942673,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-b-produksi-4.json",
+      "passed": false,
+      "maxRobustZ": 14.003781467297346,
+      "multivariateDistance": 199.163459619893,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "radial_mean"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-biasa-1.json",
+      "passed": false,
+      "maxRobustZ": 13.55676037697188,
+      "multivariateDistance": 172.55172052302683,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-biasa-2.json",
+      "passed": false,
+      "maxRobustZ": 13.93719620021988,
+      "multivariateDistance": 164.1537314629306,
+      "flaggedFeatures": [
+        "ink_frac",
+        "bbox_fill",
+        "n_active_cells"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-biasa-3.json",
+      "passed": false,
+      "maxRobustZ": 14.640480588702944,
+      "multivariateDistance": 197.90799426582547,
+      "flaggedFeatures": [
+        "ink_frac",
+        "n_active_cells",
+        "centroid_y"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-produksi-1.json",
+      "passed": false,
+      "maxRobustZ": 4.564150117888294,
+      "multivariateDistance": 124.11445556425001,
+      "flaggedFeatures": [
+        "ink_frac",
+        "centroid_y",
+        "std_y"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-produksi-2.json",
+      "passed": true,
+      "maxRobustZ": 5.207687726182929,
+      "multivariateDistance": 27.12445233640974,
+      "flaggedFeatures": [],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-produksi-3.json",
+      "passed": false,
+      "maxRobustZ": 9.091948279155915,
+      "multivariateDistance": 87.8588363583025,
+      "flaggedFeatures": [
+        "ink_frac",
+        "span_y",
+        "centroid_y"
+      ],
+      "reproduced_in_python": true
+    },
+    {
+      "session": "kp-c-produksi-4.json",
+      "passed": false,
+      "maxRobustZ": 10.949497270435899,
+      "multivariateDistance": 102.39590487733015,
+      "flaggedFeatures": [
+        "ink_frac",
+        "n_active_cells",
+        "centroid_y"
+      ],
+      "reproduced_in_python": true
+    }
+  ]
+}

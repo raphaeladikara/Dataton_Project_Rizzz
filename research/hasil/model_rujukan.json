@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "neurogaze-model-rujukan-lapis2-v1",
+  "question": "Bisakah bobot relatif antar indeks dipasang pada anak berlabel yang datanya sudah terbit, lalu dipindahkan ke NeuroGaze?",
+  "source": {
+    "dataset": "Cilia dkk. 2022, Eye-Tracking Dataset to Support the Research on ASD",
+    "doi": "10.6084/m9.figshare.20113592.v1",
+    "licence": "CC BY 4.0",
+    "n_participants_available": 57,
+    "n_participants_complete_case": 51,
+    "n_asd": 22,
+    "n_td": 29,
+    "age_range_years": [
+      3.2,
+      12.9
+    ],
+    "recorder_hz": 60
+  },
+  "indices": [
+    "cue_lateral_gain",
+    "centre_hold_spread",
+    "social_dwell_frac"
+  ],
+  "index_coverage": {
+    "cue_lateral_gain": 55,
+    "centre_hold_spread": 57,
+    "social_dwell_frac": 53,
+    "eye_mouth_ratio": 35
+  },
+  "weights_60hz": {
+    "cue_lateral_gain": 0.3351642363035205,
+    "centre_hold_spread": 1.2149012203838647,
+    "social_dwell_frac": -0.3133695016741662
+  },
+  "weights_ci95": {
+    "cue_lateral_gain": [
+      -0.22158531384018568,
+      0.9768995876896829
+    ],
+    "centre_hold_spread": [
+      0.6058680316472339,
+      2.0395488157251527
+    ],
+    "social_dwell_frac": [
+      -1.102576827237147,
+      0.2747887087198448
+    ]
+  },
+  "auc_oof_index_model": 0.7836990595611285,
+  "audits": {
+    "temporal_decimation": {
+      "weights_30hz": {
+        "cue_lateral_gain": 0.4537410435600679,
+        "centre_hold_spread": 1.3675624381150917,
+        "social_dwell_frac": -0.3252911032016468
+      },
+      "auc_oof_30hz": 0.8137931034482758,
+      "sign_flips": [],
+      "magnitude_ratio_30_over_60": {
+        "cue_lateral_gain": 1.3537871718185521,
+        "centre_hold_spread": 1.125657308734114,
+        "social_dwell_frac": 1.0380432730811064
+      }
+    },
+    "session_shortcut_baseline": {
+      "features": [
+        "n_samples",
+        "tracking_ratio",
+        "fixation_frac",
+        "blink_frac",
+        "n_cue_trials"
+      ],
+      "auc_oof": 0.9049382716049382,
+      "within_0_05_of_index_model": true,
+      "per_feature_auc": {
+        "n_samples": {
+          "auc": 0.6802469135802469,
+          "median_asd": 16444.0,
+          "median_td": 21887.5,
+          "n": 57
+        },
+        "tracking_ratio": {
+          "auc": 0.8530864197530864,
+          "median_asd": 66.58871126366918,
+          "median_td": 86.19995779305935,
+          "n": 57
+        },
+        "fixation_frac": {
+          "auc": 0.825925925925926,
+          "median_asd": 0.5945513255365913,
+          "median_td": 0.7777161867738838,
+          "n": 57
+        },
+        "blink_frac": {
+          "auc": 0.8469135802469137,
+          "median_asd": 0.2415013074911552,
+          "median_td": 0.05529245601866625,
+          "n": 57
+        },
+        "n_cue_trials": {
+          "auc": 0.7160493827160493,
+          "median_asd": 13.0,
+          "median_td": 20.0,
+          "n": 57
+        },
+        "cue_lateral_gain": {
+          "auc": 0.5039787798408488,
+          "median_asd": 0.11935482911406026,
+          "median_td": 0.1450432270490917,
+          "n": 55
+        },
+        "centre_hold_spread": {
+          "auc": 0.7617283950617284,
+          "median_asd": 0.2849999031515172,
+          "median_td": 0.22989665151905353,
+          "n": 57
+        },
+        "social_dwell_frac": {
+          "auc": 0.5695652173913044,
+          "median_asd": 0.8329621380846325,
+          "median_td": 0.8672477377365841,
+          "n": 53
+        },
+        "eye_mouth_ratio": {
+          "auc": 0.5909090909090909,
+          "median_asd": 1.0,
+          "median_td": 0.9280350438047559,
+          "n": 35
+        },
+        "scanpath_coverage": {
+          "auc": 0.6364197530864197,
+          "median_asd": 0.164306640625,
+          "median_td": 0.256591796875,
+          "n": 57
+        },
+        "age": {
+          "auc": 0.5358024691358025,
+          "median_asd": 7.1,
+          "median_td": 8.149999999999999,
+          "n": 57
+        }
+      },
+      "finding": "Alas yang tidak memuat satu pun fitur perilaku mengungguli model indeks. Prediktor tunggal terkuat adalah seberapa baik alat merekam anaknya, bukan apa yang ditatap anaknya."
+    },
+    "scanpath_coverage_diagnostic": {
+      "question": "Apakah cakupan scanpath — padanan ink_frac yang dibaca 13 fitur dan CNN scanpath — mengukur perilaku atau mengukur banyaknya rekaman?",
+      "auc": 0.6364197530864197,
+      "pearson_with_n_samples": 0.8256469746328295,
+      "pearson_with_tracking_ratio": 0.1810736047855971,
+      "finding": "Cakupan scanpath berkorelasi kuat dengan jumlah sampel dan hanya lemah dengan rasio pelacakan. Ia terutama mengukur berapa banyak data yang sempat terkumpul, dan jumlah itu sendiri berbeda antar kelompok."
+    },
+    "participant_leakage": {
+      "unit_of_analysis": "participant",
+      "duplicate_participant_rows": 0,
+      "leakage_possible_by_construction": false,
+      "note": "Setiap baris satu partisipan, jadi pemisahan lipatan sudah pemisahan partisipan. Ini yang tidak dapat diperiksa pada dataset wajah karena ID partisipannya tidak ada."
+    },
+    "two_way_ood": {
+      "index": "centre_hold_spread",
+      "cilia_mean": 0.23733037179054495,
+      "cilia_sd": 0.07036009050638402,
+      "cilia_range": [
+        0.111180477498447,
+        0.3834291712470321
+      ],
+      "neurogaze_ordinary_median": 0.31487767317215387,
+      "neurogaze_produced_median": 0.051260729006101485,
+      "z_ordinary": 1.1021489714339237,
+      "z_produced": -2.6445338748897815,
+      "lands_inside": true
+    }
+  },
+  "rejection_criteria_failed": [
+    "alas shortcut tingkat sesi mencapai AUC 0.905 terhadap model indeks 0.784, selisihnya di bawah 0,05",
+    "selang kepercayaan bobot melewati nol: cue_lateral_gain, social_dwell_frac"
+  ],
+  "promoted": false,
+  "verdict": "weights_rejected_layer_1_ships_alone",
+  "response_to_name": {
+    "analogue_exists": false,
+    "reason": "Protokol Cilia tidak memanggil nama anak, jadi indeks ini tidak punya padanan di sini dan bobotnya tidak dapat dipasang dari sumber ini."
+  },
+  "scope_statement": "Bobot dipasang pada anak usia 3–12 tahun dengan eye-tracker lab 60 Hz. NeuroGaze berjalan pada anak 12–48 bulan dengan kamera tablet ~30 Hz. Yang dipindahkan hanya bobot relatif antar indeks; titik operasinya tidak dipindahkan dan tetap tidak diketahui sampai Gate C.",
+  "not_claimed": [
+    "Bukan sensitivitas atau spesifisitas NeuroGaze.",
+    "Bukan validasi klinis, dan bukan bukti apa pun tentang balita Indonesia.",
+    "combinedScore tetap null; ini bobot antar indeks lapis B, bukan skor gabungan yang dicetak."
+  ],
+  "seed": 20260821,
+  "bootstrap_replications": 4000
+}

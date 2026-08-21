@@ -24,6 +24,12 @@
 .blandTable tbody th{max-width:230px;font-family:var(--font-mono),monospace;font-size:10.5px;font-weight:700}
 .blandTable tbody th small{display:block;margin-top:3px;color:#5f716c;font-family:var(--font-sans),sans-serif;font-size:9.5px;font-weight:400;line-height:1.45}
 .blandTable td{font-family:var(--font-mono),monospace;white-space:nowrap}
+/* Tabel numerik boleh nowrap; matriks kesiapan tidak — kolom "Batas" berisi
+   kalimat, dan nowrap membuatnya meluber keluar kartu sampai judul kolomnya
+   terpotong di tepi layar. */
+.proseTable td{white-space:normal;font-family:var(--font-sans),sans-serif;text-align:left;line-height:1.5}
+.proseTable td:first-of-type{min-width:132px}
+.page>.card{overflow-x:auto}
 .referenceNote{margin:18px 0 0;padding-top:14px;border-top:1px solid rgba(23,48,44,.08);color:#4a605b;font-size:10.5px;line-height:1.6}
 .page>.card{max-width:1180px;margin:14px auto}
 @media(max-width:820px){.scaleGrid{display:block}.scaleRow{display:grid;grid-template-columns:1fr auto;grid-template-areas:"label value" "track track";gap:7px 12px;margin-bottom:14px}.scaleLabel{grid-area:label}.scaleRow strong{grid-area:value;justify-self:end}.track{grid-area:track}.scaleAxis{grid-column:auto}.blandTable tbody th{max-width:none}}

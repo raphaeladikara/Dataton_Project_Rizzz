@@ -1,0 +1,10 @@
+{
+  "dataset": "Cilia, Carette, Elbattah, Guérin, Dequen (2022)",
+  "doi": "10.6084/m9.figshare.20113592.v1",
+  "licence": "CC BY 4.0",
+  "screen_normalisation_px": [
+    1280.0,
+    1024.0
+  ],
+  "note": "Indeks perilaku, bukan fitur piksel. Hanya bobot relatif yang dipindahkan; titik operasi tidak."
+}

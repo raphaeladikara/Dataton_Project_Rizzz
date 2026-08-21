@@ -136,3 +136,50 @@ for (const recommendsFollowUp of [true, false]) {
     assert.match(report.demoBanner ?? "", /bukan penilaian klinis/i);
   });
 }
+
+// ── Perubahan yang berasal dari wawancara praktisi, bukan dari selera desain.
+//    Sumbernya di docs/wawancara_praktisi_hasil.md; keduanya dikunci di sini
+//    supaya tidak hilang diam-diam saat copy laporan disunting lain kali.
+
+test("the caregiver layer states how certain the measurement is, in plain words", () => {
+  const usable = buildReportPresentation(base);
+  const withheld = buildReportPresentation({
+    ...base,
+    qualityPassed: false,
+    validityMessage: "Wajah terlalu sering keluar dari bingkai.",
+  });
+
+  // D1: "harus jelas apa yang terlihat pada anak, seberapa yakin hasil
+  // pengukurannya, dan apa langkah berikutnya". Selang kepercayaan dan status
+  // mutu sudah dihitung, tetapi keduanya ada di balik pengungkapan tenaga
+  // kesehatan — orang tua tidak membukanya.
+  assert.equal(typeof usable.confidenceStatement, "string");
+  assert.ok(usable.confidenceStatement.length > 0);
+  assert.equal(usable.sections[1].id, "recording_status");
+  assert.match(usable.sections[1].body, /yakin|pasti|cukup/i);
+  assert.match(withheld.sections[1].body, /yakin|pasti|cukup/i);
+});
+
+test("next steps name who accompanies the caregiver, not only where to take the paper", () => {
+  const referring = buildReportPresentation({
+    ...base,
+    recommendsFollowUp: true,
+    emitsReferral: true,
+    fieldTitle: "Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit",
+  });
+  const ordinary = buildReportPresentation(base);
+
+  // E2: "setelah hasil keluar harus jelas siapa yang menjelaskan dan
+  // mendampingi orang tua". Menyebut tujuan tanpa menyebut pendamping
+  // meninggalkan orang tua sendirian dengan kertasnya.
+  assert.match(referring.sections[2].body, /kader/i);
+  assert.match(referring.sections[2].body, /dampingi|mendampingi|menjelaskan/i);
+  assert.match(ordinary.sections[2].body, /dampingi|mendampingi|menjelaskan/i);
+});
+
+test("a demonstration report carries neither field instruction", () => {
+  const demo = buildReportPresentation({ ...base, demonstrationMode: true, recommendsFollowUp: true });
+
+  assert.doesNotMatch(demo.sections[2].body, /Puskesmas/i);
+  assert.match(demo.sections[2].body, /peragaan|Panduan & demo/i);
+});

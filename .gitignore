@@ -42,3 +42,6 @@ data/
 
 # Izin Claude Code per-mesin; isinya path lokal, bukan setelan proyek
 .claude/settings.local.json
+
+# Dependensi build deck — dipasang sementara untuk pptxgenjs, bukan bagian proyek
+deck/node_modules/

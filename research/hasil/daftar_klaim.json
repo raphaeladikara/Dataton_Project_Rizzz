@@ -1,0 +1,278 @@
+{
+  "schemaVersion": "neurogaze-daftar-klaim-v1",
+  "purpose": "Setiap angka yang diucapkan di panggung, sumbernya, dan apakah ia milik proyek ini.",
+  "generator": "research/export_claims_register.py",
+  "ownership_legend": {
+    "milik sendiri": "Diukur oleh proyek ini dan dapat ditelusuri ke berkas di repositori.",
+    "dikutip": "Diukur studi lain. Tidak dapat diverifikasi dari repositori ini, dan tidak diklaim sebagai milik kami.",
+    "asumsi dinyatakan": "Aritmetika atas asumsi yang dinyatakan. Bukan hasil pengukuran."
+  },
+  "counts": {
+    "milik sendiri": 21,
+    "dikutip": 5,
+    "asumsi dinyatakan": 3
+  },
+  "claims": [
+    {
+      "claim": "Sesi Gate A lulus mutu",
+      "shown": "94 dari 100",
+      "ownership": "milik sendiri",
+      "source": "Gate A, 25 dewasa, 3 perangkat",
+      "evidence_file": "research/hasil/gate_a/gate_a_summary.json",
+      "evidence_path": "passed",
+      "canonical_value": 94
+    },
+    {
+      "claim": "Galat kalibrasi median Gate A",
+      "shown": "2,207°",
+      "ownership": "milik sendiri",
+      "source": "Gate A; konversi sudut lama tanpa jarak pandang per sesi",
+      "evidence_file": "research/hasil/gate_a/gate_a_summary.json",
+      "evidence_path": "medianCalibrationErrorDeg",
+      "canonical_value": 2.207
+    },
+    {
+      "claim": "Pasangan Gate B siap dibandingkan",
+      "shown": "27 dari 30",
+      "ownership": "milik sendiri",
+      "source": "Perbandingan simultan terhadap WebGazer.js 3.5.3",
+      "evidence_file": "research/hasil/gate_b/gate_b_summary.json",
+      "evidence_path": "nPairsReady",
+      "canonical_value": 27
+    },
+    {
+      "claim": "Galat antar aliran ternormalisasi median",
+      "shown": "0,040997",
+      "ownership": "milik sendiri",
+      "source": "Gate B; WebGazer adalah implementasi referensi, bukan ground truth",
+      "evidence_file": "research/hasil/gate_b/gate_b_summary.json",
+      "evidence_path": "medianOfPairMedianErrorNorm",
+      "canonical_value": 0.040997
+    },
+    {
+      "claim": "Peserta kontrol positif",
+      "shown": "12 dewasa",
+      "ownership": "milik sendiri",
+      "source": "Semua menyetujui untuk dirinya sendiri",
+      "evidence_file": "research/hasil/kontrol_positif/ringkasan.json",
+      "evidence_path": "participants",
+      "canonical_value": 12
+    },
+    {
+      "claim": "Sesi kontrol positif direkam",
+      "shown": "23",
+      "ownership": "milik sendiri",
+      "source": "3 perangkat",
+      "evidence_file": "research/hasil/kontrol_positif/ringkasan.json",
+      "evidence_path": "sessionsRecorded",
+      "canonical_value": 23
+    },
+    {
+      "claim": "Sesi kontrol positif lulus mutu",
+      "shown": "15",
+      "ownership": "milik sendiri",
+      "source": "Attrition adalah bagian dari hasil, bukan angka yang dibuang",
+      "evidence_file": "research/hasil/kontrol_positif/ringkasan.json",
+      "evidence_path": "sessionsUsable",
+      "canonical_value": 15
+    },
+    {
+      "claim": "AUC CNN scanpath",
+      "shown": "0,882",
+      "ownership": "milik sendiri",
+      "source": "Data Carette, 54 partisipan, OOF tingkat partisipan",
+      "evidence_file": "research/hasil/perbandingan_model.json",
+      "evidence_path": "auc.cnn_efficientnetb0",
+      "canonical_value": 0.881868
+    },
+    {
+      "claim": "AUC regresi logistik 13 fitur",
+      "shown": "0,823",
+      "ownership": "milik sendiri",
+      "source": "Data Carette, partisipan yang sama",
+      "evidence_file": "research/hasil/perbandingan_model.json",
+      "evidence_path": "auc.logistic_regression_geometri",
+      "canonical_value": 0.822802
+    },
+    {
+      "claim": "Selisih AUC berpasangan",
+      "shown": "0,059, CI95 [−0,007, +0,137], p = 0,087",
+      "ownership": "milik sendiri",
+      "source": "Bootstrap berpasangan terstratifikasi, 10.000 replikasi",
+      "evidence_file": "research/hasil/perbandingan_model.json",
+      "evidence_path": "paired_test.p_two_sided",
+      "canonical_value": 0.0866
+    },
+    {
+      "claim": "Alas shortcut tingkat sesi pada data Cilia",
+      "shown": "AUC 0,905",
+      "ownership": "milik sendiri",
+      "source": "Tanpa satu pun fitur perilaku; mengungguli model indeks 0,784",
+      "evidence_file": "research/hasil/model_rujukan.json",
+      "evidence_path": "audits.session_shortcut_baseline.auc_oof",
+      "canonical_value": 0.9049382716049382
+    },
+    {
+      "claim": "Model indeks perilaku pada data Cilia",
+      "shown": "AUC 0,784",
+      "ownership": "milik sendiri",
+      "source": "Tiga indeks, 57 partisipan, lipatan per partisipan",
+      "evidence_file": "research/hasil/model_rujukan.json",
+      "evidence_path": "auc_oof_index_model",
+      "canonical_value": 0.7836990595611285
+    },
+    {
+      "claim": "Bobot lapis 2",
+      "shown": "ditolak audit",
+      "ownership": "milik sendiri",
+      "source": "Kriteria penolakan ditulis sebelum fitting dijalankan",
+      "evidence_file": "research/hasil/model_rujukan.json",
+      "evidence_path": "verdict",
+      "canonical_value": "weights_rejected_layer_1_ships_alone"
+    },
+    {
+      "claim": "Penjaga OOD menerima di domain sumber",
+      "shown": "544 dari 547",
+      "ownership": "milik sendiri",
+      "source": "Kohort Carette; kalibrasi empiris 99,5% jadi ini pemeriksaan kewarasan",
+      "evidence_file": "research/hasil/ood_dua_arah.json",
+      "evidence_path": "accepts_on_source_domain.n_passed",
+      "canonical_value": 544
+    },
+    {
+      "claim": "Penjaga OOD pada stimulus yang dikirim",
+      "shown": "1 dari 23 sesi diterima",
+      "ownership": "milik sendiri",
+      "source": "Sesi kontrol positif yang terekam",
+      "evidence_file": "research/hasil/ood_dua_arah.json",
+      "evidence_path": "refuses_on_shipped_stimulus.n_passed",
+      "canonical_value": 1
+    },
+    {
+      "claim": "Keputusan penjaga direproduksi lintas runtime",
+      "shown": "23 dari 23",
+      "ownership": "milik sendiri",
+      "source": "Keputusan browser dihitung ulang oleh Python dari nilai fitur tersimpan",
+      "evidence_file": "research/hasil/ood_dua_arah.json",
+      "evidence_path": "cross_runtime_parity.n_reproduced",
+      "canonical_value": 23
+    },
+    {
+      "claim": "Beban rujukan titik sensitivitas 0,92",
+      "shown": "38,3× titik kerja yang dikirim",
+      "ownership": "milik sendiri",
+      "source": "Aritmetika atas asumsi kohort 1.000 dan prevalensi 1%",
+      "evidence_file": "research/hasil/gate_c_simulation.json",
+      "evidence_path": "referral_load.multiples.lr_target_sensitivity",
+      "canonical_value": 38.3
+    },
+    {
+      "claim": "Drift fitur kinematik, 26 → 13 Hz",
+      "shown": "median 69,4%",
+      "ownership": "milik sendiri",
+      "source": "27 sesi Gate B dengan stempel waktu sungguhan; drift fitur, bukan akurasi",
+      "evidence_file": "research/hasil/degradasi_temporal.json",
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Drift fitur geometri, 26 → 13 Hz",
+      "shown": "median 1,6%",
+      "ownership": "milik sendiri",
+      "source": "Sumber yang sama; sebagian fitur geometri tetap lemah pada laju lebih rendah",
+      "evidence_file": "research/hasil/degradasi_temporal.json",
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Titik operasi GeoPref 69%",
+      "shown": "sens 0,17 · spec 0,98 · n=1.863",
+      "ownership": "dikutip",
+      "source": "Wen dkk. 2022, Scientific Reports 12:4253, usia 12–48 bulan",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Target Gate C",
+      "shown": "sens 0,878 · spec 0,808",
+      "ownership": "dikutip",
+      "source": "Perochon dkk. 2023, Nature Medicine, 475 balita — performa instrumen lain",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Attrition webcam balita",
+      "shown": "42%",
+      "ownership": "dikutip",
+      "source": "Steffan dkk. 2024, Infancy, N=125 di 16 lab, usia 18–27 bulan",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Usia diagnosis dan jeda kekhawatiran",
+      "shown": "56 bulan · 32 bulan",
+      "ownership": "dikutip",
+      "source": "Tinjauan lintas negara. BUKAN estimasi Indonesia dan tidak boleh disebut begitu",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Biaya EarliPoint",
+      "shown": "USD 599 per pemeriksaan",
+      "ownership": "dikutip",
+      "source": "Izin FDA 510(k) 2022, usia 16–30 bulan",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Biaya per sesi",
+      "shown": "Rp 13.900 – Rp 1.700",
+      "ownership": "asumsi dinyatakan",
+      "source": "Amortisasi tablet saja; biaya operasi belum diukur",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Biaya per kasus ditemukan",
+      "shown": "Rp 9,08 jt – Rp 1,11 jt",
+      "ownership": "asumsi dinyatakan",
+      "source": "Berlaku hanya bila titik operasi protokol penuh direplikasi; hari ini ditahan",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Sesi balita dapat dinilai per tahun",
+      "shown": "~700",
+      "ownership": "asumsi dinyatakan",
+      "source": "30 Posyandu × 40 anak, dikurangi attrition 42%. Skala rekrutmen hipotetis",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Anak ditangani sebelum usia 3 tahun",
+      "shown": "3–4 dari sekitar 20",
+      "ownership": "milik sendiri",
+      "source": "Wawancara satu guru SLB di Jambi; berbasis ingatan, n=1",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Kapasitas rujukan bila naik tiga kali lipat",
+      "shown": "\"sepertinya akan sulit\"",
+      "ownership": "milik sendiri",
+      "source": "Wawancara yang sama; penilaian satu praktisi, bukan pengukuran kapasitas",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    }
+  ]
+}

@@ -911,6 +911,77 @@ Indonesia belum diuji. Validasi prospektif memerlukan mitra yang mampu menjalank
 etik, izin orang tua, acuan klinis buta, linkage privat, rekrutmen, analisis fairness dan
 kegagalan, serta validasi prospektif sebelum pemilihan titik operasi.
 
+\subsection{Penjaga out-of-distribution: dua arah, dan lintas runtime}
+
+Penjaga yang hanya pernah menolak tidak dapat dibedakan dari penolakan yang dipasang tetap.
+Karena itu penjaga dijalankan pada dua populasi. Pada 547 vektor fitur domain sumber Carette
+--- kohort yang membangun referensinya --- penjaga menerima 544, dengan jarak Mahalanobis
+median 10,8. Referensinya dikalibrasi pada persentil 99,5 sehingga tingkat penerimaan ini
+adalah pemeriksaan kewarasan, bukan uji generalisasi, dan disebut demikian. Pada 23 sesi
+kontrol positif yang berjalan di atas stimulus yang dikirim, penjaga menerima 1 sesi, dengan
+jarak Mahalanobis median 199,2 dan jarak robust maksimum median 14,0. Fitur yang paling
+sering ditandai adalah \texttt{ink\_frac} pada 22 sesi, diikuti \texttt{n\_active\_cells} dan
+\texttt{centroid\_y}. Ketiganya adalah fitur tata letak yang mengkodekan di mana isi stimulus
+studi asal duduk di layar, sehingga penolakannya konsisten dengan alasan yang dinyatakan di
+muka: batas keputusannya tidak berpindah ke stimulus yang berbeda.
+
+Keputusan tersebut dibuat TypeScript di dalam peramban pada saat sesi berjalan. Seluruh 23
+keputusan dihitung ulang oleh Python dari nilai fitur yang tersimpan di log audit dan
+menghasilkan verdict, jarak robust maksimum, serta jarak Mahalanobis yang sama dalam
+toleransi $10^{-6}$. Artefaknya \texttt{research/hasil/ood\_dua\_arah.json}.
+
+\subsection{Bobot antar indeks pada data anak terbit: audit yang menolak}
+
+Lapis kedua model rujukan hendak memasang bobot relatif antar indeks pada anak berlabel yang
+datanya sudah diterbitkan peneliti lain, sehingga tidak ada balita yang perlu direkam. Sumber
+yang dipakai adalah Cilia dkk.~2022 (CC BY 4.0): 59 partisipan usia 3--12 tahun, eye-tracker
+60~Hz, 2,25 juta baris koordinat mentah. Indeks dihitung di ruang perilaku dan bukan di ruang
+piksel, karena fitur piksel mengkodekan tata letak stimulus dan tidak berpindah. Tiga indeks
+dapat direkonstruksi: perolehan lateral mengikuti isyarat, sebaran tatapan pada blok netral,
+dan proporsi dwell sosial. Respons nama tidak memiliki padanan karena protokol Cilia tidak
+memanggil nama anak.
+
+Empat audit ditetapkan sebelum fitting dijalankan, beserta kriteria penolakannya. Dua di
+antaranya gagal. Pertama, selang kepercayaan bobot melewati nol untuk perolehan lateral dan
+dwell sosial. Kedua, dan lebih menentukan, alas shortcut tingkat sesi --- jumlah sampel,
+rasio pelacakan, fraksi fiksasi, fraksi kedip, dan jumlah percobaan yang terbaca, tanpa satu
+pun fitur perilaku --- mencapai AUC out-of-fold 0,905, sementara model indeks perilaku hanya
+0,784. Prediktor tunggal terkuat pada dataset ini adalah rasio pelacakan (AUC 0,853), diikuti
+fraksi kedip (0,847) dan fraksi fiksasi (0,826); perolehan lateral mengikuti isyarat berada
+pada 0,504, yaitu kebetulan. Median jumlah percobaan yang terbaca adalah 13 untuk kelompok
+ASD dan 20 untuk kelompok TD.
+
+Konsekuensinya bukan sekadar bahwa bobot ditolak. Pada dataset ini, seberapa baik alat
+merekam seorang anak lebih memprediksi labelnya daripada apa yang ditatap anak itu. Proksi
+cakupan scanpath --- padanan langsung fitur \texttt{ink\_frac} yang dibaca 13 fitur geometri
+maupun CNN scanpath --- berkorelasi $r = 0{,}83$ dengan jumlah sampel dan hanya $r = 0{,}18$
+dengan rasio pelacakan, sehingga ia terutama mengukur berapa banyak data yang sempat
+terkumpul. Setiap klasifikator pada dataset ini yang tidak menjalankan alas semacam ini
+berisiko melaporkan performa yang sebagian bersumber dari perbedaan pengumpulan data antar
+kelompok. Bobot tidak dipromosikan, Lapis~1 dikirim sendirian, dan penolakannya diterbitkan
+sebagai hasil di \texttt{research/hasil/model\_rujukan.json}.
+
+\subsection{Wawancara praktisi}
+
+Satu wawancara dengan seorang guru sekolah luar biasa di Jambi menjadi riset primer pertama
+proyek ini. Ia memvalidasi masalahnya, bukan instrumennya: narasumber tidak melihat,
+menjalankan, atau menilai aplikasi. Dengan $n = 1$ dan jawaban berbasis ingatan, tidak ada
+angka pada makalah ini yang digeser olehnya.
+
+Tiga hal yang dilaporkan relevan terhadap keputusan desain yang sudah diambil. Pertama,
+kapasitas rujukan: ditanya apakah layanan sanggup menampung tiga kali lipat anak yang
+disarankan diperiksa lanjut, jawabannya adalah tidak, dengan alasan tenaga dan jadwal yang
+tersedia, sementara keluarga sudah menunggu beberapa minggu sampai beberapa bulan untuk
+layanan tertentu. Argumen memilih titik kerja bersensitivitas rendah selama ini bersandar
+sepenuhnya pada simulasi; kini ia memiliki satu observasi lapangan di sampingnya. Titik kerja
+yang dikirim menghasilkan beban rujukan paling rendah di antara seluruh lengan, sedangkan
+lengan bersensitivitas 0,92 menghasilkan 38,3 kali beban itu. Kedua, risiko rasa aman palsu:
+hasil di bawah ambang diperkirakan akan dibaca orang tua sebagai anaknya pasti normal, yang
+merupakan pembenaran kedua untuk \texttt{reassures: false} dari arah selain NPV 65 persen.
+Ketiga, sebuah kekurangan produk: setelah hasil keluar, harus jelas siapa yang menjelaskan
+dan mendampingi orang tua. Laporan sebelumnya menyebut tujuan tanpa menyebut pendamping, dan
+bagian langkah berikutnya diubah karenanya.
+
 \subsection{Ringkasan capaian validasi}
 
 Tabel~\ref{tab:gate} pada Lampiran~E merangkum posisi tiap tingkat validasi terhadap lingkup

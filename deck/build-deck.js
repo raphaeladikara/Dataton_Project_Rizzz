@@ -127,7 +127,10 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
   const s = lightSlide("32 bulan antara “saya khawatir” dan “ini namanya apa”", "Masalah");
   stat(s, {
     x: M, y: 2.5, w: 3.4, value: "56", size: 90,
-    label: "bulan", note: "Usia rata-rata diagnosis ASD di Indonesia.",
+    // JANGAN kembalikan ke "di Indonesia". Angka ini tinjauan lintas negara;
+    // docs/arah_pitch.md melarang menyebutnya estimasi Indonesia, dan juri yang
+    // tahu literaturnya akan menagihnya.
+    label: "bulan", note: "Usia rata-rata diagnosis ASD — tinjauan lintas negara, bukan estimasi Indonesia.",
   });
   stat(s, {
     x: M + 3.9, y: 2.5, w: 3.4, value: "32", size: 90, color: CORAL,
@@ -139,17 +142,33 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     fontFace: H, fontSize: 17, bold: true, color: INK, lineSpacing: 22,
   });
   s.addText(
-    "Di jarak 32 bulan itu tidak ada satu pun titik yang menghasilkan pengukuran objektif. Yang ada hanya laporan manusia — dan laporan manusia tidak bisa diserahkan.",
+    "Sepanjang jeda itu yang tersedia hanya laporan manusia. Laporan tidak bisa diserahkan ke fasilitas berikutnya, tidak bisa diulang, dan tidak bisa dibandingkan.",
     {
       x: M + 8.1, y: 3.5, w: 3.4, h: 1.3, margin: 0,
       fontFace: B, fontSize: 13, color: INK_2, lineSpacing: 18,
     },
   );
-  s.addText("Autisme paling responsif terhadap intervensi sebelum usia tiga tahun.", {
-    x: M, y: 5.6, w: 7.3, h: 0.4, margin: 0,
-    fontFace: B, fontSize: 14, bold: true, color: INK_2,
+  // Klaim Indonesia yang boleh dibuat adalah tentang ketiadaan instrumen, bukan
+  // tentang usia diagnosis. Yang pertama bisa dipertahankan; yang kedua tidak.
+  // Riset primer, dan satu-satunya yang menyentuh konteks Indonesia. n=1 dan
+  // berbasis ingatan, jadi ia memberi bentuk keterlambatannya — bukan angka
+  // yang menggantikan tinjauan lintas negara di atas.
+  card(s, { x: M, y: 5.4, w: 7.3, h: 1.0, fill: WHITE, line: LINE });
+  s.addText(
+    [
+      { text: "“Baru datang sekitar umur 7 tahun. Orang tuanya sudah merasa ada yang berbeda sejak usia 2–3 tahun.”", options: { breakLine: true } },
+      { text: "Guru SLB di Jambi · wawancara praktisi · 3–4 dari sekitar 20 anak mulai ditangani sebelum usia 3 tahun", options: { fontSize: 10.5, color: MUTED, breakLine: false } },
+    ],
+    {
+      x: M + 0.28, y: 5.58, w: 6.8, h: 0.7, margin: 0,
+      fontFace: B, fontSize: 12.5, color: INK_2, lineSpacing: 17, paraSpaceBefore: 4,
+    },
+  );
+  s.addText("56 dan 32 bulan: tinjauan lintas negara. Bukan angka Indonesia, dan tidak dipakai sebagai angka Indonesia.", {
+    x: M, y: 6.55, w: 11.4, h: 0.3, margin: 0,
+    fontFace: B, fontSize: 10.5, color: MUTED,
   });
-  s.addNotes("0:40. Dua angka saja. Jangan menambahkan statistik prevalensi.");
+  s.addNotes("0:40. Dua angka saja. Sebut sendiri bahwa keduanya lintas negara — sebelum juri menagihnya. Klaim Indonesia yang dibuat di sini hanya soal ketiadaan instrumen. Jangan menambahkan statistik prevalensi.");
 }
 
 // ═══════════════════════════════════════════════════════ 3 · Celah
@@ -210,18 +229,21 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     fontFace: H, fontSize: 40, bold: true, color: WHITE, lineSpacing: 46,
   });
   s.addText(
-    "Alat yang selalu bilang “periksa lebih lanjut” akan lolos demo mana pun tanpa mengukur apa pun.\nJadi saya butuh satu orang dari ruangan ini. Tidak ada briefing, tidak ada instruksi.",
+    "Alat yang selalu bilang “periksa lebih lanjut” akan lolos demo mana pun tanpa mengukur apa pun.\nJadi jawabannya bukan satu sesi yang berhasil. Jawabannya dua kondisi, berdampingan, dari 15 sesi yang sudah direkam.",
     {
       x: M, y: 4.1, w: 10.2, h: 1.0, margin: 0,
       fontFace: B, fontSize: 17, color: "B7D2CA", lineSpacing: 27,
     },
   );
-  s.addText("Sesi kamera langsung  ·  67 detik  ·  pipeline yang sama persis", {
+  s.addText("Layar perbandingan  ·  lalu satu sesi kamera langsung  ·  pipeline yang sama persis", {
     x: M, y: 6.4, w: CW, h: 0.34, margin: 0,
     fontFace: B, fontSize: 13, bold: true, color: TEAL_LT,
   });
+  // Relawan juri dipindah ke sesudah pitch. Separuh sesi pola diproduksi gugur
+  // di gerbang mutu — itu ada di data sendiri — jadi meminta orang tanpa
+  // briefing maju di dalam jam berwaktu adalah taruhan besar berhadiah kecil.
   s.addNotes(
-    "1:45 total untuk dua demo. Ucapkan keberatannya sendiri SEBELUM juri memikirkannya — itu gerakan berbiaya nol dengan imbalan terbesar di seluruh pitch. Jangan pilih rekan satu tim sebagai relawan. Selama 67 detik berjalan: diam.",
+    "1:45 total. Buka /perbandingan lebih dulu: dua kondisi, tiga sinyal, satu layar — tanpa risiko kamera. Baru setelah itu jalankan SATU sesi langsung dan penyajilah pesertanya, bukan relawan. Ucapkan keberatannya sendiri SEBELUM juri memikirkannya. Tawarkan tablet ke juri SESUDAH pitch: 'silakan coba sendiri kalau mau menguji apakah alat ini merujuk semua orang.' Selama 67 detik berjalan, narasikan cermin panggung — jangan diam.",
   );
 }
 
@@ -395,7 +417,7 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
 
 // ═══════════════════════════════════════════════════════ 8 · Penjaga
 {
-  const s = lightSlide("Modelnya jalan. Penjaganya menolak. Di depan kalian.", "Penjaga out-of-distribution");
+  const s = lightSlide("Modelnya jalan. Penjaganya menolak — dan kami buktikan ia tidak menolak semuanya.", "Penjaga out-of-distribution");
 
   card(s, { x: M, y: 2.4, w: 6.3, h: 2.5, fill: INK, line: INK });
   s.addText("PUTUSAN PENJAGA", {
@@ -416,31 +438,46 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
   });
 
   s.addText(
-    "Ini bukan tangkapan layar yang kami siapkan. Ini yang aplikasi cetak setiap sesi.",
+    "Penjaga yang selalu menolak sama saja dengan false yang dipasang tetap. Jadi kami jalankan dua arah.",
     {
-      x: M + 6.9, y: 2.5, w: 4.9, h: 0.7, margin: 0,
-      fontFace: H, fontSize: 19, bold: true, color: INK, lineSpacing: 25,
+      x: M + 6.9, y: 2.5, w: 4.9, h: 0.9, margin: 0,
+      fontFace: H, fontSize: 18, bold: true, color: INK, lineSpacing: 24,
+    },
+  );
+  const twoWay = [
+    ["Domain sumber (Carette)", "544 / 547 diterima", TEAL],
+    ["Stimulus yang dikirim", "1 / 23 diterima", CORAL],
+    ["Keputusan direproduksi Python", "23 / 23", INK_2],
+  ];
+  twoWay.forEach(([label, value, colour], i) => {
+    s.addText(label, {
+      x: M + 6.9, y: 3.5 + i * 0.62, w: 3.0, h: 0.3, margin: 0,
+      fontFace: B, fontSize: 12, color: MUTED,
+    });
+    s.addText(value, {
+      x: M + 9.9, y: 3.44 + i * 0.62, w: 1.9, h: 0.36, margin: 0,
+      fontFace: B, fontSize: 14.5, bold: true, color: colour, align: "right",
+    });
+  });
+  s.addText(
+    "Ia menerima hampir semua yang berasal dari kohort yang membangunnya, dan menolak setiap sesi pada stimulus sekarang — sambil menyebut fiturnya: ink_frac di 22 dari 23 sesi.",
+    {
+      x: M, y: 5.3, w: 11.4, h: 0.6, margin: 0,
+      fontFace: B, fontSize: 13, color: INK_2, lineSpacing: 18,
     },
   );
   s.addText(
-    [
-      { text: "Regresi logistik 13 fitur dikirim ke tablet dan dijalankan setiap sesi.", options: { bullet: true, breakLine: true } },
-      { text: "Penjaga memutuskan apakah keluarannya boleh dibaca — dan di sini ia menolak.", options: { bullet: true, breakLine: true } },
-      { text: "Ia menyebut fitur mana yang di luar distribusi, beserta jaraknya.", options: { bullet: true, breakLine: false } },
-    ],
+    "Keputusan itu dibuat TypeScript di peramban saat sesi berjalan. Python menghitungnya ulang dari log dan mendapat verdict yang sama, 23 dari 23.",
     {
-      x: M + 6.9, y: 3.35, w: 4.9, h: 1.6, margin: 0,
-      fontFace: B, fontSize: 13.5, color: INK_2, lineSpacing: 19, paraSpaceAfter: 9,
+      x: M, y: 5.95, w: 11.4, h: 0.5, margin: 0,
+      fontFace: H, fontSize: 15, italic: true, color: TEAL, lineSpacing: 21,
     },
   );
-  s.addText(
-    "Kami tidak menyembunyikan model yang tidak layak. Kami menjalankannya di depan kalian dan menunjukkan sistem menangkapnya.",
-    {
-      x: M, y: 5.25, w: 11.4, h: 0.6, margin: 0,
-      fontFace: H, fontSize: 16, italic: true, color: TEAL, lineSpacing: 22,
-    },
-  );
-  s.addNotes("Tunjuk panel riset di laporan yang masih terbuka dari bagian demo.");
+  s.addText("Sumber: research/hasil/ood_dua_arah.json · kalibrasi referensi persentil 99,5 sehingga tingkat penerimaan domain sumber adalah pemeriksaan kewarasan, bukan uji generalisasi", {
+    x: M, y: 6.5, w: 11.4, h: 0.3, margin: 0,
+    fontFace: B, fontSize: 10, color: MUTED,
+  });
+  s.addNotes("Sebut sendiri bahwa 544/547 hampir pasti tinggi karena referensinya dikalibrasi di persentil 99,5 — kalau juri yang menemukannya, angka itu berbalik jadi senjata. Yang dijual adalah kontrasnya dengan 1/23, dan parity 23/23.");
 }
 
 // ═══════════════════════════════════════════════════════ 9 · Batas
@@ -474,52 +511,102 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     fill: { color: WHITE },
     rowH: 0.44, valign: "middle", margin: 0.09,
   });
+  // Argumen kapasitas dulu bersandar sepenuhnya pada simulasi. Sekarang ada
+  // satu observasi lapangan di sampingnya, dan pertanyaannya kebetulan diajukan
+  // dalam satuan kelipatan — satuan yang sama dengan tabel ini.
+  card(s, { x: M, y: 5.0, w: 7.4, h: 1.15, fill: WHITE, line: LINE });
   s.addText(
-    "Kohort 1.000 anak, prevalensi 1%. Baris teratas paling menggoda dipamerkan — sensitivitas 92 persen — dan ia merujuk 740 dari 1.000 anak. Puskesmas mana pun berhenti memakainya di minggu kedua.",
+    [
+      { text: "“Kalau semua langsung dirujuk, tenaga dan jadwal yang tersedia mungkin kewalahan.”", options: { breakLine: true } },
+      { text: "Guru SLB di Jambi, ditanya apakah layanan sanggup menampung tiga kali lipat rujukan", options: { fontSize: 10.5, color: MUTED, breakLine: false } },
+    ],
     {
-      x: M, y: 5.05, w: 7.4, h: 0.9, margin: 0,
-      fontFace: B, fontSize: 13.5, color: INK_2, lineSpacing: 19,
+      x: M + 0.28, y: 5.2, w: 6.9, h: 0.8, margin: 0,
+      fontFace: B, fontSize: 12.5, color: INK_2, lineSpacing: 17, paraSpaceBefore: 4,
     },
   );
-  card(s, { x: M + 7.7, y: 5.0, w: 3.7, h: 1.05, fill: TEAL_WASH, line: TEAL_WASH });
+  card(s, { x: M + 7.7, y: 5.0, w: 3.7, h: 1.15, fill: CORAL_WASH, line: CORAL_WASH });
+  stat(s, {
+    x: M + 7.95, y: 5.12, w: 3.2, value: "38,3×", size: 30, color: CORAL,
+    label: "beban rujukan baris teratas",
+    note: "dibanding titik kerja yang dikirim",
+  });
   s.addText(
-    "Kami memilihnya bukan karena angkanya paling bagus, tapi karena itu satu-satunya yang muat di kapasitas rujukan yang benar-benar ada.",
+    "Tiga kali lipat sudah dinilai sulit. Baris bersensitivitas 92 persen bukan tiga kali — ia 38 kali. Kami memilih baris yang paling sedikit menemukan karena itu satu-satunya yang muat.",
     {
-      x: M + 7.95, y: 5.16, w: 3.2, h: 0.8, margin: 0,
-      fontFace: B, fontSize: 12, bold: true, color: TEAL, lineSpacing: 16,
+      x: M, y: 6.3, w: 11.4, h: 0.55, margin: 0,
+      fontFace: H, fontSize: 15, italic: true, bold: true, color: INK, lineSpacing: 21,
     },
   );
-  s.addNotes("0:45 bersama momen integritas. Sensitivitas 17% bukan bug — itu bentuk alatnya. Rule-in.");
+  s.addNotes("0:45. Ini bagian Impact yang paling kuat di seluruh deck — pelankan. Satu wawancara bukan pengukuran kapasitas, dan narasumber tidak melihat tabel ini; sebut keduanya. Sensitivitas 17% bukan bug, itu bentuk alatnya. Rule-in.");
 }
 
 // ═══════════════════════════════════════════════════════ 10 · Integritas
 {
-  const s = lightSlide("Angka tertinggi di proyek ini, dan kami buang", "Momen integritas");
-  stat(s, {
-    x: M, y: 2.55, w: 4.2, value: "0,932", size: 76, color: CORAL,
-    label: "AUC · CNN dataset wajah",
-    note: "Bobotnya tidak ada di repositori.",
+  const s = lightSlide("Kami unduh data anak yang terbit, pasang bobotnya, lalu auditnya membunuhnya", "Lapis bobot · hasil negatif");
+
+  s.addText(
+    "Cilia dkk. 2022, CC BY 4.0: 59 anak berlabel, 2,25 juta baris koordinat. Data anak sungguhan tanpa merekam satu pun anak sendiri. Empat audit ditulis sebelum fitting dijalankan. Dua gagal.",
+    {
+      x: M, y: 2.3, w: 11.4, h: 0.6, margin: 0,
+      fontFace: B, fontSize: 14, color: INK_2, lineSpacing: 20,
+    },
+  );
+
+  const bars = [
+    ["Rasio pelacakan alat", 0.853, CORAL],
+    ["Fraksi kedip", 0.847, CORAL],
+    ["Fraksi fiksasi", 0.826, CORAL],
+    ["Sebaran tatapan", 0.762, MUTED],
+    ["Mengikuti isyarat arah", 0.504, TEAL],
+  ];
+  s.addText("AUC prediktor tunggal terhadap label ASD", {
+    x: M, y: 3.0, w: 6.6, h: 0.3, margin: 0,
+    fontFace: B, fontSize: 11, bold: true, color: MUTED,
+  });
+  bars.forEach(([label, value, colour], i) => {
+    const y = 3.42 + i * 0.5;
+    s.addText(label, {
+      x: M, y, w: 2.5, h: 0.32, margin: 0,
+      fontFace: B, fontSize: 12, color: INK_2,
+    });
+    s.addShape(pres.ShapeType.rect, {
+      x: M + 2.6, y: y + 0.06, w: 3.2 * value, h: 0.2,
+      fill: { color: colour }, line: { width: 0 },
+    });
+    s.addText(String(value).replace(".", ","), {
+      x: M + 5.95, y, w: 0.7, h: 0.32, margin: 0,
+      fontFace: B, fontSize: 12, bold: true, color: colour,
+    });
+  });
+
+  card(s, { x: M + 7.0, y: 2.95, w: 4.4, h: 2.9, fill: CORAL_WASH, line: CORAL_WASH });
+  s.addText("Yang paling memprediksi autisme di dataset itu adalah seberapa baik alatnya merekam anaknya.", {
+    x: M + 7.28, y: 3.2, w: 3.85, h: 0.9, margin: 0,
+    fontFace: H, fontSize: 17, bold: true, color: CORAL, lineSpacing: 22,
   });
   s.addText(
     [
-      { text: "Enam dari enam metadata tata kelola tidak tersedia.", options: { bullet: true, breakLine: true } },
-      { text: "Tidak ada ID partisipan, jadi kebocoran identitas tidak bisa disingkirkan.", options: { bullet: true, breakLine: true } },
-      { text: "Uji shortcut kami: statistik piksel saja sudah mencapai AUC 0,751, permutasi p = 0,005.", options: { bullet: true, breakLine: false } },
+      { text: "Alas tanpa satu pun fitur perilaku: AUC 0,905.", options: { bullet: true, breakLine: true } },
+      { text: "Model indeks perilaku kami: 0,784. Lebih rendah.", options: { bullet: true, breakLine: true } },
+      { text: "Anak ASD terbaca 13 percobaan, anak TD 20.", options: { bullet: true, breakLine: true } },
+      { text: "Bobot ditolak. Lapis 1 dikirim sendirian.", options: { bullet: true, breakLine: false } },
     ],
     {
-      x: M + 4.8, y: 2.7, w: 7.0, h: 1.7, margin: 0,
-      fontFace: B, fontSize: 14.5, color: INK_2, lineSpacing: 21, paraSpaceAfter: 10,
+      x: M + 7.28, y: 4.2, w: 3.85, h: 1.5, margin: 0,
+      fontFace: B, fontSize: 12, color: INK_2, lineSpacing: 17, paraSpaceAfter: 6,
     },
   );
-  card(s, { x: M, y: 4.85, w: 11.4, h: 1.15, fill: INK, line: INK });
+
+  card(s, { x: M, y: 6.0, w: 11.4, h: 0.85, fill: INK, line: INK });
   s.addText(
-    "Tim yang mengoreksi angkanya sendiri lebih layak dipercaya daripada tim yang angkanya selalu bagus.",
+    "Ini kedua kalinya audit kami membunuh angka terbaik kami — yang pertama CNN dataset wajah, AUC 0,932, bobotnya tidak ada di repositori.",
     {
-      x: M + 0.45, y: 5.16, w: 10.5, h: 0.6, margin: 0,
-      fontFace: H, fontSize: 21, italic: true, bold: true, color: WHITE, lineSpacing: 27,
+      x: M + 0.45, y: 6.2, w: 10.5, h: 0.45, margin: 0,
+      fontFace: H, fontSize: 16, italic: true, bold: true, color: WHITE, lineSpacing: 22,
     },
   );
-  s.addNotes("SATU cerita integritas, bukan dua. Cerita kedua memindahkan waktu dari kolom rubrik yang bobotnya lebih besar.");
+  s.addNotes("Ini slide AI Implementation, bukan slide integritas — jual temuannya lebih dulu, penolakannya belakangan. Kalimat kuncinya: setiap makalah pada dataset ini yang tidak menjalankan alas semacam ini berisiko melaporkan performa yang sebagian berasal dari perbedaan pengumpulan data. Dataset wajah cukup satu baris; jangan diceritakan ulang.");
 }
 
 // ═══════════════════════════════════════════════════════ 11 · Biaya
@@ -578,7 +665,11 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
 
 // ═══════════════════════════════════════════════════════ 12 · Adopsi
 {
-  const s = lightSlide("Penyebarannya adalah mesin pengumpul datanya sendiri", "Jalur adopsi");
+  // Judul lama ("penyebarannya adalah mesin pengumpul datanya sendiri") memframe
+  // penyebaran produk sebagai cara mengumpulkan data balita. Itu persis yang
+  // dampak_dan_adopsi.md larang: pengumpulan hanya sah sebagai studi prospektif
+  // berizin etik, bukan sebagai penyebaran terselubung.
+  const s = lightSlide("Ia menempel pada alur yang sudah jalan", "Jalur adopsi");
   s.addText(
     "Alat ini tidak menggantikan apa pun. Ia menempel: sesi 67 detik sesudah penimbangan bulanan, laporan satu halaman diserahkan ke Puskesmas, dibaca berdampingan dengan SDIDTK.",
     {
@@ -587,8 +678,9 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     },
   );
   stat(s, {
-    x: M, y: 3.2, w: 3.6, value: "700", size: 68, color: TEAL,
-    label: "sesi balita per tahun", note: "30 Posyandu, satu tahun penyebaran biasa.",
+    x: M, y: 3.2, w: 3.6, value: "~700", size: 68, color: TEAL,
+    label: "sesi dapat dinilai per tahun — hipotetis",
+    note: "Aritmetika skala: 30 Posyandu × 40 anak layak, dikurangi attrition 42%. Skala rekrutmen, bukan rencana operasional.",
   });
   stat(s, {
     x: M + 4.1, y: 3.2, w: 3.6, value: "475", size: 68, color: MUTED,
@@ -607,13 +699,13 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     },
   );
   s.addText(
-    "Dalam setahun penyebaran biasa, alat ini mengumpulkan data lebih banyak daripada studi yang jadi acuannya — di populasi yang belum pernah punya instrumennya.",
+    "Skala kohort acuan Nature Medicine dapat dicapai dalam satu tahun studi di 30 Posyandu — sebagai penelitian prospektif berizin etik dengan acuan klinis buta, bukan sebagai penyebaran produk.",
     {
       x: M, y: 5.85, w: 7.4, h: 0.7, margin: 0,
       fontFace: H, fontSize: 15, italic: true, color: INK_2, lineSpacing: 21,
     },
   );
-  s.addNotes("Ini yang mengubah 'belum ada data' dari kelemahan menjadi rencana.");
+  s.addNotes("Ini yang mengubah 'belum ada data' dari kelemahan menjadi rencana. Sebut kata 'studi prospektif berizin etik' dengan suara — kalau slide ini terdengar seperti rencana menyebar produk untuk memanen data balita, seluruh bagian responsible AI runtuh di satu kalimat.");
 }
 
 // ═══════════════════════════════════════════════════════ 13 · Penutup
