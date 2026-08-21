@@ -19,35 +19,33 @@ coverage teknis 90%, ambang GeoPref terbit menemukan **1,53 kasus benar** dan me
 melewatkan sebagian besar. Menjual volume penemuan kasus berarti menjual sesuatu yang
 bisa dihitung juri dalam tiga puluh detik dan ditemukan salah.
 
-Klaim yang benar berbunyi begini:
+Masalah yang boleh dipakai untuk membuka bagian ini:
 
-> Di Indonesia, diagnosis ASD rata-rata datang pada usia 56 bulan — sekitar 32 bulan
-> setelah orang tua pertama kali merasa ada yang berbeda. Jarak 32 bulan itu bukan
-> karena orang tua tidak sadar. Karena antara "saya khawatir" dan "ini namanya apa"
-> tidak ada satu pun titik yang menghasilkan **pengukuran objektif**. Yang ada hanya
-> laporan manusia, dan laporan manusia tidak bisa diserahkan.
+> Tinjauan lintas negara melaporkan diagnosis ASD rata-rata sekitar usia 56 bulan,
+> sekitar 32 bulan setelah kekhawatiran pertama orang tua. Itu bukan estimasi
+> Indonesia. Di Indonesia, celah yang belum dijawab proyek ini adalah apakah ukuran
+> tatapan berbasis tablet dapat dijalankan kader dan divalidasi pada balita di alur
+> layanan setempat.
 
 Tiga hal yang benar-benar ditambahkan alat ini, dan ketiganya bisa ditunjukkan di
 layar hari ini:
 
-**1. Pengukuran objektif di titik yang sekarang tidak punya satu pun.** Posyandu
-menjangkau hampir setiap desa. Yang dijalankannya adalah SDIDTK — ceklis, berbasis
-laporan. NeuroGaze menambahkan pengukuran perilaku terhadap stimulus terstandar, di
-perangkat yang sudah ada, tanpa klinisi dan tanpa jaringan.
+**1. Rantai ukur yang dapat dibawa ke uji lapangan.** NeuroGaze mengukur respons
+terhadap stimulus terstandar pada tablet tanpa jaringan. Belum ada kader yang
+menjalankannya dan belum ada balita Indonesia dalam bukti, jadi manfaat di Posyandu
+masih hipotesis implementasi.
 
-**2. Sesuatu yang bisa dibawa.** Laporan satu halaman mengubah "anak saya kok beda"
-menjadi lembar berisi persentase terukur, status tiap sinyal, dan sumber referensi
-masing-masing. Yang dipercepat bukan diagnosisnya — melainkan **antreannya**: tenaga
-Puskesmas menerima sesuatu yang bisa dibaca, bukan kecemasan yang harus digali ulang
-dari awal.
+**2. Artefak yang dapat diuji bersama layanan.** Laporan satu halaman membawa angka,
+status mutu, dan sumber referensi. Apakah format ini membantu atau justru menambah
+pekerjaan Puskesmas belum pernah diuji dengan praktisi.
 
 **3. Penolakan yang terlihat.** Alat yang menolak mengeluarkan angka ketika rekamannya
 tidak layak mencegah hal yang paling berbahaya di skrining massal: rasa aman palsu.
 Attrition webcam balita yang dilaporkan ManyBabies adalah 42% (Steffan dkk. 2024).
 Alat yang tidak pernah menolak adalah alat yang mengarang.
 
-Ketiganya bisa diklaim tanpa satu balita pun dalam bukti — dan tidak satu pun runtuh
-kalau sensitivitas Gate C ternyata rendah.
+Yang dapat diklaim hari ini adalah kesiapan rekayasa ketiga mekanisme itu. Dampak pada
+anak, kader, antrean, atau diagnosis belum diukur.
 
 ---
 
@@ -59,13 +57,14 @@ kalau sensitivitas Gate C ternyata rendah.
 |---|---|---|
 | EarliPoint | USD 599 per pemeriksaan, eye-tracker khusus, di fasilitas klinis | Izin FDA 510(k) 2022, usia 16–30 bulan |
 | SDIDTK / KPSP | Praktis nol, tetapi berbasis laporan dan spesifisitasnya rendah | Instrumen Kemenkes yang sudah berjalan |
-| NeuroGaze | Lihat rumus di bawah | Aritmetika atas asumsi yang dinyatakan |
+| NeuroGaze | Skenario, bukan biaya teramati | Aritmetika atas asumsi yang dinyatakan |
 
 ### Rumus
 
-Tidak ada biaya per sesi yang bersifat konsumabel: tidak ada bahan habis pakai, tidak
-ada biaya jaringan (aplikasi berjalan luring), tidak ada lisensi per kursi, dan tidak
-ada waktu klinisi. Yang tersisa hanya amortisasi perangkat.
+Distribusi perangkat lunak statis mendekati biaya marginal nol dan tidak memakai
+lisensi per kursi. Operasi tetap membutuhkan waktu kader, pelatihan, dukungan, cetak
+laporan, dudukan, pengulangan, pemeliharaan, penggantian perangkat, dan tindak lanjut
+klinis. Rumus berikut hanya menghitung amortisasi tablet; ia bukan total biaya layanan.
 
 ```
 biaya per sesi = harga tablet / (sesi per tahun × umur pakai tahun)
@@ -79,16 +78,16 @@ Dengan tablet Android kelas menengah Rp 2.500.000 dan umur pakai 3 tahun:
 | Tablet dirotasi ke 4 Posyandu | 240 | 720 | **Rp 3.500** |
 | Tablet dirotasi ke 8 Posyandu | 480 | 1.440 | **Rp 1.700** |
 
-EarliPoint pada kurs Rp 16.200/USD adalah sekitar **Rp 9.700.000 per pemeriksaan**.
-Selisihnya tiga sampai empat orde besaran, dan selisih itu bukan hasil optimasi —
-ia muncul karena perangkat kerasnya sudah ada di tangan orang.
+EarliPoint pada kurs asumsi Rp 16.200/USD adalah sekitar **Rp 9.700.000 per
+pemeriksaan**. Nilai itu tidak sebanding langsung dengan NeuroGaze: EarliPoint adalah
+alat berizin dengan protokol klinis, sedangkan angka NeuroGaze di atas hanya amortisasi
+tablet untuk produk yang belum divalidasi klinis.
 
 ### Asumsi yang harus diuji, dan yang bisa membatalkan angka ini
 
 - Umur pakai tablet 3 tahun di lingkungan Posyandu belum diuji.
-- Waktu kader (~6 menit per sesi termasuk persiapan) tidak dihitung sebagai biaya di
-  sini karena kader adalah relawan; kalau kebijakan menuntut insentif, angkanya
-  berubah dan harus dihitung ulang.
+- Waktu kader, pelatihan, dukungan, pencetakan, dudukan, pengulangan, pemeliharaan,
+  penggantian, dan tindak lanjut klinis belum diukur atau dihitung.
 - Angka 5 anak per hari buka adalah perkiraan, bukan observasi.
 - Baterai 67 detik belum pernah dijalankan pada balita. Kalau toleransinya jauh lebih
   rendah dan sesi harus diulang, sesi per hari turun dan biaya per sesi naik.
@@ -97,15 +96,17 @@ Yang **tidak** berubah oleh asumsi mana pun: tidak ada biaya marginal perangkat 
 untuk Posyandu tambahan. PWA tanpa backend, tanpa basis data, tanpa lisensi. Posyandu
 ke-1 dan Posyandu ke-1.000 memakai berkas statis yang sama.
 
-### Biaya per kasus ditemukan — angka yang harus dibawa ke panggung
+### Biaya per kasus — skenario bersyarat, bukan hasil NeuroGaze
 
 Perbandingan biaya per *pemeriksaan* punya satu kelemahan yang juri tajam akan temukan
 dalam tiga puluh detik: ia membandingkan alat bersensitivitas 17% dengan alat berizin
 FDA seolah keduanya melakukan hal yang sama. Serangan itu sah, dan jawabannya adalah
 menghitung metrik yang lebih keras terhadap diri sendiri lebih dulu.
 
-Dari `research/hasil/gate_c_simulation.json`: kohort 1.000 anak, prevalensi 1%,
-coverage teknis 90% → ambang GeoPref terbit menemukan **1,53 kasus benar**.
+Simulasi `research/hasil/gate_c_simulation.json` memakai kohort 1.000 anak,
+prevalensi 1%, coverage teknis 90%, dan karakteristik operasi protokol penuh terbit.
+Angka 1,53 kasus benar hanya berlaku bila titik operasi itu berhasil direplikasi pada
+populasi sasaran; klip 16,75 detik yang dikirim belum memenuhinya.
 
 | Pemakaian | Biaya per sesi | Biaya 1.000 sesi | **Biaya per kasus ditemukan** |
 |---|---:|---:|---:|
@@ -115,13 +116,11 @@ coverage teknis 90% → ambang GeoPref terbit menemukan **1,53 kasus benar**.
 
 Pembandingnya: EarliPoint **Rp 9,7 juta untuk satu kali pemeriksaan**, satu anak.
 
-Kalimat panggungnya:
+Jika tabel ditampilkan, kalimat panggungnya harus memuat syaratnya:
 
-> Ambil metrik yang paling keras terhadap kami — bukan biaya per pemeriksaan, tapi
-> biaya per kasus yang benar-benar ditemukan, sudah memperhitungkan bahwa alat ini
-> melewatkan sebagian besar. **Menemukan satu kasus dengan Neurogaze harganya kira-kira
-> sama dengan sekali pemeriksaan EarliPoint.** Dan dengan satu tablet yang dirotasi ke
-> empat Posyandu, harganya turun jadi seperempatnya.
+> Ini skenario perencanaan, bukan performa NeuroGaze yang teramati. Biaya per kasus baru
+> dapat dibahas jika protokol penuh direplikasi, validitas balita Indonesia terukur,
+> dan biaya operasi serta tindak lanjut klinis dimasukkan.
 
 Angka ini lebih rendah hati daripada "tiga sampai empat orde besaran", lebih mudah
 diingat, dan — yang menentukan — ia bertahan ketika juri mengerjakan pembagiannya
@@ -157,8 +156,8 @@ Tiga hal yang harus jujur disebut tentang tabel ini:
 Ini bagian yang paling sering hilang dari proyek serupa, dan yang paling menentukan
 apakah proyek ini punya masa depan setelah lomba.
 
-Gate C butuh balita berlabel. Yang belum disadari dari luar: **penyebaran produk ini
-adalah mesin pengumpul datanya sendiri.**
+Gate C membutuhkan balita dengan acuan klinis independen. Pengumpulan tidak boleh
+dimulai sebagai “penyebaran produk”; ia harus menjadi studi prospektif berizin etik.
 
 Setiap sesi sudah menghasilkan log audit lengkap dengan jejak frame dan koordinat
 pandangan, tanpa video dan tanpa landmark. Log itu sudah punya field
@@ -174,27 +173,22 @@ pandangan, tanpa video dan tanpa landmark. Log itu sudah punya field
 | Setelah attrition 42% (Steffan dkk. 2024) | ~700 dapat dinilai |
 | Kohort SenseToKnow (Perochon dkk. 2023) | 475 balita |
 
-Satu tahun penyebaran di 30 Posyandu menghasilkan lebih banyak sesi balita daripada
-kohort yang dipakai *Nature Medicine* — dengan asumsi 40 anak layak per Posyandu per
-tahun, yang harus diperiksa terhadap data cakupan setempat sebelum dipercaya.
+Tabel ini hanya menghitung skala rekrutmen hipotetis. Ia bukan rencana operasional dan
+tidak membuktikan bahwa 30 Posyandu, 1.200 sesi, atau 700 sesi dapat dinilai akan
+tercapai.
 
 ### Yang sulit, dan tidak boleh disamarkan
 
-Sesi tanpa label tidak melatih apa pun. Yang mengubah 700 sesi menjadi 700 titik data
-adalah **hasil klinis yang dikembalikan Puskesmas** — dan itu menuntut tiga hal yang
-belum ada:
+Sesi tanpa acuan klinis tidak melatih apa pun. Studi yang sah memerlukan seluruh
+komponen berikut, yang belum ada:
 
-1. **Persetujuan etik.** Lima lembaga sudah dihubungi dan seluruhnya menolak. Itu
-   keputusan yang benar dari pihak mereka pada tahap bukti saat ini, dan kontrol
-   positif adalah salah satu hal yang mengubah tahap itu. Sampai izin itu ada, tidak
-   ada balita dan tidak ada anak ASD yang direkam tim ini — bukan untuk demo, bukan
-   untuk melatih apa pun. Batasnya di [`etika_perekaman.md`](etika_perekaman.md).
-2. **Tautan hasil.** Mekanisme yang menghubungkan sesi dengan diagnosis yang keluar
-   berbulan-bulan kemudian, tanpa menyimpan identitas anak di perangkat. Ini masalah
-   desain privasi, bukan masalah teknis, dan belum dipecahkan.
-3. **Antrean sinkronisasi.** PWA harus bisa mengantre log audit dan mengirimkannya
-   ketika jaringan muncul. Belum ada; hari ini operator mengunduh berkas per sesi
-   secara manual.
+1. mitra yang mampu menjadi penanggung jawab kaji etik dan penelitian;
+2. izin orang tua yang valid dan prosedur penghentian yang melindungi anak;
+3. acuan klinis yang dinilai buta terhadap keluaran aplikasi;
+4. linkage hasil yang menjaga identitas di luar perangkat;
+5. rekrutmen yang layak dan analisis fairness serta pola kegagalan;
+6. validasi prospektif sebelum pemilihan titik operasi;
+7. mekanisme pengumpulan/sinkronisasi yang aman; saat ini ekspor masih manual.
 
 Ketiganya adalah pekerjaan setelah lomba, dan menyebutnya sebagai rencana lebih jujur
 daripada menyebutnya sebagai kemampuan.
@@ -210,19 +204,17 @@ daripada menyebutnya sebagai kemampuan.
 | Sekarang | Wawancara praktisi ASD dan tenaga Puskesmas | Tidak ada | [`wawancara_praktisi.md`](wawancara_praktisi.md) |
 | Sekarang | Uji kegunaan dengan 3 kader sungguhan | Akses ke satu Posyandu | Belum |
 | Sekarang | Kirim permintaan stimulus GeoPref penuh ke UCSD | Surat sudah didraf | **Belum dikirim** |
-| Sekarang | Selang kepercayaan pada persentase GeoPref | Tidak ada | Belum |
+| — | Selang kepercayaan pada persentase GeoPref | Tidak ada | **Selesai** |
 | Sekarang | Kalibrasi likelihood-ratio menggantikan ambang `= 2` | Ekstraksi titik operasi dari makalah | Belum |
 | Berikutnya | Blok target diketahui Gate B, dua aliran | Rig Gate B | Belum |
 | Berikutnya | Unduh dan audit data terbit Cilia dkk., pasang bobot antar indeks | Tidak ada — CC BY 4.0 | Belum |
-| Berikutnya | Lajur komposit dipromosikan jadi lajur rujukan | Stimulus penuh | Belum |
+| Berikutnya | Uji protokol penuh tanpa mengaktifkan rujukan | Stimulus penuh, protokol etik | Belum |
 | Berikutnya | Antrean sinkronisasi luring untuk log audit | Keputusan desain privasi | Belum |
-| Gate C | Pita normatif balita + studi prospektif dengan hasil klinis | Persetujuan etik, mitra klinis | Belum |
+| Gate C | Studi prospektif dengan acuan klinis buta | Kaji etik, izin orang tua, linkage privat, mitra klinis | Belum |
 | Gate D | Implementasi lapangan dengan kader | Gate C lolos | Belum |
 
-Baris bertanda "Sekarang" tidak menunggu siapa pun dan bisa selesai dalam hitungan hari.
-Itu yang membedakan rencana dari harapan. Dua di antaranya — wawancara praktisi dan uji
-kader — adalah satu-satunya cara proyek ini memperoleh bukti yang menyentuh konteks
-Indonesia sebelum Gate C, karena seluruh angka lain dipinjam dari populasi lain.
+Wawancara praktisi dan uji kader belum dilakukan. Keduanya memberi bukti operasional,
+bukan validasi klinis, dan tetap memerlukan akses serta persetujuan peserta yang sesuai.
 
 Perhatikan di mana pita normatif duduk: ia turun ke Gate C, bukan karena sulit
 dibangun, melainkan karena membangunnya menuntut merekam balita dan itu menuntut kaji
@@ -235,7 +227,7 @@ rancangan yang menggantikannya di [`model_rujukan.md`](model_rujukan.md).
 
 | Angka | Sumber |
 |---|---|
-| 56 bulan, 32 bulan | Bagian pendahuluan makalah, `paper/sumber/` |
+| 56 bulan, 32 bulan | Tinjauan lintas negara di bagian pendahuluan makalah; bukan estimasi Indonesia |
 | Attrition 42%, N=125, 16 lab | Steffan dkk. 2024, *Infancy*, usia 18–27 bulan |
 | Kohort 475 balita, sens 87,8% / spec 80,8% | Perochon dkk. 2023, *Nature Medicine* |
 | USD 599, FDA 510(k), usia 16–30 bulan | EarliPoint, izin 2022 |

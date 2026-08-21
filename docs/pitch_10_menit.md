@@ -1,365 +1,226 @@
-# Sesi demo 10 menit
+# Pitch kompetisi 10–12 menit
 
-Naskah untuk slot demo. Naskah pitch terpisah ada di
-[`pitch_7_menit.md`](pitch_7_menit.md), dan bingkai yang menentukan urutan keduanya ada
-di [`arah_pitch.md`](arah_pitch.md); yang ini fokus pada apa yang dijalankan di layar.
+Ini naskah aktif. Jalankan satu sesi kamera langsung pada orang dewasa yang
+memproduksi pola. Jangan memendekkan bagian sebelum dan sesudah demo; dua kalimat itu
+yang mencegah hasil peragaan dibaca sebagai penilaian kesehatan.
 
-Aturan yang berlaku: **tidak ada angka tanpa sumber, dan tidak ada klaim yang tidak
-bisa ditunjukkan di layar dalam sepuluh detik.**
+## Urutan dan waktu
 
-**Prasyarat.** `npm run replay:check` melaporkan dua rekaman terbaca beserta labelnya:
-`sesi-biasa.json — Menonton biasa` dan `sesi-produksi.json — Pola diproduksi`. Tanpa
-itu, jalur demo memakai titik sintetis dan laporannya ditahan — bukan karena kesalahan,
-tetapi karena scanpath sintetis benar-benar di luar distribusi dan penjaga menolaknya.
-Protokol perekamannya ada di [`kontrol_positif.md`](kontrol_positif.md).
+| Waktu | Bagian | Yang terlihat |
+|---|---|---|
+| 0:00–1:00 | Keterlambatan lintas negara dan celah Indonesia | sumber masalah, bukan angka produk |
+| 1:00–2:00 | Yang bekerja hari ini | kamera, kalibrasi, gerbang mutu, laporan |
+| 2:00–4:00 | Kontrol positif dewasa langsung | `Panduan & demo` → `Peragakan · kamera langsung` |
+| 4:00–4:40 | Interpretasi dan batas demo | banner demo dan laporan |
+| 4:40–6:20 | Empat bagian AI | pengukuran, seleksi, robustness, tata kelola |
+| 6:20–7:30 | Tangga bukti dan kesiapan | `readiness_matrix.md` |
+| 7:30–9:00 | Dampak bersyarat | skenario biaya dan biaya operasi yang belum diukur |
+| 9:00–10:30 | Roadmap dan permintaan mitra | protokol etik/klinis prospektif |
+| 10:30–12:00 | Cadangan | tanya jawab atau pemulihan demo |
 
-**Anggaran waktu yang harus dihitung sebelum menyusun ulang naskah ini.** Satu sesi
-kamera penuh memakan sekitar tiga menit: persetujuan, persiapan, kalibrasi lima titik,
-lalu 67 detik stimulus. Dua sesi langsung tidak muat di slot sepuluh menit bersama
-apa pun yang lain. Naskah ini menjalankan **satu** sesi langsung dan memutar rekaman
-untuk kondisi yang satunya.
+## 1. Masalah: pisahkan fakta internasional dari konteks Indonesia
 
----
-
-## Peta waktu
-
-| Menit | Bagian | Di layar |
-|---:|---|---|
-| 0:00–1:00 | Masalah: diagnosis rata-rata 56 bulan, 32 bulan sesudah kecurigaan pertama orang tua | 1 slide, 2 angka |
-| 1:00–1:45 | Kenapa alat yang ada gagal di Posyandu: ceklis vs EarliPoint $599 | 1 slide, 3 kolom |
-| 1:45–3:00 | **Rekaman: kondisi pola diproduksi** | Aplikasi |
-| 3:00–5:30 | **Sesi langsung: kontrol negatif dari penonton** | Aplikasi |
-| 5:30–6:30 | Bingkai kontrol positif dan batasnya | `kontrol_positif/README.md` |
-| 6:30–7:15 | Kenapa punya batas: sensitivitas 17%, tabel empat lengan | `gate_c_simulation.json` |
-| 7:15–8:15 | Dampak, biaya per sesi, jalur adopsi | Laporan cetak + slide biaya |
-| 8:15–9:15 | **Momen integritas** | Panel riset |
-| 9:15–10:00 | Gate C dan D, target dari literatur, dan yang dibutuhkan | — |
-
----
-
-## 1:45 — Rekaman: kondisi pola diproduksi
-
-**Sebutkan protokolnya sebelum mulai.** Ini yang membedakan prosedur dari improvisasi.
-
-> Yang akan kalian lihat rekaman sesi kamera sungguhan, 19 Agustus, seorang dewasa yang
-> menyetujui untuk dirinya sendiri. Instruksinya empat butir dan tiap butir memetakan ke
-> tepat satu sinyal: pandangan diarahkan ke panel geometrik, dan tidak mengikuti arah
-> mata atau tunjukan model.
-
-**Jangan pernah** mengatakan "berpura-pura autis", "jadi ASD", atau variasi apa pun.
-Yang diperagakan adalah pola terukur, bukan seseorang. Ini bukan soal kehalusan bahasa:
-mengarikaturkan perilaku autistik di depan panel yang mungkin punya kaitan personal
-dengan ASD akan merusak setiap hal lain yang kalian bangun.
-
-**Kenapa rekaman dan bukan peragaan langsung.** Dari enam sesi produksi di kontrol
-positif, aturannya menyala pada empat. Dua sisanya gagal pada prasyarat perhatian —
-pesertanya tidak pernah menatap model saat isyarat disampaikan, jadi sinyal isyaratnya
-ditahan. Sepertiga kemungkinan gagal bukan risiko yang layak diambil pada bagian yang
-harus berhasil. Rekaman ini juga tetap jujur: laporannya mencetak sendiri bahwa ia
-rekaman, lengkap dengan tanggal dan ID sesinya.
-
-Kalau tetap ingin langsung, tombol **Peragakan · kamera langsung** menjalankan sesi
-kamera sungguhan dengan ambang yang sama diterapkan, di bawah banner yang sama. Ia
-hanya tersedia untuk peserta dewasa dan tidak dapat dicapai dari jalur anak. Cara
-mereplikasi polanya, beserta berapa ketat ambangnya, ada di bagian berikut — dan
-latihlah sampai berhasil tiga kali berturut-turut sebelum memakainya di panggung.
-
-### Cara mereplikasi polanya, dan seberapa ketat ambangnya
-
-Ambangnya sekarang dibandingkan terhadap **selang kepercayaan**, bukan terhadap satu
-angka. Konsekuensinya untuk peraga:
-
-| Yang harus terjadi | Kenapa |
-|---|---|
-| Tahan panel geometrik **≥ 90%** durasi klip | Pada preferensi sebenarnya 0,90 aturannya menyala 99% dari waktu; pada 0,75 hanya 24% |
-| Tahan **konsisten**, bukan rata-rata | Selangnya melebar mengikuti variasi antar detik. Menatap 100% selama delapan detik lalu berpaling delapan detik menghasilkan angka yang sama dengan menatap 90% terus-menerus, tapi selang yang jauh lebih lebar |
-| Saat blok isyarat: **tatap model**, jangan tutup mata atau menunduk | Prasyarat perhatian. Peserta yang tidak pernah menatap model membuat sinyal isyarat ditahan sebagai tidak dapat dinilai, dan aturannya butuh dua sinyal |
-| Jangan ikuti arah mata atau tunjukan model | Ini sinyal kedua. Masuk area target pada ≤ 1 dari 8 percobaan |
-| Duduk stabil, jarak tetap, cahaya dari depan | Kalibrasi adalah penyebab attrition dominan di kontrol positif |
-
-Dua butir pertama itu yang berubah. Di aturan lama, 70% sudah cukup; sekarang 70%
-berstatus **tidak dapat dinilai**, karena selangnya melintasi ambang. Tabel karakteristik
-operasi lengkapnya di
-[`ambang_selang_kepercayaan.md`](ambang_selang_kepercayaan.md).
-
-**Ini juga jawaban untuk pertanyaan "bagaimana kalau relawan salah dirujuk".** Ketatnya
-bukan demi demo — ia menghapus wilayah abu-abu tempat positif palsu hidup. Peserta yang
-sekadar menonton harus melewati dua hal yang tidak mungkin sekaligus: seluruh selang
-preferensi geometriknya di atas 69%, **dan** kegagalan mengikuti isyarat yang terukur
-sementara ia terbukti menatap model.
-
-Jalankan **Peragakan · Pola diproduksi** di tab **Panduan & demo**.
-
-Setelah laporan muncul, **sebut bannernya lebih dulu**, sebelum juri membacanya sendiri:
-
-> Banner merah di atas itu penting dan saya mau menyebutnya duluan. Klip yang kami
-> lisensikan 16,75 detik, sementara ambang 69% diturunkan pada protokol 60 sampai 90
-> detik. Jadi di lapangan ambang itu **ditahan**. Mode peragaan menerapkannya sekali
-> supaya bentuk laporan rujukannya terlihat, dan aplikasi mencetak sendiri bahwa ia
-> sedang melakukan itu.
-
-Lalu tunjuk tiga hal berurutan:
-
-1. Persentase fiksasi geometrik — 94% — dengan ambangnya.
-2. Dua sinyal aturan komposit, masing-masing dengan nilai terukur, status, dan sumber
-   literaturnya. Yang ketiga, respons nama, dikarantina dan alasannya tertulis di layar.
-3. Kalimat hasil: disarankan pemeriksaan lanjutan, 2 dari 2 sinyal menyimpang.
-
-> Perhatikan yang tidak ada: tidak ada skor gabungan, tidak ada gauge, tidak ada
-> persentase risiko autisme. Keenam ukuran itu tidak boleh dijumlahkan sebelum ada
-> balita berlabel untuk memfit bobotnya, jadi tipe datanya sendiri melarang —
-> `combinedScore` bernilai null dan tidak ada jalur kode yang bisa mengisinya.
-
-Kalau ada satu sinyal berstatus **tidak dapat dinilai**, tunjuk itu dan jelaskan:
-
-> Sinyal ini arahnya benar tapi belum terbukti di atas kebetulan, jadi ia tidak
-> dihitung ke arah mana pun. Delapan percobaan tidak bisa mencapai p di bawah 0,05
-> di bawah tujuh keberhasilan — jadi anak yang mengikuti enam dari delapan isyarat
-> gagal signifikan sambil sudah mengikuti sebagian besarnya. Menghitung itu sebagai
-> penyimpangan berarti membaca ketiadaan bukti sebagai bukti ketiadaan, dan aturan
-> ini dulu memang begitu sampai kami cabut.
-
----
-
-## 3:00 — Sesi langsung: kontrol negatif dari penonton
-
-Bagian dengan nilai tertinggi di seluruh sesi demo, dan satu-satunya yang tidak bisa
-diatur sebelumnya. **Ucapkan keberatannya sendiri sebelum juri memikirkannya.**
-
-> Pertanyaan yang benar sekarang, dan saya mau menanyakannya sendiri sebelum kalian:
-> bagaimana kalau alat ini cuma merujuk semua orang? Alat yang selalu bilang "periksa
-> lebih lanjut" akan lolos dua menit barusan tanpa mengukur apa pun.
+> Tinjauan lintas negara melaporkan diagnosis autisme rata-rata sekitar usia 56 bulan,
+> kira-kira 32 bulan setelah kekhawatiran pertama orang tua. Itu angka internasional,
+> bukan estimasi Indonesia.
 >
-> Jadi saya butuh satu orang dari ruangan ini. Tidak ada briefing, tidak ada instruksi
-> dari saya. Ikuti saja tutorial di layar dan tonton seperti biasa.
+> Celah yang kami lihat di Indonesia lebih mendasar: layanan primer belum memiliki
+> ukuran tatapan berbasis kamera yang sudah divalidasi pada balita Indonesia dan dapat
+> dijalankan di alur Posyandu. NeuroGaze sedang membangun serta menguji rantai ukurnya;
+> kami belum mengklaim skrining klinis.
 
-Ambil relawan. **Jangan** memilih rekan satu tim — seluruh nilai bagian ini ada pada
-kenyataan bahwa orangnya tidak bisa diatur.
+Jangan mengatakan “diagnosis Indonesia rata-rata 56 bulan”.
 
-Jalankan sesi kamera penuh. Selama berjalan, diam. Satu kalimat di awal:
+## 2. Yang bekerja hari ini
 
-> Ini pipeline yang sama persis dengan yang barusan, dan sama persis dengan sesi di
-> Posyandu. Yang pertama muncul blok pilihan tontonan, karena blok itu membawa
-> satu-satunya ambang terbit yang kami pakai dan tidak boleh diukur pada anak yang
-> sudah lelah.
-
-Setelah laporan muncul:
-
-> Tidak ada rujukan. Dan yang lebih penting daripada itu: aplikasi tidak menulis kata
-> "aman". Hasil di bawah ambang selalu datang dengan kalimat bahwa tes ini melewatkan
-> sebagian besar anak ASD, karena NPV-nya 65 persen.
-
-Tunjuk juga apa yang tertulis di lajur kompositnya. Kalau berbunyi *"sinyal yang dapat
-dinilai terlalu sedikit"* dan bukan *"normal"*, sebut itu apa adanya:
-
-> Satu sinyalnya normal dan satunya tidak dapat dinilai, jadi aturannya tidak punya
-> cukup bahan untuk menyusun rekomendasi. Itu berbeda dari "orang ini baik-baik saja",
-> dan alat ini menolak menyamakan keduanya.
-
----
-
-## 5:30 — Bingkai kontrol positif
-
-Bagian ini yang menentukan apakah tiga menit sebelumnya terbaca sebagai bukti atau
-sebagai teater. Lambatkan.
-
-> Ini kontrol positif: beri instrumen sinyal yang diketahui ada, lalu periksa apakah ia
-> merespons. Gate A membuktikan alatnya teliti. Gate B membuktikan pengukurannya
-> sejalan dengan metode yang divalidasi ManyBabies untuk balita. Tidak satu pun
-> membuktikan bahwa alat ini bisa **membedakan** dua kondisi — dan kalau tidak bisa,
-> seluruh premis kami runtuh.
+> Hari ini aplikasi memproses kamera di tablet, mengkalibrasi pandangan, memeriksa mutu,
+> menghitung indeks terpisah, menolak model yang berada di luar distribusi, dan membuat
+> laporan yang bisa diaudit. Baterai pengukurannya 67 detik; izin, penyiapan, dan
+> kalibrasi menambah waktu kunjungan.
 >
-> Yang barusan membuktikan instrumennya responsif. Ia tidak membuktikan alat ini
-> mendeteksi autisme, dan pesertanya orang dewasa yang memproduksi pola dengan
-> sengaja. Sensitivitas dan spesifisitas baru ada di Gate C.
+> Klip lapangan yang kami kirim hanya 16,75 detik. Titik operasi GeoPref 69 persen
+> diterbitkan pada protokol penuh 60–90 detik, jadi aplikasi menahan rujukan otomatis
+> balita. Satu-satunya tempat aturan itu terlihat adalah mode demonstrasi dewasa, dan
+> `emitsReferral` tetap `false`.
 
-Sebut seluruh datanya, bukan hanya dua sesi yang tampil:
+## 3. Demo langsung: kontrol positif dewasa
 
-> Dua sesi yang kalian lihat bagian dari 23. Dua belas peserta, tiga perangkat.
-> Ketiga sinyal keputusan memisahkan kedua kondisi tanpa satu sesi pun bertumpang
-> tindih, dan aturan kompositnya menyala pada **nol dari sembilan** sesi menonton
-> biasa. Attrition-nya 35 persen dan kami terbitkan apa adanya — kalau sesi yang gagal
-> dibuang, angkanya akan bohong.
+### Sebelum menekan mulai — ucapkan persis
+
+> **Ini kontrol positif pada orang dewasa yang mengikuti instruksi. Saya akan sengaja
+> memproduksi pola yang dicari alat. Hasilnya hanya menunjukkan apakah rantai ukur dan
+> aturan peragaan merespons; hasil ini bukan penilaian autisme, bukan status klinis
+> saya, dan tidak mengeluarkan rujukan.**
+
+Buka **Panduan & demo**, pilih **Peragakan · kamera langsung**, lalu tunjukkan banner
+demonstrasi. Operator membacakan instruksi kondisi “pola diproduksi”. Peserta menjaga
+kepala stabil, memandang panel geometrik pada blok video, kembali ke tengah pada blok
+vektor, dan tidak mengikuti isyarat arah.
+
+Jangan memilih **Mulai observasi kamera**. Tombol itu adalah lajur
+`target_population_research`; perbandingan 69% ditahan di sana dan aturan tidak dapat
+menyala.
+
+### Saat laporan muncul
+
+Tunjuk tulisan **“Disarankan pemeriksaan lanjutan · 2 dari 2 sinyal menyimpang”** sebagai
+bentuk pola rujukan yang diperagakan. Lalu tunjuk banner demo dan status
+`emitsReferral: false` pada log audit.
+
+### Sesudah hasil — ucapkan persis
+
+> **Yang menyala adalah simulasi pola rujukan, bukan rujukan dan bukan hasil kesehatan
+> peserta. Bukti kontrol positif lengkap kami mencakup 12 orang dewasa: 23 sesi
+> direkam, 15 lulus mutu; 9 dari 11 sesi menonton biasa dan 6 dari 12 sesi pola
+> diproduksi dapat dipakai. Aturan demo menyala pada 0 dari 9 sesi biasa dan 4 dari 6
+> sesi pola diproduksi. Ini manipulation check end-to-end, bukan sensitivitas,
+> spesifisitas, atau ASD.**
+
+Kalau ada waktu, putar rekaman terdaftar kondisi menonton biasa. Jangan mengandalkan
+peserta acak sebagai kontrol negatif: dari delapan percobaan, kurang dari tujuh respons
+berhasil tidak mencapai p < 0,05 dan akan dibaca “tidak dapat dinilai”, bukan normal.
+
+## 4. Empat bagian AI
+
+### Pengukuran
+
+> Model pandangan berjalan di perangkat. Parity Python–browser, gerbang kualitas, dan
+> audit log menjaga agar angka dapat ditelusuri ke sampel yang menghasilkannya. Video
+> mentah dan landmark wajah tidak diunggah atau disimpan.
+
+### Pemilihan model dan bukti
+
+> Kami membandingkan CNN dan regresi logistik pada data Carette dengan pemisahan per
+> partisipan. Dataset itu hanya bukti konsep domain sumber: 54 anak usia sekolah di
+> Prancis, eye-tracker 250 Hz, dan tidak ada uji eksternal. CNN tidak memberi kenaikan
+> AUC yang dapat dibedakan dari nol, sementara kontrak masukannya tidak dapat dipenuhi
+> kamera 30 fps. Karena itu model tersebut tidak dipakai untuk keputusan.
+
+### Robustness temporal
+
+> Pada 27 sesi Gate B, desimasi dari sekitar 26 ke 13 Hz menghasilkan median drift
+> relatif 69,4 persen pada fitur kinematik dan 1,6 persen pada fitur geometri. Ini bukan
+> kemenangan akurasi klasifikasi. Hasil ini memilih keluarga fitur yang lebih stabil;
+> beberapa fitur geometri tetap punya pelestarian peringkat lemah atau drift besar
+> ketika laju turun lebih jauh.
+
+### Tata kelola dan penolakan
+
+> Regresi Carette tetap dijalankan hanya untuk panel riset. Penjaga OOD menolak
+> keluarannya pada sesi sekarang karena domain stimulus, usia, dan frekuensi akuisisinya
+> tidak berpindah. `combinedScore` tetap `null`; indeks lapis B tidak digabung. Untuk
+> lajur lapangan, protokol pendek juga menahan titik operasi 69 persen. Menolak angka
+> yang belum layak dibaca adalah keluaran sistem, bukan error.
+
+## 5. Tangga bukti dan matriks kesiapan
+
+Tampilkan [`readiness_matrix.md`](readiness_matrix.md).
+
+> Rantai ukur di perangkat siap untuk demonstrasi rekayasa. Respons instrumen sudah
+> ditunjukkan pada orang dewasa. Rujukan otomatis balita ditahan. Keterpakaian kader dan
+> validitas pada balita Indonesia belum diuji.
 >
-> Dan ini bukti pertama di proyek kami yang provenance-nya lengkap dari kamera sampai
-> angka, karena direkam lewat aplikasi yang sama yang baru kalian lihat jalan.
+> Gate A memiliki 100 sesi berulang dari 25 orang dewasa; 94 lulus mutu. Angka 2,36
+> derajat adalah konversi sudut lama tanpa jarak pandang per sesi, bukan akurasi absolut
+> eksak. Gate B membandingkan 30 aliran simultan dengan implementasi referensi
+> WebGazer.js; 27 siap dan 3 ditahan. WebGazer bukan ground truth, target diketahui
+> head-to-head belum direkam, dan keterbatasan ICC fitur tetap dipublikasikan.
 
-**Kalau ditanya soal confound sisi panel** — jawabannya 20 detik, dan ada tertulis di
-`research/hasil/kontrol_positif/README.md` sebelum ada yang bertanya:
+Jangan membuka bagian bukti dengan agreement AOI 0,997118. Kotak AOI jauh lebih lebar
+daripada galat antar-aliran, sehingga angka itu hampir pasti tinggi.
 
-> Betul, panel geometriknya di kanan pada seluruh sesi. Tapi layout-nya sama di kedua
-> kondisi, jadi kebiasaan melirik kanan tidak bisa memisahkan keduanya — ia konstanta,
-> bukan pembeda. Dan kalau bias itu yang menggerakkan angkanya, penonton biasa juga
-> akan tinggi; mereka di 0,34, artinya dua pertiga waktunya justru di panel sosial.
-> Lalu dua dari tiga sinyal kami diukur di blok yang tidak punya panel sama sekali.
+## 6. Dampak dan ekonomi distribusi — selalu bersyarat
 
-Tunjuk dua hal yang sengaja tidak ikut memutuskan:
-
-> Menghadap layar dan gerak kepala adalah dua indeks dengan AUC preseden tertinggi —
-> 0,838 dan 0,864. Keduanya tidak masuk aturan keputusan, karena tidak ada ambang
-> terbit yang bisa dipindahkan ke sini. Memasukkannya berarti kami mengarang angkanya.
-
-Lalu batas ambangnya sendiri:
-
-> Satu-satunya angka yang kami karang adalah berapa sinyal harus menyimpang. Kami
-> memilih dua, dan tipe datanya sendiri menandai itu sebagai pilihan desain, bukan
-> ambang tervalidasi.
-
----
-
-## 6:30 — Kenapa punya batas
-
-Tampilkan tabel empat lengan dari `research/hasil/gate_c_simulation.json`.
-
-> Sensitivitas 17 persen artinya alat ini melewatkan sebagian besar anak autistik. Itu
-> bukan bug, itu bentuk alatnya. Kohort 1.000 anak, prevalensi 1 persen. Baris paling
-> atas paling menggoda dipamerkan: sensitivitas 92 persen. Ia merujuk 740 dari 1.000
-> anak, dan Puskesmas mana pun berhenti memakainya di minggu kedua.
+> PWA statis membuat biaya distribusi perangkat lunak mendekati nol: Posyandu berikutnya
+> memuat berkas yang sama dan tidak membutuhkan lisensi per kursi. Operasinya tidak
+> gratis. Kader tetap membutuhkan waktu, pelatihan, dukungan, cetak laporan, dudukan,
+> pengulangan sesi, pemeliharaan, penggantian tablet, dan layanan klinis sesudah hasil.
 >
-> Baris yang kami pilih merujuk 19 anak dan butuh 12,6 rujukan untuk menemukan satu
-> kasus benar. Ia juga menemukan paling sedikit: 1,5 dari 9. Kami memilihnya bukan
-> karena angkanya paling bagus, tapi karena itu satu-satunya yang muat di kapasitas
-> rujukan yang benar-benar ada.
+> Angka biaya per sesi dan per kasus di dokumen kami adalah skenario perencanaan. Ia
+> hanya relevan bila protokol penuh diperoleh, titik operasi terbit direplikasi pada
+> populasi sasaran, penyelesaian sesi memadai, dan jalur klinis menerima tindak lanjut.
+> NeuroGaze belum mengamati biaya per kasus dan belum mengukur performa skrining balita.
 
----
+Nilai hari ini bukan “kasus ditemukan”, melainkan pengurangan biaya rekayasa menuju
+studi prospektif: pipeline, refusal state, dan audit trail sudah dapat dibawa ke mitra
+tanpa dibangun ulang.
 
-## 7:15 — Dampak, biaya, jalur adopsi
+## 7. Roadmap berizin etik dan permintaan mitra
 
-Bagian dengan bobot rubrik terbesar. Jangan lewatkan meskipun demo molor.
-
-> Tidak ada biaya habis pakai, tidak ada biaya jaringan, tidak ada lisensi per kursi,
-> tidak ada waktu klinisi. Yang tersisa amortisasi perangkat. Tablet dua setengah juta,
-> umur pakai tiga tahun, dirotasi ke empat Posyandu: **Rp 3.500 per pemeriksaan**.
-> EarliPoint sekitar sembilan juta tujuh ratus ribu. Selisihnya tiga sampai empat orde
-> besaran, dan itu bukan hasil optimasi — perangkat kerasnya memang sudah ada di tangan
-> orang.
-
-Tunjukkan laporan cetaknya. Ini satu-satunya artefak fisik di seluruh proyek, dan ia
-klaim dampak yang bisa dipegang.
-
-> Alat ini tidak menggantikan apa pun. Ia menempel pada alur yang sudah jalan: sesi 80
-> detik sesudah penimbangan bulanan, laporan satu halaman diserahkan ke Puskesmas,
-> dibaca berdampingan dengan SDIDTK. Yang dipercepat bukan diagnosisnya — melainkan
-> antreannya: tenaga Puskesmas menerima sesuatu yang bisa dibaca, bukan kecemasan yang
-> harus digali ulang dari awal.
+> Langkah berikutnya bukan satu tanda tangan. Kami membutuhkan mitra klinis dan riset
+> yang mampu menjadi penanggung jawab kaji etik, menyusun izin orang tua yang benar,
+> menyediakan acuan klinis buta terhadap keluaran aplikasi, menghubungkan
+> data tanpa membuka identitas anak, merekrut secara adil, menganalisis fairness dan
+> pola kegagalan, lalu menjalankan validasi prospektif sebelum memilih titik operasi.
 >
-> Dan ini yang belum kelihatan dari luar: penyebaran produk ini adalah mesin pengumpul
-> datanya sendiri. Tiga puluh Posyandu selama setahun menghasilkan sekitar 700 sesi
-> balita yang dapat dinilai — lebih banyak daripada kohort 475 balita yang dipakai
-> Nature Medicine. Yang mengubahnya menjadi data latih adalah hasil klinis yang
-> dikembalikan Puskesmas, dan itu butuh tiga hal yang belum ada. Ketiganya tercatat di
-> repositori kami sebagai rencana, bukan sebagai fitur.
+> Permintaan kami konkret: satu Puskesmas atau rumah sakit pendidikan, satu tim etik/
+> penelitian, dan satu koordinator Posyandu untuk bersama-sama menyusun protokol Gate C
+> dan uji keterpakaian kader. Kami membawa aplikasi terinstrumentasi dan protokol
+> analisis; mitra membawa perlindungan peserta, acuan klinis, serta jalur layanan yang
+> membuat hasil dapat dinilai secara sah.
 
-**Di layar:** [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md) atau slide biaya.
+Merekam anak bukan tindakan yang dengan sendirinya tidak etis. Yang belum ada adalah
+kaji etik, izin yang valid, acuan independen, dan tata kelola data yang membuat
+penggunaan rekaman untuk keputusan proxy dapat dipertanggungjawabkan.
 
----
+## Tanya jawab juri
 
-## 8:15 — Momen integritas
+### “Jadi alat ini sudah merujuk balita?”
 
-Aset terkuat proyek ini, dan justru karena itu **dua cerita saja**. Cerita ketiga dan
-keempat tidak menambah kredibilitas; keduanya memindahkan waktu dari bagian yang
-bobotnya lebih besar. Simpan sisanya untuk tanya jawab.
+> Belum. Klip lapangan 16,75 detik tidak mereplikasi protokol penuh tempat ambang 69
+> persen diterbitkan, jadi rujukan otomatis ditahan. Mode panggung hanya memperagakan
+> bentuk aturan pada orang dewasa dan `emitsReferral` tetap `false`.
 
-**Pertama, penjaga yang menolak model kami sendiri.** Buka panel riset di laporan.
+### “Empat dari enam bukan sensitivitas 67 persen?”
 
-> Regresi logistik ini dikirim ke perangkat dan dijalankan setiap sesi. Penjaga
-> out-of-distribution memutuskan apakah keluarannya boleh dibaca — dan di sini ia
-> menolak, dengan fitur yang disebut namanya dan jarak robust-z-nya. Fitur
-> geometrinya mengkodekan tata letak stimulus asalnya, jadi batas keputusannya tidak
-> berpindah ke stimulus kami. Yang berpindah ke Gate C adalah representasinya, bukan
-> koefisiennya.
+> Bukan. Enam sesi itu berasal dari orang dewasa yang diminta memproduksi pola. Empat
+> sesi menunjukkan rule firing dalam manipulation check; tidak ada status klinis,
+> sehingga sensitivitas atau spesifisitas tidak terdefinisi.
 
-**Kedua, dataset yang kami buang.**
+### “Kenapa banyak sesi pola diproduksi ditahan?”
 
-> CNN pada dataset wajah statis mencapai AUC 0,932. Itu angka tertinggi di seluruh
-> proyek ini, dan tidak kami pakai. Enam dari enam metadata tata kelola tidak tersedia,
-> tidak ada ID partisipan sehingga kebocoran identitas tidak bisa disingkirkan, dan uji
-> shortcut kami menunjukkan statistik piksel saja sudah mencapai 0,751 dengan
-> permutasi p = 0,005. Bobotnya tidak ada di repositori.
+> Enam dari 12 sesi pola diproduksi lulus mutu. Gerakan sengaja membuat tatapan lebih
+> mudah menempel di tepi layar; gerbang kualitas menahannya. Attrition itu bagian dari
+> hasil, bukan angka yang kami buang diam-diam.
 
-Satu kalimat penutup bagian ini:
+### “2,36 derajat berarti lebih akurat daripada WebGazer 4,17 derajat?”
 
-> Tim yang mengoreksi angkanya sendiri lebih layak dipercaya daripada tim yang
-> angkanya selalu bagus.
+> Tidak. Angka 2,36 derajat adalah konversi lama pada Gate A tanpa jarak pandang yang
+> direkam per sesi. Angka 4,17 derajat berasal dari perangkat dan protokol lain. Gate B
+> sendiri mengukur agreement perangkat lunak, bukan akurasi target head-to-head.
 
-**Simpan untuk tanya jawab, jangan diucapkan di sini:** kontrol negatif integritas
-split (41 dari 54 anak muncul di dua sisi ketika unit pengelompokan diganti), dan
-provenance Gate A/B. Keduanya kuat dan keduanya memanjangkan bagian yang sudah cukup.
+### “Apa nilai model Carette?”
 
----
+> Bukti konsep participant-grouped bahwa pipeline fitur-ke-model dapat direproduksi
+> pada domain sumber. Datanya 54 anak usia sekolah di Prancis pada 250 Hz, tanpa uji
+> eksternal. Fitur tata letaknya tidak berpindah ke stimulus sekarang, maka OOD guard
+> menolaknya dan model tidak pernah menentukan keputusan.
 
-## 9:15 — Penutup
+### “Mengapa tidak langsung merekam balita?”
 
-> Kami tidak merekam satu balita pun dan tidak akan sebelum ada kaji etik. Bukan karena
-> meneliti anak autistik tidak etis — seluruh bukti yang kami pakai lahir dari
-> penelitian yang merekam anak autistik dengan izin yang benar. Yang tidak etis adalah
-> kami melakukannya tanpa struktur itu. Jadi risetnya tidak berhenti; ia pindah ke
-> orang dewasa yang menyetujui untuk dirinya sendiri, ke data yang peneliti lain sudah
-> terbitkan dengan izin yang mereka punya, dan ke praktisi yang menangani anak-anak ini
-> setiap hari.
->
-> Gate C dan Gate D masih terbuka. Targetnya sudah kami tetapkan dari literatur, bukan
-> dari harapan: sensitivitas 88 persen dan spesifisitas 81 persen, angka SenseToKnow di
-> Nature Medicine pada kelas perangkat yang sama. Yang belum ada bukan pekerjaan
-> teknisnya — itu ada di tangan kalian sekarang, jalan, luring, di tablet. Yang belum
-> ada satu mitra klinis berizin etik. Dan begitu mitra itu ada, penyebaran alat ini
-> adalah mesin pengumpul datanya sendiri.
+> Karena keputusan proxy untuk anak memerlukan kaji etik dan izin orang tua yang valid,
+> serta acuan klinis independen dan linkage data yang aman. Kami tidak menyebut
+> perekaman anak sebagai sesuatu yang pada dasarnya salah; kami mengatakan struktur
+> perlindungan dan validasinya belum tersedia.
 
-Berhenti di sini.
+### “Berapa biaya per kasus?”
 
-**Jangan** tutup dengan "lima lembaga menolak kami". Itu benar, layak disebut, dan
-tempatnya di sesi tanya jawab — bukan sebagai kalimat terakhir yang juri bawa pulang.
+> Belum ada biaya per kasus yang teramati. Dokumen dampak hanya mensimulasikan skenario
+> bila titik operasi protokol penuh berhasil direplikasi. Operasi tetap memerlukan waktu
+> kader, pelatihan, dukungan, alat bantu, pengulangan, pemeliharaan, penggantian, dan
+> tindak lanjut klinis.
 
----
+### “Apa yang membuktikan ini relevan untuk Indonesia?”
 
-## Bila demo gagal di panggung
+> Belum ada validasi Indonesia. Relevansinya saat ini adalah hipotesis implementasi:
+> PWA luring dan pemrosesan lokal ditujukan pada keterbatasan jaringan serta privasi.
+> Uji kader dan studi balita Indonesia harus menentukan apakah hipotesis itu benar.
 
-**Laporan ditahan.** Jangan panik, jangan ulangi. Buka panel riset dan tunjuk gerbang
-mana yang menahan beserta alasannya.
+## Bila demo gagal
 
-> Ini keadaan ditahan, dan ini hasil yang sah. Attrition webcam pada balita yang
-> dilaporkan ManyBabies 42 persen. Alat yang tidak pernah menolak mengeluarkan angka
-> adalah alat yang mengarang angka. Dan perhatikan alat ini menyebut gerbang mana yang
-> menolak, bukan cuma bilang tidak bisa.
+Sebut penyebab yang terlihat, jangan menekan tombol berkali-kali. Tampilkan dua replay
+terdaftar dan ringkasan kontrol positif. Ucapkan:
 
-**Kamera tidak jalan, jadi kontrol negatif langsung batal.** Pakai **Peragakan ·
-Menonton biasa**, dan katakan terus terang bahwa yang tampil rekaman, bukan sesi
-langsung — label itu memang sudah tercetak di kepala laporan. Nilainya berkurang karena
-rekamannya bisa dipilih sebelumnya; sebut itu apa adanya alih-alih membiarkan juri
-menyimpulkannya sendiri:
-
-> Ini jadi lebih lemah daripada yang saya rencanakan, dan saya sebut supaya jelas:
-> rekaman bisa dipilih sebelumnya, relawan tidak. Yang tetap benar, sesi ini dari
-> kontrol positif dan angkanya ada di repositori.
-
-**Relawan tidak ada yang maju.** Jangan memaksa dan jangan memakai rekan satu tim
-diam-diam. Kalau harus memakai rekan tim, sebutkan bahwa dia rekan tim.
-
-**Ambang GeoPref tidak menyala.** Memang tidak akan, di lapangan. Klip yang tersedia
-16,75 detik dan protokol terbitnya 60–90 detik, jadi ambangnya ditahan. Untuk
-menunjukkan bentuk laporan rujukan, pakai **Peragakan · Pola diproduksi** di tab
-**Panduan & demo**. Laporannya membawa banner mode demonstrasi dan tetap tidak
-mengeluarkan rujukan.
-
-**Kalau yang ingin ditunjukkan adalah bahwa alat ini membedakan**, pakai **Peragakan ·
-kamera langsung** dua kali berturut-turut, di tab yang sama. Sesi pertama: pandangi
-panel geometrik saja dan jangan ikuti isyarat arah — laporannya keluar sebagai
-*Disarankan pemeriksaan lanjutan · 2 dari 2 sinyal menyimpang*, dengan alasan tiap
-sinyal dan sumbernya tercetak di bawahnya. Sesi kedua: minta relawan menonton adegan
-sosial dan benar-benar mengikuti isyarat arah — laporannya keluar sebagai *Tidak ada
-sinyal yang menyimpang · 2 dari 2 sinyal dinilai*. Dua hal yang harus disebut ketika
-melakukannya: keduanya mode peragaan, jadi tidak satu pun mengeluarkan rujukan; dan
-relawan perlu mengikuti minimal tujuh dari delapan isyarat, karena di bawah itu uji
-tandanya tidak mencapai p &lt; 0,05 dan sinyalnya terbaca *tidak dapat dinilai*, bukan
-*sesuai harapan*. **Mulai observasi kamera** tidak bisa dipakai untuk ini: di jalur
-lapangan perbandingan 69% tidak pernah dilakukan, jadi hanya satu dari dua sinyal yang
-dapat dinilai dan aturan komposit tidak mungkin menyala.
-
-**Tidak menemukan tombol demonya.** Beranda sekarang hanya punya satu tombol, dan itu
-sesi sungguhan. Seluruh jalur demo pindah ke tab **Panduan & demo**, di bawah panduan
-operator.
-
-**Salah menekan tombol peragaan.** Kedua tombol memuat labelnya masing-masing dan
-laporannya mencetak ID sesi yang diputar. Kalau yang terbuka kondisi yang salah,
-hentikan dan ulangi dengan tombol yang benar; jangan menarasikan kondisi yang satu di
-atas rekaman yang satunya.
+> Demo langsung tertahan oleh gerbang mutu. Itu hasil yang sah: sistem menolak membuat
+> angka ketika inputnya tidak layak. Bukti kamera-ke-angka yang sudah direkam tetap 23
+> sesi, dengan denominator mutu dan kondisi yang baru kami tunjukkan.

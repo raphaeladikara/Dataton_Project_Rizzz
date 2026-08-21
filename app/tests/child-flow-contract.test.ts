@@ -392,7 +392,7 @@ test("step numbering has one source, so no screen can disagree with the rail", (
 test("the report can be handed over on paper, not only as audit.json", () => {
   assert.match(page, /<PrintableReport/);
   assert.match(page, /window\.print\(\)/);
-  for (const required of ["Batas klaim", "Ambang rujukan 69%", "sensitivitas ambang ini 17%"])
+  for (const required of ["Batas klaim", "Titik operasi terbit 69% ditahan pada lajur lapangan", "sensitivitas ambang ini 17%"])
     assert.ok(page.includes(required), `print summary is missing: ${required}`);
   const printCss = sessionCss.slice(sessionCss.indexOf("@media print"));
   const hiddenPrintSelectors = printCss.match(/([\s\S]*?)\{ display: none !important; \}/)?.[1] ?? "";

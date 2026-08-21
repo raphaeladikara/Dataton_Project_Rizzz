@@ -1,8 +1,8 @@
 # Arah pitch: apa yang dijual, apa yang tidak, dan kalimat yang tidak boleh keluar
 
 Catatan ini menetapkan bingkai presentasi semifinal. Naskah menitnya ada di
-[`pitch_7_menit.md`](pitch_7_menit.md) dan [`pitch_10_menit.md`](pitch_10_menit.md);
-yang ini menjelaskan **kenapa naskah itu berbentuk begitu**, supaya siapa pun yang
+[`pitch_10_menit.md`](pitch_10_menit.md); `pitch_7_menit.md` hanya penunjuk superseded.
+Dokumen ini menjelaskan **kenapa naskah itu berbentuk begitu**, supaya siapa pun yang
 menyuntingnya tahu batas mana yang boleh digeser.
 
 Ditulis karena bingkai yang salah dapat merusak proyek yang benar. Beberapa kalimat
@@ -70,15 +70,15 @@ melainkan pengulangannya.**
 
 ### Yang harus mendapat waktu lebih banyak daripada sebelumnya
 
-- **Kontrol positif sebagai bukti utama.** Instrumen ini merespons: nol dari sembilan
-  sesi menonton biasa, pemisahan tanpa tumpang tindih pada ketiga sinyal, dan
-  provenance lengkap dari kamera ke angka. Ini klaim kemampuan yang berbentuk positif.
-- **Dampak, biaya, dan jalur adopsi.** Rp 13.900 versus Rp 9.700.000 per pemeriksaan,
-  dan penyebaran produk sebagai mesin pengumpul datanya sendiri. Ada lengkap di
-  [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md) dan sebelumnya tidak muncul sama
-  sekali di naskah mana pun.
-- **Wawancara praktisi.** Satu-satunya riset primer di proyek ini yang menyentuh
-  konteks Indonesia. Panduannya di [`wawancara_praktisi.md`](wawancara_praktisi.md).
+- **Kontrol positif sebagai bukti utama.** Sebut seluruh denominator: 12 dewasa, 23
+  sesi direkam, 15 lulus mutu; 9/11 biasa dan 6/12 pola diproduksi dapat dipakai;
+  aturan demo 0/9 dan 4/6. Ini responsivitas end-to-end, bukan performa klinis.
+- **Dampak bersyarat dan jalur adopsi.** Biaya perangkat lunak statis dapat mendekati
+  nol, tetapi operasi membutuhkan waktu kader, pelatihan, dukungan, alat bantu,
+  pengulangan, pemeliharaan, penggantian, dan tindak lanjut klinis. Biaya per kasus
+  hanya skenario bila titik operasi protokol penuh berhasil direplikasi.
+- **Permintaan mitra.** Wawancara praktisi dan uji kader belum dilakukan. Minta mitra
+  klinis/etik dan koordinator Posyandu untuk menjalankan keduanya serta merancang Gate C.
 
 ### Yang harus mendapat waktu lebih sedikit
 
@@ -107,15 +107,14 @@ merugikan tanpa perlu.
 
 Yang benar untuk dikatakan:
 
-> Bagian AI-nya bukan satu model. Ia rantai keputusan tentang model mana yang boleh
-> menyentuh anak: pipeline pandangan di perangkat yang lolos uji parity Python ke
-> browser, seleksi model yang menolak CNN kami sendiri lewat bootstrap berpasangan
-> pada 54 partisipan yang sama, studi degradasi temporal yang menunjukkan fitur
-> kinematik bergeser 69% ketika laju turun dari 26 ke 13 Hz sementara fitur geometri
-> bergeser 1,6%, dan penjaga out-of-distribution yang menolak model kami di perangkat,
-> saat itu juga, sambil menyebut fitur mana yang di luar distribusi.
+> Bagian AI-nya terdiri dari empat keputusan: pengukuran di perangkat dengan parity
+> Python–browser; seleksi model dan bukti domain sumber; pengujian robustness temporal;
+> serta tata kelola yang menahan protokol atau model yang tidak layak. Pada desimasi
+> 26 ke 13 Hz, median drift relatif adalah 69,4% untuk fitur kinematik dan 1,6% untuk
+> geometri. Itu bukan akurasi klasifikasi, dan beberapa fitur geometri tetap lemah
+> pada laju lebih rendah.
 
-Angka 69% berbanding 1,6% itu **satu-satunya temuan orisinal-terukur di proyek ini**
+Angka 69,4% berbanding 1,6% adalah hasil desimasi temporal milik proyek ini
 dan sebelumnya hanya muncul sebagai butir keempat di halaman `/validation`. Ia menjawab
 "kenapa fitur geometri, bukan kinematik" dengan angka milik sendiri, bukan sitiran.
 
@@ -148,9 +147,9 @@ Diferensiasi yang benar, dan sebelumnya tidak pernah dinamai:
 
 Satu kalimat:
 
-> Yang baru di sini bukan cara mengukur tatapan — itu sudah dipecahkan Nature Medicine.
-> Yang baru adalah arsitektur yang membuat alat ukur itu boleh dipegang relawan
-> Posyandu tanpa mengarang satu angka pun.
+> Kontribusi yang dapat ditunjukkan hari ini adalah arsitektur yang menahan angka saat
+> protokol, mutu, atau domain model tidak cocok. Apakah arsitektur itu dapat dipakai
+> kader dan valid pada balita Indonesia masih harus diuji.
 
 ---
 

@@ -15,8 +15,7 @@ Satu kalimat, dan ini yang harus keluar sebelum apa pun:
 
 > Kami tidak membangun satu model yang menebak autisme. Kami membangun **arsitektur
 > inferensi bergerbang** — sistem yang menjalankan modelnya di perangkat, lalu
-> memutuskan sendiri apakah keluaran model itu layak dibaca untuk anak yang sedang
-> duduk di depannya.
+> memutuskan apakah keluaran model layak dibaca untuk sesi yang sedang berjalan.
 
 Kalau hanya satu kalimat yang boleh diingat juri, itu kalimatnya.
 
@@ -46,7 +45,18 @@ makalah dan angka di tablet adalah dua sistem yang kebetulan bernama sama.
 
 `research/export_parity_fixture.py`
 
-### 2. Studi degradasi temporal — temuan orisinal kami
+### 2. Seleksi model dan bukti domain sumber
+
+Data Carette memberi bukti konsep participant-grouped pada 54 anak usia sekolah di
+Prancis dengan eye-tracker 250 Hz. Ia tidak memiliki uji eksternal dan bukan validasi
+klinis NeuroGaze. CNN mencapai AUC 0,882 dan regresi logistik 13 fitur 0,823; selisih
+berpasangan tidak dapat dibedakan dari nol (ΔAUC 0,059, CI95 [−0,007, +0,137],
+p = 0,087) dan korelasi prediksinya 0,93. Kontrak masukan CNN juga tidak dapat dipenuhi
+kamera 30 fps. Karena itu tidak ada model Carette yang menggerakkan keputusan.
+
+`research/hasil/perbandingan_model.json`
+
+### 3. Studi degradasi temporal
 
 **Ini angka milik kami sendiri, bukan sitiran, dan sekarang belum pernah dipamerkan.**
 
@@ -58,35 +68,17 @@ ukur pergeserannya:
 
 | Laju | Fitur kinematik | Fitur geometri |
 |---|---:|---:|
-| 26 Hz → 13 Hz | **bergeser 69%** | **bergeser 1,6%** |
+| 26 Hz → 13 Hz | **median drift relatif 69,4%** | **median drift relatif 1,6%** |
 
-> Kami tidak memilih fitur geometri karena lebih mudah. Kami mengukurnya. Ketika laju
-> kamera turun separuh — yang di Posyandu bukan kemungkinan, melainkan hari Selasa —
-> fitur kinematik bergeser 69 persen dan fitur geometri bergeser 1,6 persen. Itu
-> selisih empat puluh kali lipat, dan itu yang menentukan arsitekturnya.
+> Pada 27 sesi, penurunan laju dari sekitar 26 ke 13 Hz menghasilkan median drift
+> relatif 69,4 persen untuk fitur kinematik dan 1,6 persen untuk fitur geometri. Ini
+> bukan perbandingan akurasi klasifikasi. Hasilnya mendukung keluarga geometri, tetapi
+> beberapa fiturnya tetap memiliki pelestarian peringkat lemah atau drift besar pada
+> laju yang lebih rendah.
 
 `research/hasil/degradasi_temporal.json` · 27 sesi, aliran (x, y, t) nyata
 
-**Ini slide yang paling kurang dimanfaatkan di seluruh proyek.** Ia menjawab
-"kenapa desain kalian begini" dengan pengukuran sendiri, dan tidak ada tim lain yang
-akan punya angka seperti ini.
-
-### 3. Seleksi model yang membunuh model kami sendiri
-
-CNN kami ber-AUC 0,882. Regresi logistik 13 fitur ber-AUC 0,823. Yang menang: yang
-lebih rendah.
-
-Bootstrap berpasangan terstratifikasi, 10.000 replikasi, pada 54 partisipan yang sama:
-
-- ΔAUC = 0,059, CI95 **[−0,007, +0,137]**, p = 0,087 → tidak dapat dibedakan dari nol
-- Korelasi prediksi = **0,93** → CNN menemukan sinyal yang sama, bukan sinyal tambahan
-
-> Selisihnya tidak lolos uji, dan prediksinya berkorelasi 0,93 — jadi CNN kami bukan
-> model yang lebih pintar, ia model yang lebih rumit untuk sinyal yang sama.
-
-`research/hasil/perbandingan_model.json`
-
-### 4. Penjaga out-of-distribution — dan ini yang paling jarang ada di produk mana pun
+### 4. Tata kelola dan penolakan
 
 Model regresi logistik **dikirim ke tablet dan dijalankan setiap sesi.** Lalu penjaga
 memutuskan apakah keluarannya boleh dibaca.
@@ -99,10 +91,9 @@ KELUARAN MODEL     ditahan
 JARAK TERJAUH      9,1 z · Mahalanobis 87,9
 ```
 
-> Ini bukan tangkapan layar yang kami siapkan. Ini yang aplikasi cetak setiap sesi.
-> Modelnya jalan, penjaganya menolak, dan ia menyebutkan **fitur mana** yang di luar
-> distribusi beserta jaraknya. Kami tidak menyembunyikan model yang tidak layak — kami
-> menjalankannya di depan kalian dan menunjukkan sistem menangkapnya.
+> Model Carette berjalan hanya untuk panel riset. Penjaga menolaknya pada sesi sekarang
+> dan menyebut fitur yang berada di luar distribusi. Hasilnya tidak pernah masuk ke
+> keputusan, dan indeks lapis B tidak pernah digabung: `combinedScore` tetap `null`.
 
 `app/src/quality/ood.ts`
 
@@ -125,12 +116,10 @@ dapat dikompilasi**. Tata kelola yang dijaga type checker, bukan dijaga niat bai
 
 ## Menjawab "belum ada balita" tanpa kehilangan poin
 
-Ini pertanyaan yang pasti datang. Jawaban lama menghabiskan waktu untuk menjelaskan
-apa yang tidak kami punya. Jawaban baru menjelaskan apa yang sudah siap.
+Jawab dengan kesiapan yang sudah diuji dan pekerjaan yang masih nyata.
 
-> Betul, belum ada balita di data kami, dan itu keputusan yang kami ambil sadar-sadar.
-> Tapi perhatikan apa yang sebenarnya sedang ditanyakan: yang belum kami punya itu
-> **label**, bukan sistemnya.
+> Betul, belum ada balita di data kami. Yang sudah diuji adalah rantai rekayasa pada
+> orang dewasa, bukan skrining klinis.
 >
 > Yang sudah berdiri dan sudah terbukti jalan: kamera ke landmark, landmark ke
 > pandangan terkalibrasi, pandangan ke fitur, fitur ke model, model ke penjaga,
@@ -139,31 +128,14 @@ apa yang tidak kami punya. Jawaban baru menjelaskan apa yang sudah siap.
 > 23 sesi lewat aplikasi yang sama, lalu **menghitung ulang angkanya dari jejak mentah
 > dengan skrip terpisah** dan mendapat angka yang sama.
 >
-> Jadi yang kami bawa ke Gate C bukan prototipe yang harus dibangun ulang. Ini
-> instrumen yang sudah terpasang dan sudah terinstrumentasi, menunggu satu hal:
-> label klinis. Begitu satu mitra berizin etik ada, hari pertama pengumpulan data
-> adalah hari pertama pelatihan — bukan hari pertama rekayasa.
+> Gate C tetap membutuhkan lebih dari label: mitra yang mampu menjalankan kaji etik,
+> izin orang tua, acuan klinis buta, linkage data yang menjaga privasi, rekrutmen,
+> analisis fairness dan kegagalan, serta validasi prospektif sebelum titik operasi
+> dipilih.
 
-Kalimat yang menutupnya:
-
-> Sebagian besar tim di ruangan ini punya model tanpa jalur ke lapangan. Kami punya
-> jalur ke lapangan yang sudah jalan, menunggu modelnya. Dari dua masalah itu, yang
-> kedua yang bisa diselesaikan dengan satu tanda tangan.
-
----
-
-## Kenapa penyebarannya adalah mesin pengumpul datanya sendiri
-
-Lanjutkan langsung dari kalimat di atas — ini yang mengubah "belum ada data" dari
-kelemahan menjadi rencana:
-
-> Tiga puluh Posyandu selama satu tahun menghasilkan sekitar **700 sesi balita yang
-> dapat dinilai**. Kohort yang dipakai Nature Medicine untuk SenseToKnow berisi 475.
-> Artinya alat ini, dalam setahun penyebaran biasa, mengumpulkan data lebih banyak
-> daripada studi yang jadi acuan kami — dan mengumpulkannya di populasi yang belum
-> pernah ada instrumennya.
-
-`docs/dampak_dan_adopsi.md`
+Permintaan mitranya: satu tim klinis/etik, satu koordinator Posyandu, dan protokol
+bersama untuk uji keterpakaian kader serta studi Gate C. Pengumpulan data dilakukan
+sebagai penelitian prospektif, bukan sebagai penyebaran produk terselubung.
 
 ---
 

@@ -22,15 +22,29 @@ test("published Gate B snapshot matches the canonical WebGazer cohort", () => {
   assert.equal(summary.decision, "PASSED");
 });
 
-test("the headline is absolute accuracy from Gate A, not stream agreement", () => {
-  assert.equal(evidence.headline.metric, "known_target_median_error_deg");
-  assert.equal(evidence.headline.valueDeg, gateA.knownTargetValidation.medianErrorDeg);
-  assert.equal(evidence.headline.p90Deg, gateA.knownTargetValidation.p90ErrorDeg);
-  assert.equal(evidence.headline.sessions, gateA.knownTargetValidation.sessions);
+test("the headline is the adult positive control and Gate A stays bounded", () => {
+  assert.equal(evidence.headline.metric, "adult_positive_control");
+  assert.equal(evidence.gateAAccuracy.valueDeg, gateA.knownTargetValidation.medianErrorDeg);
+  assert.equal(evidence.gateAAccuracy.p90Deg, gateA.knownTargetValidation.p90ErrorDeg);
+  assert.equal(evidence.gateAAccuracy.sessions, gateA.knownTargetValidation.sessions);
   // The old page led with mean AOI agreement. That number is geometrically
   // saturated, so it must never be the headline again.
   assert.doesNotMatch(page.split("</h1>")[0], /meanAoiAgreement/);
-  assert.match(page, /headline\.valueDeg/);
+  assert.match(page, /positiveControl\.sessions\.recorded/);
+});
+
+test("public evidence carries complete positive-control and readiness denominators", () => {
+  assert.deepEqual(evidence.positiveControl.sessions, { recorded: 23, qualityPass: 15 });
+  assert.deepEqual(evidence.positiveControl.conditions.ordinary, { recorded: 11, usable: 9, ruleFired: 0 });
+  assert.deepEqual(evidence.positiveControl.conditions.produced, { recorded: 12, usable: 6, ruleFired: 4 });
+  assert.equal(evidence.positiveControl.emitsReferral, false);
+  assert.deepEqual(evidence.positiveControl.signals.map((signal: { nearestGap: number }) => signal.nearestGap), [
+    0.15989812775330392,
+    4,
+    0.008447514032818182,
+  ]);
+  assert.equal(evidence.readiness.schema, "neurogaze-readiness-matrix-v1");
+  assert.equal(evidence.readiness.clinicalClaimsAvailable, false);
 });
 
 test("the saturated agreement figure ships with the reason it is saturated", () => {
