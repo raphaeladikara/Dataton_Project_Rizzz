@@ -142,7 +142,8 @@ export function createMediaReadinessController(options: {
   const visibilityCleanups = new Set<() => void>();
   let readiness = initialMediaReadiness();
   let generation = 0;
-  let active = false;
+  let runActive = false;
+  let mediaRequired = false;
   let terminalNotified = false;
   let disposed = false;
 
@@ -152,10 +153,17 @@ export function createMediaReadinessController(options: {
     waiter.resolve(result);
   };
 
+  const currentBlockingFailure = (): MediaFailureStatus | null => {
+    if (!runActive || !isMediaFailure(readiness.status)) return null;
+    if (readiness.status === "interrupted" || mediaRequired) return readiness.status;
+    return null;
+  };
+
   const notifyTerminal = () => {
-    if (!active || terminalNotified || !isMediaFailure(readiness.status)) return;
+    const status = currentBlockingFailure();
+    if (!status || terminalNotified) return;
     terminalNotified = true;
-    options.onWithhold?.(mediaFailure(readiness.status), readiness);
+    options.onWithhold?.(mediaFailure(status), readiness);
   };
 
   const publish = (next: MediaReadiness) => {
@@ -178,11 +186,15 @@ export function createMediaReadinessController(options: {
     generation: () => generation,
     event(event, eventGeneration = generation) {
       if (disposed || eventGeneration !== generation) return readiness;
+      if (event === "interrupt" && runActive && !mediaRequired && isMediaFailure(readiness.status)) {
+        return publish({ status: "interrupted" });
+      }
       return publish(transitionMediaReadiness(readiness, event));
     },
     waitUntil(accepted) {
       if (disposed) return Promise.resolve({ status: "interrupted" });
-      active = true;
+      runActive = true;
+      mediaRequired = true;
       if (accepted.includes(readiness.status) || isMediaFailure(readiness.status)) {
         notifyTerminal();
         return Promise.resolve(readiness);
@@ -206,8 +218,9 @@ export function createMediaReadinessController(options: {
       });
     },
     prepareRun(required, accepted) {
+      runActive = true;
+      mediaRequired = required;
       if (!required) {
-        active = false;
         return Promise.resolve(null);
       }
       return controller.waitUntil(accepted);
@@ -228,10 +241,11 @@ export function createMediaReadinessController(options: {
       return !disposed && canCaptureTimedMedia(readiness, playback);
     },
     blockingFailure() {
-      return active && isMediaFailure(readiness.status) ? readiness.status : null;
+      return currentBlockingFailure();
     },
     reset() {
-      active = false;
+      runActive = false;
+      mediaRequired = false;
       terminalNotified = false;
       generation += 1;
       [...waiters].forEach((waiter) => settle(waiter, { status: "interrupted" }));
@@ -239,14 +253,15 @@ export function createMediaReadinessController(options: {
       return generation;
     },
     deactivate() {
-      active = false;
+      runActive = false;
+      mediaRequired = false;
       [...waiters].forEach((waiter) => settle(waiter, { status: "interrupted" }));
     },
     connectVisibility(source) {
       if (disposed) return () => undefined;
       let connected = true;
       const interruptWhenHidden = () => {
-        if (source.hidden && active) controller.event("interrupt", generation);
+        if (source.hidden && runActive) controller.event("interrupt", generation);
       };
       const disconnect = () => {
         if (!connected) return;
@@ -263,7 +278,8 @@ export function createMediaReadinessController(options: {
     },
     dispose() {
       if (disposed) return;
-      active = false;
+      runActive = false;
+      mediaRequired = false;
       disposed = true;
       generation += 1;
       [...waiters].forEach((waiter) => settle(waiter, { status: "interrupted" }));

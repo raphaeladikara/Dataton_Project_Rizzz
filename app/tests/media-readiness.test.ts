@@ -238,6 +238,32 @@ test("a directional-only retry bypasses failed GeoPref media while a full run is
   assert.deepEqual(fullWithheld, ["GEOPREF_MEDIA_TIMED_OUT"]);
 });
 
+test("a directional-only retry still stops when the page is hidden", async () => {
+  const { createMediaReadinessController } = await readinessModule();
+  const visibility = createFakeVisibility();
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+  controller.connectVisibility(visibility);
+  controller.event("error", controller.generation());
+
+  const directionalRetry = await controller.prepareRun(false, ["ready", "playing"]);
+  assert.equal(directionalRetry, null);
+  assert.equal(controller.blockingFailure(), null);
+  assert.deepEqual(withheld, []);
+
+  visibility.setHidden(true);
+  assert.equal(controller.snapshot().status, "interrupted");
+  assert.equal(controller.blockingFailure(), "interrupted");
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_INTERRUPTED"]);
+
+  visibility.setHidden(false);
+  controller.event("playing", controller.generation());
+  assert.equal(controller.snapshot().status, "interrupted");
+  assert.equal(controller.blockingFailure(), "interrupted");
+});
+
 test("reset and dispose cancel timers, listeners, waiters, and late media events", async () => {
   const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
   const fakeClock = createFakeClock();
