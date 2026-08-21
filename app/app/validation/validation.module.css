@@ -29,3 +29,71 @@
 @media(max-width:820px){.scaleGrid{display:block}.scaleRow{display:grid;grid-template-columns:1fr auto;grid-template-areas:"label value" "track track";gap:7px 12px;margin-bottom:14px}.scaleLabel{grid-area:label}.scaleRow strong{grid-area:value;justify-self:end}.track{grid-area:track}.scaleAxis{grid-column:auto}.blandTable tbody th{max-width:none}}
 
 .page footer{color:#5b6b66}
+
+@media (max-width: 720px) {
+  .page {
+    padding-inline: 14px;
+    color: #17302c;
+    background: #f4f5f3;
+  }
+  .topbar,
+  .hero,
+  .card,
+  .nextEvidence,
+  .metrics article {
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .brand,
+  .heroCopy h1,
+  .heroMetric strong,
+  .card h2,
+  .nextEvidence h2 {
+    font-family: var(--font-sans), sans-serif;
+  }
+  .topbar > span,
+  .status,
+  .heroCopy > p,
+  .heroCopy p.heroWhy,
+  .validatorLine span,
+  .validatorLine strong,
+  .heroMetric > span,
+  .heroMetric small,
+  .definition strong,
+  .definition p,
+  .metrics span,
+  .metrics small,
+  .eyebrow,
+  .card dt,
+  .card dd,
+  .card > a,
+  .card li,
+  .claimLock strong,
+  .claimLock small,
+  .nextEvidence p,
+  .nextEvidence p strong,
+  .nextEvidence > div > span,
+  .page footer,
+  .scale figcaption,
+  .scaleLabel,
+  .scaleLabel small,
+  .scaleAxis,
+  .scaleNote,
+  .cardLede,
+  .blandTable,
+  .blandTable caption,
+  .blandTable thead th,
+  .blandTable tbody th,
+  .blandTable tbody th small,
+  .referenceNote {
+    font-size: 14px;
+  }
+  .brand,
+  .card > a,
+  .page footer a {
+    min-height: 44px;
+  }
+  .card { overflow-x: auto; }
+}

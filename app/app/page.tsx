@@ -54,6 +54,7 @@ import { buildReferralRecommendation, REFERRAL_RULE_VERSION } from "../src/outco
 import { reportBadge } from "../src/outcome/reportBadge";
 import { buildPosteriorOdds } from "../src/outcome/posteriorOdds";
 import { buildSessionVerdict } from "../src/outcome/sessionVerdict";
+import { buildReportPresentation } from "../src/outcome/reportPresentation";
 import {
   appendAuditEvent,
   createSessionAudit,
@@ -588,6 +589,9 @@ function GuideFilm({ onComplete }: { onComplete?: () => void } = {}) {
 export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpose } = {}) {
   const isAdminCapture = initialPurpose === "gate_b_bridge";
   const [stage, setStage] = useState<Stage>(isAdminCapture ? "consent" : "home");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const primaryNavigationRef = useRef<HTMLDivElement>(null);
+  const mobileNavButtonRef = useRef<HTMLButtonElement>(null);
   const [mode, setMode] = useState<Mode>(isAdminCapture ? "live" : "replay");
   const [sessionPurpose, setSessionPurpose] = useState<SessionPurpose>(initialPurpose ?? "demo_replay");
   const [scenario, setScenario] = useState<ReplayScenario>(SCENARIOS[0]);
@@ -1042,6 +1046,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     commitAudit(null);
   }
 
+  function confirmDeleteCurrentAudit() {
+    if (!window.confirm("Hapus log sesi ini dari memori? Tindakan ini tidak dapat dibatalkan.")) return;
+    deleteCurrentAudit();
+  }
+
   function stopCamera() {
     cameraRequestIdRef.current += 1;
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -1074,6 +1083,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     stopCamera();
     setBusy(false);
     setStage("home");
+  }
+
+  function openHomeSection(sectionId: "evidence" | "privacy") {
+    setMobileNavOpen(false);
+    goHome();
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    requestAnimationFrame(() => document.getElementById(sectionId)?.scrollIntoView({ behavior }));
   }
 
   // Feature attributions are no longer surfaced: the Carette model does not
@@ -1190,6 +1206,34 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     () => stimulusSeconds(sessionStimulusPhases("duration-probe", { nameCallsDelivered: speakerDeclared })),
     [speakerDeclared],
   );
+  const reportPresentation = useMemo(() => buildReportPresentation({
+    qualityPassed: Boolean(quality?.passed && validity?.canScore),
+    demonstrationMode,
+    recommendsFollowUp: referral.recommendsFollowUp,
+    emitsReferral: sessionOutcome.emitsReferral,
+    sessionHeadline: verdict?.subline ?? sessionOutcome.headline,
+    sessionSummary: sessionOutcome.summaryLine,
+    validityMessage: validity?.userMessage,
+  }), [quality, demonstrationMode, referral, sessionOutcome, verdict, validity]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+        mobileNavButtonRef.current?.focus();
+      }
+    };
+    const closeOutside = (event: PointerEvent) => {
+      if (!primaryNavigationRef.current?.contains(event.target as Node)) setMobileNavOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("pointerdown", closeOutside);
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("pointerdown", closeOutside);
+    };
+  }, [mobileNavOpen]);
   const calibrationLimitDeg = isEngineeringStudy ? 3 : 5;
   const calibrationFailed = Boolean(calibrationMessage && (!calibration || calibration.errorDeg > calibrationLimitDeg));
   const recovery = calibrationRecovery(calibration, calibrationMessage);
@@ -2336,23 +2380,32 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       {demonstrationMode && stage !== "calibration" && stage !== "stimulus" && (
         <div className="presentationStrip" role="status">
           <span><IconResearch size={14} /> Peragaan demo</span>
-          <small>Peserta dewasa · ambang 69% diterapkan pada klip pendek · sesi tidak mengeluarkan rujukan</small>
+          <small>{reportPresentation.demoBanner}</small>
         </div>
       )}
-      {stage !== "calibration" && stage !== "stimulus" && <header className="topbar">
+      {stage !== "calibration" && stage !== "stimulus" && <header className={`topbar ${isSessionStage ? "operationalTopbar" : ""}`}>
         <div className="topbarInner">
-        <button className="brandButton" onClick={goHome}>
+        <button className="brandButton" onClick={() => { setMobileNavOpen(false); goHome(); }}>
           <Logo />
         </button>
-        <nav className="topnav" aria-label="Navigasi utama">
-          <button className={stage === "home" ? "active" : ""} onClick={goHome}>Beranda</button>
-          <button onClick={() => setStage("guide")}>Panduan & demo</button>
-          <button onClick={() => {
-            goHome();
-            const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-            requestAnimationFrame(() => document.getElementById("evidence")?.scrollIntoView({ behavior }));
-          }}>Bukti & privasi</button>
-        </nav>
+        <div className="primaryNavigation" ref={primaryNavigationRef}>
+          <button
+            ref={mobileNavButtonRef}
+            className="navMenuButton"
+            type="button"
+            aria-expanded={mobileNavOpen}
+            aria-controls="primary-navigation"
+            onClick={() => setMobileNavOpen((open) => !open)}
+          >
+            Menu
+          </button>
+          <nav className="topnav" id="primary-navigation" aria-label="Navigasi utama" data-open={String(mobileNavOpen)}>
+            <button className={stage === "home" ? "active" : ""} onClick={() => { setMobileNavOpen(false); goHome(); }}>Beranda</button>
+            <button onClick={() => { setMobileNavOpen(false); setStage("guide"); }}>Panduan & demo</button>
+            <button onClick={() => openHomeSection("evidence")}>Bukti</button>
+            <button onClick={() => openHomeSection("privacy")}>Privasi</button>
+          </nav>
+        </div>
         <div className="statusCluster">
           <span
             className={`offlineBadge ${offlineReadiness.status === "incomplete" ? "offline" : offlineReadiness.status}`}
@@ -2387,9 +2440,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <i aria-hidden="true"><IconEye size={13} /></i>
                 Pendamping skrining untuk Posyandu
               </span>
-              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>dalam {sessionSeconds} detik</em>.</h1>
+              <h1 style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>melalui baterai pengukuran {sessionSeconds} detik</em>.</h1>
               <p className="lead" style={{ "--i": 2 } as CSSProperties}>
-                Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi.
+                Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi. Total waktu kunjungan juga mencakup persetujuan, penyiapan, dan kalibrasi.
               </p>
               {/* One action, and it is the real session.
                   Every demo path now lives behind "Panduan & demo". A second
@@ -2470,7 +2523,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <p>Jejak teknis tersedia untuk evaluasi, sementara media mentah tetap berada di luar laporan.</p>
             </div>
             <div className="evidenceRow">
-              <article className="evidenceCard privacy" style={{ "--i": 0 } as CSSProperties}>
+              <article id="privacy" className="evidenceCard privacy" style={{ "--i": 0 } as CSSProperties}>
                 <span className="evidenceIcon" aria-hidden="true"><IconPrivacyShield size={26} /></span>
                 <strong>Privasi sejak awal</strong>
                 <p>Video dan landmark mentah tidak disimpan. Log teknis hanya berada di memori sampai diekspor.</p>
@@ -2940,7 +2993,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 {badge.label}
               </span>
             </div>
-            <h1>{isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : verdict ? verdict.headline : sessionOutcome.headline}</h1>
+            <h1>{demonstrationMode ? reportPresentation.sections[0].title : isGateB ? (quality.passed ? "Rekaman tablet Gate B siap dibandingkan" : "Rekaman tablet Gate B ditahan") : isGateA ? (quality.passed ? "Sesi uji Gate A lulus" : "Sesi uji Gate A perlu diulang") : verdict ? verdict.headline : sessionOutcome.headline}</h1>
             <p>{isGateB ? `${bridgeMeta.pairId} · ${bridgeMeta.visitId}` : isGateA ? "Peserta dewasa · Gate A engineering" : `${profile.age} bulan`} · {profile.site} · {new Date().toLocaleString("id-ID")}</p>
           </div>
           {/* One notice stack, one geometry. These used to be two full-width
@@ -2951,7 +3004,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <div className="reportNotices">
             {demonstrationMode && <div className="reportNotice" data-kind="demonstration" role="status">
               <span aria-hidden="true"><IconResearch size={17} /></span>
-              <p><strong>MODE DEMONSTRASI.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan rujukan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun. Di lapangan ambang ini ditahan.</p>
+              <p><strong>MODE DEMONSTRASI.</strong> {reportPresentation.demoBanner} Ambang 69% sengaja diterapkan agar bentuk respons arsitektur dapat diperagakan; angkanya tidak sah untuk keputusan apa pun.</p>
             </div>}
             <div className="reportNotice" data-kind="limit">
               <span aria-hidden="true"><IconAlert size={17} /></span>
@@ -2961,6 +3014,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               ? <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p></div>
               : <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>SIMULASI — bukan sesi langsung.</strong> Titik tatapan dibangkitkan, bukan direkam, jadi indeks perilaku tetap kosong. Indeks terisi pada sesi kamera atau saat rekaman tersedia.</p></div>)}
           </div>
+          {!isEngineeringStudy && <section className="caregiverReport" aria-label="Ringkasan untuk orang tua dan pendamping">
+            {reportPresentation.sections.map((section, index) => <article key={section.id} data-section={section.id}>
+              <span className="caregiverStep" aria-hidden="true">{index + 1}</span>
+              <div>
+                <small>{section.label}</small>
+                <h2>{section.title}</h2>
+                <p>{section.body}</p>
+              </div>
+            </article>)}
+          </section>}
+          <details className="reportPractitioner">
+            <summary>
+              <span>Detail untuk tenaga kesehatan dan auditor</span>
+              <small>Indeks, selang kepercayaan, p-value, jalur keputusan, status model, dan metadata teknis</small>
+            </summary>
+            <div className="practitionerReport">
           {!isEngineeringStudy && quality.passed ? (
             <div className="observationReport">
               {/* The decision, before the measurement.
@@ -3026,7 +3095,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   <article role="listitem"><span><IconTimer size={17} /> Respons nama</span><strong>{phenotype.responseToName.proportion == null ? "—" : `${phenotype.responseToName.responses}/${phenotype.responseToName.callsDelivered}`}</strong><p>{phenotype.responseToName.medianLatencyMs == null ? "Belum terukur." : `Median ${Math.round(phenotype.responseToName.medianLatencyMs)} ms.`}</p></article>
                   <article role="listitem"><span><IconGauge size={17} /> Laju kedip</span><strong>{phenotype.blinkSocial.blinksPerMinute == null ? "—" : `${phenotype.blinkSocial.blinksPerMinute.toFixed(1).replace(".", ",")}/mnt`}</strong><p>Saat adegan sosial.</p></article>
                 </div>
-                {cueSummary && <details className="reportTechnical observationDetails"><summary>Lihat angka tiap adegan</summary><div className="cueRows">{STIMULUS_PHASES.filter((phase) => phase.target === "left" || phase.target === "right").map((phase) => { const response = cueSummary.targetResponse[phase.id]; const face = cueSummary.dwellShare[phase.id]?.face; return <div key={phase.id}><span>{phase.label}</span><strong>{response ? `${Math.round(response.probability * 100)}% pada target` : "tidak terbaca"}</strong><small>{face == null ? "wajah n/a" : `${Math.round(face * 100)}% pada wajah`}{response?.latencyMs == null ? "" : ` · respons awal ${Math.round(response.latencyMs)} ms`}</small></div>; })}</div><p>Persentase ini adalah porsi waktu tatapan, bukan probabilitas ASD dan bukan nilai benar/salah.</p></details>}
+                {cueSummary && <section className="reportTechnical observationDetails"><h3>Lihat angka tiap adegan</h3><div className="cueRows">{STIMULUS_PHASES.filter((phase) => phase.target === "left" || phase.target === "right").map((phase) => { const response = cueSummary.targetResponse[phase.id]; const face = cueSummary.dwellShare[phase.id]?.face; return <div key={phase.id}><span>{phase.label}</span><strong>{response ? `${Math.round(response.probability * 100)}% pada target` : "tidak terbaca"}</strong><small>{face == null ? "wajah n/a" : `${Math.round(face * 100)}% pada wajah`}{response?.latencyMs == null ? "" : ` · respons awal ${Math.round(response.latencyMs)} ms`}</small></div>; })}</div><p>Persentase ini adalah porsi waktu tatapan, bukan probabilitas ASD dan bukan nilai benar/salah.</p></section>}
               </section>
               {/* Lane 2's rule, kept separable from lane 1 and stated once.
                   The signal cards live in the verdict above whenever there is a
@@ -3148,8 +3217,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   </div>
                   <p>Persentase dan latensi dihitung setelah onset cue, terpisah dari lead-in netral. Ini bukan probabilitas ASD dan bukan nilai “benar”. Respons alami anak boleh berbeda; pada Gate A dewasa, bagian ini hanya mengecek apakah stimulus dan AOI dapat dipahami.</p>
                 </div>}
-                <details className="reportTechnical">
-                  <summary>Detail teknis dan privasi</summary>
+                <section className="reportTechnical">
+                  <h3>Detail teknis dan privasi</h3>
                   <dl>
                     <div><dt>Model Carette</dt><dd>{riskInterpretable ? (risk ?? 0).toFixed(2).replace(".", ",") : "ditolak OOD — tidak dipakai"}</dd></div>
                     <div><dt>Fitur di luar rentang</dt><dd>{oodAssessment?.flaggedFeatures.length ? oodAssessment.flaggedFeatures.slice(0, 3).join(", ") : "tidak ada"}</dd></div>
@@ -3162,13 +3231,13 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     <div><dt>ID sesi</dt><dd>{auditLog?.sessionId.slice(0, 12) ?? "n/a"}</dd></div>
                     <div><dt>Video mentah/titik wajah</dt><dd>tidak disimpan</dd></div>
                   </dl>
-                </details>
+                </section>
               </div>
             </div>
           ) : (
             <div className={`withheldPanel ${mode === "live" && !isEngineeringStudy && quality.passed ? "validCapture" : ""}`}>
               <span className={`stateArt ${mode === "live" && !isEngineeringStudy && quality.passed ? "passed" : "withheld"}`} aria-hidden="true">{mode === "live" && !isEngineeringStudy && quality.passed ? <IconCheck size={26} /> : <IconSignalHeld size={26} />}</span>
-              {mode === "live" && !isEngineeringStudy && quality.passed ? <div><small>Model tidak tersedia</small><h2>Rekaman valid, tetapi estimasi tidak dapat dihitung</h2><p>Kamera, kalibrasi, dan seluruh fase stimulus berhasil direkam. Pemeriksaan kualitas lulus, tetapi model lokal atau format fitur tidak tersedia sehingga sistem menahan hasil.</p><div className="captureStatusGrid"><article><span>Pemeriksaan kualitas</span><strong>Lulus</strong><small>{Math.round(quality.faceRate * 100)}% wajah · {Math.round(quality.gazeDropout * 100)}% sampel hilang</small></article><article><span>Stimulus</span><strong>{cueSummary?.adequatePhaseCount ?? 0}/{cueSummary?.expectedPhaseCount ?? 0} fase</strong><small>{points.length} sampel valid</small></article><article><span>Estimasi</span><strong>Ditahan</strong><small>Periksa model lokal</small></article></div><div className="reportNextStep"><span><IconDownload size={18} /></span><div><strong>Langkah berikutnya</strong><p>Unduh catatan audit, lalu periksa aset model dan kecocokan format fitur sebelum mengulang sesi.</p></div></div><details className="reportTechnical"><summary>Ringkasan teknis sesi</summary><p><strong>Status:</strong> VALID · pemeriksaan kualitas lulus.</p><p><strong>Kalibrasi:</strong> {quality.calibrationErrorDeg.toFixed(2)}°.</p><p><strong>Model:</strong> {modelError ?? "inferensi tidak menghasilkan nilai"}.</p></details></div> : <div><small>Hasil ditahan</small><h2>Tes belum dapat dinilai</h2><p>{validity?.userMessage ?? "Kami belum mendapatkan rekaman tatapan yang cukup baik untuk memberikan hasil. Ini bukan hasil risiko anak."}</p><h3>Apa yang bisa dilakukan?</h3><ol><li>Pastikan wajah terlihat penuh dan tablet sejajar wajah.</li><li>Hindari pantulan cahaya pada kacamata.</li><li>Biarkan anak melihat layar tanpa diarahkan.</li><li>Ulangi tes saat anak lebih tenang.</li></ol>{validity?.primaryReasonCode && <details className="reportTechnical"><summary>Lihat detail untuk petugas</summary><p><strong>Masalah utama:</strong> {validity.userMessage}</p>{validity.invalidStages.length > 0 && <p><strong>Tahap:</strong> {validity.invalidStages.join(", ")}</p>}<p><strong>Saran:</strong> {validity.operatorAction}</p><code>reasonCode={validity.primaryReasonCode}</code></details>}</div>}
+              {mode === "live" && !isEngineeringStudy && quality.passed ? <div><small>Model tidak tersedia</small><h2>Rekaman valid, tetapi estimasi tidak dapat dihitung</h2><p>Kamera, kalibrasi, dan seluruh fase stimulus berhasil direkam. Pemeriksaan kualitas lulus, tetapi model lokal atau format fitur tidak tersedia sehingga sistem menahan hasil.</p><div className="captureStatusGrid"><article><span>Pemeriksaan kualitas</span><strong>Lulus</strong><small>{Math.round(quality.faceRate * 100)}% wajah · {Math.round(quality.gazeDropout * 100)}% sampel hilang</small></article><article><span>Stimulus</span><strong>{cueSummary?.adequatePhaseCount ?? 0}/{cueSummary?.expectedPhaseCount ?? 0} fase</strong><small>{points.length} sampel valid</small></article><article><span>Estimasi</span><strong>Ditahan</strong><small>Periksa model lokal</small></article></div><div className="reportNextStep"><span><IconDownload size={18} /></span><div><strong>Langkah berikutnya</strong><p>Unduh catatan audit, lalu periksa aset model dan kecocokan format fitur sebelum mengulang sesi.</p></div></div><section className="reportTechnical"><h3>Ringkasan teknis sesi</h3><p><strong>Status:</strong> VALID · pemeriksaan kualitas lulus.</p><p><strong>Kalibrasi:</strong> {quality.calibrationErrorDeg.toFixed(2)}°.</p><p><strong>Model:</strong> {modelError ?? "inferensi tidak menghasilkan nilai"}.</p></section></div> : <div><small>Hasil ditahan</small><h2>Tes belum dapat dinilai</h2><p>{validity?.userMessage ?? "Kami belum mendapatkan rekaman tatapan yang cukup baik untuk memberikan hasil. Ini bukan hasil risiko anak."}</p><h3>Apa yang bisa dilakukan?</h3><ol><li>Pastikan wajah terlihat penuh dan tablet sejajar wajah.</li><li>Hindari pantulan cahaya pada kacamata.</li><li>Biarkan anak melihat layar tanpa diarahkan.</li><li>Ulangi tes saat anak lebih tenang.</li></ol>{validity?.primaryReasonCode && <section className="reportTechnical"><h3>Lihat detail untuk petugas</h3><p><strong>Masalah utama:</strong> {validity.userMessage}</p>{validity.invalidStages.length > 0 && <p><strong>Tahap:</strong> {validity.invalidStages.join(", ")}</p>}<p><strong>Saran:</strong> {validity.operatorAction}</p><code>reasonCode={validity.primaryReasonCode}</code></section>}</div>}
             </div>
           )}
           {/* Research panel. The Carette model ships, runs, and produces a
@@ -3195,8 +3264,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <strong>Gerbang mutu menahan sesi ini</strong>
               <ul>{quality.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
             </div>}
-            {oodAssessment && oodAssessment.featureDistance.length > 0 && <details className="reportTechnical">
-              <summary>Lihat jarak tiap fitur terhadap kohort referensi</summary>
+            {oodAssessment && oodAssessment.featureDistance.length > 0 && <section className="reportTechnical">
+              <h3>Lihat jarak tiap fitur terhadap kohort referensi</h3>
               {/* Five columns of numbers do not fit a phone. They scroll inside
                   their own box rather than pushing the whole report sideways. */}
               <div className="tableScroll" tabIndex={0} role="region" aria-label="Jarak tiap fitur terhadap kohort referensi">
@@ -3214,8 +3283,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 </table>
               </div>
               <p>Robust-z adalah jarak terhadap median kohort Carette dibagi skala MAD-nya. Angka besar berarti sesi ini menghasilkan nilai fitur yang tidak pernah ditemui model saat dilatih.</p>
-            </details>}
+            </section>}
           </section>
+            </div>
+          </details>
           {/* Paper hand-off. A kader gives the Puskesmas a sheet, not audit.json,
               so the printed page carries the result, its provenance, and the
               claim limits without any of the on-screen chrome. */}
@@ -3236,7 +3307,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             {/* The sheet leaves the room without the screen. A demonstration that
                 printed as an ordinary session was a demonstration only the people
                 who saw the banner knew about. */}
-            {demonstrationMode && <p className="printDemonstration"><strong>MODE DEMONSTRASI — bukan hasil sesi lapangan.</strong> Ambang 69% sengaja diterapkan pada klip yang lebih pendek daripada protokol terbit, semata agar bentuk laporan terlihat. Sesi ini tidak mengeluarkan rujukan dan angkanya tidak sah untuk keputusan apa pun.</p>}
+            {demonstrationMode && <p className="printDemonstration"><strong>MODE DEMONSTRASI — bukan hasil sesi lapangan.</strong> {reportPresentation.demoBanner} Ambang 69% sengaja diterapkan agar respons arsitektur dapat diperagakan; angkanya tidak sah untuk keputusan apa pun.</p>}
             {/* The sheet leads with the same sentence the screen led with. A
                 printout whose first line is a percentage hands the reader the
                 job of drawing the conclusion, which is the job the report is
@@ -3301,7 +3372,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               : <button className="secondary" onClick={() => downloadCurrentAudit("operator_audit")}><IconDownload size={15} /> Unduh log audit JSON</button>)}
             <button className="secondary" onClick={() => window.print()}><IconReport size={15} /> Cetak ringkasan</button>
 
-            {auditLog && <button className="textButton danger" onClick={deleteCurrentAudit}><IconTrash size={15} /> Hapus log dari memori</button>}
+            {auditLog && <button className="textButton danger" onClick={confirmDeleteCurrentAudit}><IconTrash size={15} /> Hapus log dari memori</button>}
             <button className="primary" onClick={restart}><IconRefresh size={15} /> Ulangi sesi</button>
           </div>
         </section>
@@ -3336,7 +3407,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <div className="stimulusSteps" aria-label="Ringkasan tugas">
                 {introCopy.steps.map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}
               </div>
-              <small>{isEngineeringStudy ? `Stimulus berlangsung ${sessionSeconds} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${sessionSeconds} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
+              <small>{isEngineeringStudy ? `Baterai pengukuran berlangsung ${sessionSeconds} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Baterai pengukuran berlangsung ${sessionSeconds} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
               {mediaReadiness.status === "loading" && <small role="status">Menyiapkan video stimulus…</small>}
               {isMediaFailure(mediaReadiness.status) && <div className="falloutNotice" role="alert"><IconAlert size={18} /><div><strong>Video stimulus belum siap</strong><p>{mediaFailure(mediaReadiness.status).operatorAction}</p></div></div>}
               <button className="startStimulus" disabled={!calibration || sanityPassed !== true || (mode === "replay" && !model)} onClick={() => void runStimulus()}><IconPlay size={15} />{mode === "replay" ? "Saya paham · mulai demo" : isEngineeringStudy ? "Saya paham · mulai pengukuran" : "Mulai tes"}</button>

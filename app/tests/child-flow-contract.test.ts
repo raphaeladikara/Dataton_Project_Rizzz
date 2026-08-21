@@ -6,6 +6,9 @@ const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 const stimulusProtocol = readFileSync(new URL("../src/stimulus/protocol.ts", import.meta.url), "utf8");
 const sessionCss = readFileSync(new URL("../app/session.css", import.meta.url), "utf8");
 const responsiveCss = readFileSync(new URL("../app/responsive.css", import.meta.url), "utf8");
+const chromeCss = readFileSync(new URL("../app/chrome.css", import.meta.url), "utf8");
+const validationCss = readFileSync(new URL("../app/validation/validation.module.css", import.meta.url), "utf8");
+const adminCss = readFileSync(new URL("../app/admin/admin.module.css", import.meta.url), "utf8");
 const sw = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
 const adminConsole = readFileSync(new URL("../app/admin/admin-console.tsx", import.meta.url), "utf8");
 const heroDevice = readFileSync(new URL("../src/ui/hero-device.tsx", import.meta.url), "utf8");
@@ -14,6 +17,17 @@ const gateBPublic = readFileSync(new URL("../public/validation/gate-b-public.jso
 test("admin is reachable from a separate footer control", () => {
   assert.match(page, /className="adminAccess" href="\/admin"/);
   assert.doesNotMatch(page.match(/<nav className="topnav"[\s\S]*?<\/nav>/)?.[0] ?? "", /\/admin/);
+});
+
+test("compact primary navigation keeps guide, evidence, and privacy reachable", () => {
+  assert.match(page, /aria-expanded=\{mobileNavOpen\}/);
+  assert.match(page, /aria-controls="primary-navigation"/);
+  assert.match(page, /id="primary-navigation"/);
+  for (const label of ["Panduan & demo", "Bukti", "Privasi"])
+    assert.match(page, new RegExp(`>${label}<`));
+  assert.match(page, /event\.key === "Escape"/);
+  assert.match(page, /pointerdown/);
+  assert.doesNotMatch(chromeCss, /@media \(max-width: 1000px\)[\s\S]*?\.topnav\s*\{[^}]*display:\s*none/);
 });
 
 test("session follows the required child-first stages", () => {
@@ -124,10 +138,15 @@ test("reports use safe language and hide technical detail by default", () => {
   assert.match(outcome, /rujuk untuk pemeriksaan perkembangan/);
   assert.doesNotMatch(outcome, /Tidak autis|Positif autisme|anak normal/i);
   assert.doesNotMatch(page, /Tidak autis|Positif autisme|anak normal/i);
-  assert.match(page, /<details className="reportTechnical">/);
-  assert.doesNotMatch(page, /<details className="reportTechnical" open/);
+  const reportSection = page.match(/\{stage === "report"[\s\S]*?\{stage === "stimulus"/)?.[0] ?? "";
+  assert.equal((reportSection.match(/<details/g) ?? []).length, 1);
+  assert.match(reportSection, /<details className="reportPractitioner">/);
+  assert.doesNotMatch(reportSection, /<details className="reportPractitioner" open/);
+  for (const technicalDetail of ["95% CI", "p =", "Model Carette", "Coverage/OOD", "ID sesi"])
+    assert.ok(reportSection.indexOf(technicalDetail) > reportSection.indexOf('<details className="reportPractitioner">'));
   assert.match(page, /Rekaman valid, tetapi estimasi tidak dapat dihitung/);
-  assert.match(page, /validity\?\.primaryReasonCode && <details/);
+  assert.match(page, /validity\?\.primaryReasonCode && <section className="reportTechnical"/);
+  assert.match(page, /qualityPassed: Boolean\(quality\?\.passed && validity\?\.canScore\)/);
 });
 
 test("stimulus person uses connected sleeves and a single hand silhouette", () => {
@@ -267,6 +286,8 @@ test("stated session duration is derived from the protocol, never retyped", asyn
   assert.match(adminConsole, /STIMULUS_TOTAL_SECONDS/);
   assert.match(page, /stimulusSeconds\(sessionStimulusPhases\(/);
   assert.doesNotMatch(page, /STIMULUS_TOTAL_SECONDS/);
+  assert.match(page, /baterai pengukuran \{sessionSeconds\} detik/i);
+  assert.match(page, /Total waktu kunjungan juga mencakup persetujuan, penyiapan, dan kalibrasi/);
 });
 
 test("admin explains why the stimulus was purpose-built, with sources and limits", () => {
@@ -345,6 +366,20 @@ test("the report can be handed over on paper, not only as audit.json", () => {
   assert.match(page, /window\.print\(\)/);
   for (const required of ["Batas klaim", "Ambang rujukan 69%", "sensitivitas ambang ini 17%"])
     assert.ok(page.includes(required), `print summary is missing: ${required}`);
+  assert.match(page, /className="printDemonstration"/);
+  assert.match(sessionCss, /@media print \{[\s\S]*?\.cardActions[\s\S]*?display: none !important/);
+});
+
+test("deleting the in-memory audit log requires confirmation", () => {
+  assert.match(page, /window\.confirm\(/);
+  assert.match(page, /onClick=\{confirmDeleteCurrentAudit\}/);
+  assert.doesNotMatch(page, /onClick=\{deleteCurrentAudit\}/);
+});
+
+test("mobile evidence and admin controls remain readable and touchable", () => {
+  assert.match(validationCss, /@media\s*\(max-width:\s*720px\)[\s\S]*?font-size:\s*14px/);
+  assert.match(adminCss, /@media \(max-width: 900px\)[\s\S]*?\.navToggle\s*\{[^}]*min-height:\s*44px/);
+  assert.match(chromeCss, /\.navMenuButton\s*\{[\s\S]*?min-height:\s*44px/);
 });
 
 test("every screen change is announced and skippable", () => {
