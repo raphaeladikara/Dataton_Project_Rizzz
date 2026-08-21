@@ -144,6 +144,7 @@ import {
 import { CalibrationCharacter } from "../src/ui/calibration-character";
 import { HeroDevice } from "../src/ui/hero-device";
 import {
+  COMPACT_NAV_MEDIA,
   compactNavigationTransition,
   focusNavigationDestination,
   type NavigationDestinationId,
@@ -1245,16 +1246,32 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     demonstrationMode,
     recommendsFollowUp: referral.recommendsFollowUp,
     emitsReferral: sessionOutcome.emitsReferral,
+    fieldTitle: verdict?.headline ?? sessionOutcome.headline,
     sessionHeadline: verdict?.subline ?? sessionOutcome.headline,
     sessionSummary: sessionOutcome.summaryLine,
     validityMessage: validity?.userMessage,
   }), [quality, reportSourceKind, demonstrationMode, referral, sessionOutcome, verdict, validity]);
 
   useEffect(() => {
+    const compactNavigation = window.matchMedia(COMPACT_NAV_MEDIA);
+    const closeWhenWide = (event: MediaQueryListEvent) => {
+      setMobileNavOpen((open) => compactNavigationTransition(open, {
+        type: "breakpoint",
+        compact: event.matches,
+      }).open);
+    };
+    compactNavigation.addEventListener("change", closeWhenWide);
+    return () => compactNavigation.removeEventListener("change", closeWhenWide);
+  }, []);
+
+  useEffect(() => {
     if (!mobileNavOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        const transition = compactNavigationTransition(mobileNavOpen, { type: "escape" });
+        const transition = compactNavigationTransition(mobileNavOpen, {
+          type: "escape",
+          compact: window.matchMedia(COMPACT_NAV_MEDIA).matches,
+        });
         setMobileNavOpen(transition.open);
         if (transition.focusTarget === "trigger") mobileNavButtonRef.current?.focus();
       }

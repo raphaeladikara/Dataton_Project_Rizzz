@@ -9,11 +9,13 @@ type NavigationRoot = {
 };
 
 export type NavigationDestinationId = "home-heading" | "guide-heading" | "evidence" | "privacy";
+export const COMPACT_NAV_MEDIA = "(max-width: 1000px)";
 
 export type CompactNavigationAction =
   | { type: "toggle" }
-  | { type: "escape" }
+  | { type: "escape"; compact: boolean }
   | { type: "outside" }
+  | { type: "breakpoint"; compact: boolean }
   | { type: "select"; destinationId: NavigationDestinationId };
 
 export type CompactNavigationState = {
@@ -27,7 +29,10 @@ export function compactNavigationTransition(
   action: CompactNavigationAction,
 ): CompactNavigationState {
   if (action.type === "toggle") return { open: !open, focusTarget: null };
-  if (action.type === "escape") return { open: false, focusTarget: "trigger" };
+  if (action.type === "breakpoint") return { open: action.compact ? open : false, focusTarget: null };
+  if (action.type === "escape") {
+    return { open: false, focusTarget: action.compact ? "trigger" : null };
+  }
   if (action.type === "select") return { open: false, focusTarget: action.destinationId };
   return { open: false, focusTarget: null };
 }

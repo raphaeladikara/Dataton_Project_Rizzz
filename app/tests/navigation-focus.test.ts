@@ -44,8 +44,21 @@ test("compact navigation selection closes and names the destination focus target
 
 test("Escape closes compact navigation and restores its trigger", () => {
   assert.deepEqual(
-    compactNavigationTransition(true, { type: "escape" }),
+    compactNavigationTransition(true, { type: "escape", compact: true }),
     { open: false, focusTarget: "trigger" },
+  );
+});
+
+test("leaving compact navigation closes it without focusing the hidden trigger", () => {
+  const wide = compactNavigationTransition(true, { type: "breakpoint", compact: false });
+  assert.deepEqual(wide, { open: false, focusTarget: null });
+  assert.deepEqual(
+    compactNavigationTransition(wide.open, { type: "breakpoint", compact: true }),
+    { open: false, focusTarget: null },
+  );
+  assert.deepEqual(
+    compactNavigationTransition(true, { type: "escape", compact: false }),
+    { open: false, focusTarget: null },
   );
 });
 
