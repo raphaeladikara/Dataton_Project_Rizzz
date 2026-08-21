@@ -217,3 +217,17 @@ Three rules that matter while editing anything public-facing:
   or the rule sounds like it blunted the instrument.
 - **`docs/run_sheet.md`** is the one-page stage sheet; **`docs/paket_mitra.md`** is the
   partner package inventory (10 of 14 items ready). Keep the counts in both honest.
+
+## Evidence added 2026-08-21 (third pass)
+
+- **`research/shortcut_audit.py`** is the standalone, released version of the nuisance
+  baseline. It exits non-zero on `shortcut_present`, so it can gate CI. Demonstrated both
+  ways in this repo: it fires on `research/hasil/cilia/indeks_60hz.csv` and passes on
+  `research/hasil/kontrol_positif_nuisance.csv`. Keep both demonstrations working — a
+  check only ever shown failing is indistinguishable from a check that always fails.
+- **Do not swap the counting rule for the posterior.** With the two signals that ship,
+  cue following always carries LR = 1, so the posterior takes exactly three values and all
+  three are set by GeoPref alone: 7.91% deviant, 1.00% unassessable, 0.85% normal. Any
+  cutoff on it is therefore identical to "GeoPref deviant" — a one-signal rule, which
+  `referralRecommendation.ts` and PRODUCT.md both forbid by name. The posterior stays a
+  reason; the counting rule stays the decision; the invented number stays labelled.
