@@ -2400,6 +2400,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         }
         if (cancelled) return;
         setSanityPassed(true);
+        // The stimulus stage has to be on screen before the battery is
+        // prepared. Its scene owns the GeoPref <video>, and the media gate
+        // waits for that element to report canplay; asking for the clip while
+        // the calibration screen is still mounted spends the whole deadline on
+        // an element that does not exist yet and withholds every demo run.
+        setStage("stimulus");
         setDemoRun("measuring");
         return;
       }
