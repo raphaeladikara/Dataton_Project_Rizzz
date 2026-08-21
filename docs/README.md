@@ -18,8 +18,10 @@
 - [`ambang_selang_kepercayaan.md`](ambang_selang_kepercayaan.md): kenapa ambang 69% dibandingkan terhadap selang kepercayaan dan bukan terhadap satu angka, penaksir yang dipakai beserta dua yang gagal, dan tabel karakteristik operasi aturan lama versus baru.
 - [`model_rujukan.md`](model_rujukan.md): rancangan model rujukan — kalibrasi likelihood-ratio, bobot dari data terbit CC BY 4.0, empat audit yang menggerbanginya, dan kriteria menolaknya.
 - [`kontrol_positif.md`](kontrol_positif.md): protokol kontrol positif — alat, peserta, naskah instruksi, penamaan berkas, kriteria mutu, dan cara mendaftarkan rekamannya. **Sudah dijalankan** 19 Agustus 2026; hasilnya, confound-nya, dan sembilan cacat yang dibongkarnya ada di [`research/hasil/kontrol_positif/README.md`](../research/hasil/kontrol_positif/README.md).
+- [`readiness_matrix.md`](readiness_matrix.md): status kanonis lima kapabilitas—yang siap diperagakan, yang sudah ditunjukkan pada orang dewasa, dan yang masih ditahan atau belum diuji. Berkas ini dihasilkan bersama JSON publik oleh `research/export_readiness_matrix.py`.
 - [`model_dikarantina.md`](model_dikarantina.md): kenapa CNN 0,882 dan CNN wajah 0,932 tidak dipakai, uji berpasangan yang menggantikan argumen "CI bertumpang tindih", dan apakah keduanya bisa dibuat berguna.
 - [`dampak_dan_adopsi.md`](dampak_dan_adopsi.md): klaim dampak yang bisa dipertahankan, biaya per pemeriksaan, jalur integrasi, dan jalur pengumpulan data Gate C.
+- [`pitch_10_menit.md`](pitch_10_menit.md): naskah kompetisi aktif. `pitch_7_menit.md` dipertahankan sebagai penunjuk dan tidak lagi menjadi sumber klaim.
 - [`provenance/harness_gate_a_b.md`](provenance/harness_gate_a_b.md): apa yang bisa dan tidak bisa diperiksa tentang asal bukti Gate A/B, plus aturan perekaman berikutnya.
 - [`pembersihan_dataset_wajah.md`](pembersihan_dataset_wajah.md): mengeluarkan dataset wajah dari riwayat Git sebelum repositori dipublikkan.
 - [`keputusan_ilmiah.md`](keputusan_ilmiah.md): alasan di balik keputusan yang menentukan batas klaim.

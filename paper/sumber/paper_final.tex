@@ -94,21 +94,23 @@ Universitas Airlangga
 \setcounter{page}{1}
 
 \begin{abstract}
-Autisme paling responsif terhadap intervensi pada usia di bawah tiga tahun, tetapi diagnosis
-rata-rata baru terjadi pada usia 56 bulan, sekitar 32 bulan setelah keresahan pertama orang
-tua. Instrumen lini pertama punya sensitivitas terbatas, sementara asesmen objektif terpusat
-di fasilitas mahal. Makalah ini memperkenalkan Neurogaze, PWA luring untuk triase anak 16
-sampai 30 bulan pada tablet Android biasa yang dioperasikan kader Posyandu. Kamera
+Autisme paling responsif terhadap intervensi pada usia di bawah tiga tahun, tetapi tinjauan
+lintas negara melaporkan diagnosis rata-rata pada usia 56 bulan, sekitar 32 bulan setelah
+keresahan pertama orang tua; angka ini bukan estimasi Indonesia. Instrumen lini pertama
+punya sensitivitas terbatas, sementara asesmen objektif terpusat di fasilitas mahal. Makalah
+ini memperkenalkan Neurogaze, prototipe PWA luring untuk riset pengukuran atensi pada tablet
+Android biasa. Kamera
 mengestimasi pola pandangan selama stimulus sosial dan menahan sesi yang gagal memenuhi
-syarat kualitas. Keputusannya berlapis tiga. Satu-satunya pemicu rujukan otomatis adalah
-ambang GeoPref 69 persen yang kami pakai apa adanya dari kohort terbit 1.863 anak usia 12-48
-bulan dengan spesifisitas 98 persen dan sensitivitas 17 persen; enam indeks perilaku
+syarat kualitas. Keputusannya berlapis tiga. GeoPref 69 persen adalah satu-satunya kandidat
+pemicu rujukan dengan titik operasi terbit (1.863 anak usia 12--48 bulan, spesifisitas 98
+persen, sensitivitas 17 persen), tetapi rujukan otomatis ditahan karena klip 16,75 detik
+yang dikirim tidak mereplikasi protokol penuh tempat titik operasi itu diturunkan; enam indeks perilaku
 dilaporkan deskriptif tanpa skor gabungan; dan lapis gabungan belum dibangun karena bobotnya
 menuntut balita berlabel. Regresi logistik terkalibrasi yang dievaluasi di makalah ini tidak
 memutuskan apa pun di produk dan dikurung pada panel riset berpenapis out-of-distribution.
-Kami menuntaskan validasi algoritmik pada 547 scanpath dari 54
-anak dengan pemisahan latih, validasi, dan uji tertahan yang dikelompokkan per partisipan.
-Regresi logistik 13 fitur geometri yang kami bekukan sebagai model produksi mencapai ROC-AUC
+Kami mengevaluasi bukti konsep domain sumber pada 547 scanpath dari 54 anak usia sekolah di
+Prancis, direkam dengan eye-tracker 250~Hz, dengan pemisahan yang dikelompokkan per
+partisipan tetapi tanpa uji eksternal. Regresi logistik 13 fitur geometri mencapai ROC-AUC
 tingkat anak 0,823 (95\% CI 0,697-0,929) pada data tertahan, sedangkan CNN EfficientNetB0
 pada citra yang sama mencapai 0,882 (0,774-0,968) tetapi tidak dapat dijalankan pada
 perangkat sasaran. Pada proxy degradasi gabungan 30~Hz, derau 1,5$^\circ$, dropout 20\%, dan
@@ -118,15 +120,19 @@ taruhannya: mengganti unit pengelompokan split membuat 41 dari 54 anak muncul di
 Audit dataset wajah 2.940 citra menemukan enam dari enam metadata tata kelola tidak tersedia;
 CNN di atasnya mencapai AUC 0,932, dan justru karena itu dataset dikarantina. Di luar
 validasi algoritmik, dua gerbang instrumen sudah dituntaskan: Gate~A lulus pada 100 sesi dari
-25 peserta dewasa lintas tiga tablet Android dengan galat median 2,2$^\circ$, completion rate
+25 peserta dewasa lintas tiga perangkat Android dengan galat kalibrasi median 2,2$^\circ$, completion rate
 94 persen, dan frame wajah-iris valid 96,4 persen; Gate~B lulus pada 30 perbandingan browser
 simultan terhadap WebGazer.js 3.5.3, dengan 27 pasangan siap, galat median ternormalisasi
 0,040997 dan agreement AOI rata-rata 99,7118 persen hasil rekomputasi dari koordinat mentah.
-Akurasi absolut hanya dikutip dari blok target diketahui Gate~A, yaitu galat median 2,36$^\circ$
-dan persentil 90 sebesar 3,58$^\circ$ pada 94 sesi; agreement antaraliran tidak dapat
-menghasilkan angka akurasi.
-Gate~C dan Gate~D tetap terbuka karena kohort balita prospektif dan uji lapangan Posyandu
-belum diselesaikan.
+Blok target diketahui Gate~A menghasilkan konversi sudut lama 2,36$^\circ$ median dan
+3,58$^\circ$ persentil 90 pada 94 sesi lulus, tetapi jarak pandang tidak direkam sehingga
+angka itu bukan akurasi absolut eksak atau uji tanding terhadap WebGazer. Kontrol positif
+dewasa menjadi bukti end-to-end utama: 12 peserta, 23 sesi direkam, 15 lulus mutu; 9/11
+sesi menonton biasa dan 6/12 sesi pola diproduksi dapat dipakai, dengan aturan demonstrasi
+menyala pada 0/9 dan 4/6 sesi. Hasil ini adalah manipulation check, bukan sensitivitas,
+spesifisitas, ASD, atau status klinis peserta; mode demonstrasi tidak mengeluarkan rujukan.
+Gate~C dan Gate~D tetap terbuka: belum ada balita, uji kader, validasi Indonesia,
+wawancara praktisi, atau linkage klinis.
 \end{abstract}
 
 % =============================================================================
@@ -317,10 +323,10 @@ dapat diaudit.
 
 \subsection{Analisis kesenjangan}
 
-Kesenjangan yang kami sasar ada pada penerjemahan pengukuran objektif menjadi sistem yang
-dapat dioperasikan kader tanpa jaringan. Ketepatan pengukurannya sudah ditangani pekerjaan
-lain, dan kamera tablet pun sudah dipakai orang lain. Yang kami tambahkan empat hal:
-orkestrasi skrining universal berbasis Posyandu, quality gate yang menahan keputusan ketika
+Kesenjangan yang kami sasar adalah penerjemahan pengukuran objektif menjadi sistem yang
+kelak dapat diuji bersama kader tanpa jaringan. Kamera tablet sudah dipakai penelitian lain,
+tetapi validitas Indonesia dan keterpakaian kader belum diuji. Yang kami tambahkan empat hal:
+orkestrasi prototipe riset berbasis Posyandu, quality gate yang menahan keputusan ketika
 pengukuran gagal, laporan yang dapat diaudit, dan disiplin pelaporan bukti yang menolak
 menampilkan angka sebelum datanya ada. Tabel~\ref{tab:beda} pada Lampiran~E merangkumnya.
 
@@ -689,7 +695,7 @@ salah ditandai punya lintasan yang tidak biasa luas. Angkanya sejalan. Pada 45 a
 citranya dapat kami petakan kembali ke rekaman aslinya, korelasi Spearman antara fraksi
 tinta dan probabilitas keluaran model adalah 0,927, dan fraksi tinta anak ASD yang terlewat
 rata-rata 0,46 persen berbanding 1,94 persen pada yang terdeteksi benar (Mann-Whitney
-$p = 0{,}0008$). Keluaran model produksi kami, dengan kata lain, hampir sepenuhnya monoton
+$p = 0{,}0008$). Keluaran model riset Carette, dengan kata lain, hampir sepenuhnya monoton
 terhadap seberapa luas layar disapu pandangan.
 
 Konsekuensinya menyangkut keselamatan. Rekaman yang pendek, terputus, atau tidak terlacak
@@ -764,7 +770,7 @@ spesifisitas 0,7500, jauh lebih seimbang daripada regresi logistik; 11 dari 54 a
 diklasifikasikan, seluruhnya pada probabilitas 0,23 sampai 0,61. Ablasi fine-tuning memberi
 hasil nol: membuka 25 persen lapisan teratas hanya mengubah AUC validasi sebesar
 $+0,0009 \pm 0,0027$, tidak dapat dibedakan dari derau pada 54 anak. Selisih 0,059 AUC
-terhadap model produksi adalah harga yang kami bayar dengan sadar; alasannya pada
+terhadap model riset Carette adalah harga yang kami bayar dengan sadar; alasannya pada
 Bagian~\ref{sec:trade-off}.
 
 \subsection{Verifikasi integritas split}
@@ -805,6 +811,14 @@ baik untuk nilai fitur maupun probabilitas model, dengan rangkaian uji hijau pen
 rantai raster sampai inferensi memberi median 4,93~ms pada desktop referensi. Rincian uji,
 kontrak luring, dan angka latensi ada pada Lampiran~E.
 
+Analisis desimasi temporal terpisah memakai 27 sesi Gate~B yang membawa stempel waktu nyata.
+Saat laju efektif turun dari 26,16 menjadi 13,08~Hz, median drift relatif fitur kinematik
+adalah 69,35 persen dan fitur geometri 1,64 persen. Kedua angka ini mengukur drift fitur,
+bukan akurasi atau robustness klasifikasi. Enam dari 13 fitur geometri tetap memiliki
+Spearman di bawah 0,8 pada 13,08~Hz; pada 6,54~Hz median Spearman geometri turun menjadi
+0,4426 dan beberapa fitur menunjukkan drift besar. Hasil ini mendukung pemilihan keluarga
+geometri tanpa menyatakan bahwa seluruh fiturnya stabil.
+
 \subsection{Gate~A: validasi instrumen pada kohort dewasa}
 \label{sec:gatea}
 
@@ -820,13 +834,11 @@ sehingga terkumpul 100 sesi lengkap. Hasilnya 94 dari 100 sesi selesai, galat me
 persen, dan seluruh fungsi inti berjalan luring tanpa satu pun crash. Tabel~\ref{tab:gatea} pada Lampiran~E
 merinci sebarannya menurut kondisi pengujian.
 
-Gate~A juga menjadi satu-satunya sumber akurasi absolut yang dimiliki proyek ini. Pada 94
-sesi yang lulus, galat sudut terhadap target kalibrasi yang koordinatnya diketahui bernilai
-median 2,36$^\circ$ dengan persentil 90 sebesar 3,58$^\circ$; sebagai pembanding, WebGazer
-melaporkan galat 4,17$^\circ$ pada publikasi aslinya~\cite{papoutsaki2016}. Angka inilah,
-bukan agreement antaraliran pada Bagian~\ref{sec:gateb}, yang boleh dikutip sebagai akurasi:
-dua penaksir dapat sepakat sambil sama-sama meleset, sehingga kesepakatan tidak pernah
-menghasilkan akurasi.
+Pada 94 dari 100 sesi yang lulus, blok target diketahui menghasilkan konversi sudut lama
+dengan median 2,36$^\circ$ dan persentil 90 sebesar 3,58$^\circ$. Jarak pandang tiap sesi
+tidak direkam, sehingga angka ini memberi konteks teknis tetapi bukan akurasi absolut eksak.
+WebGazer melaporkan 4,17$^\circ$ pada perangkat dan protokol berbeda~\cite{papoutsaki2016};
+keduanya bukan uji tanding. Blok target diketahui head-to-head Gate~B belum direkam.
 
 Polanya mengikuti mutu deteksi iris. Cahaya redup dan lensa kacamata sama-sama menurunkan
 mutu itu, dan di situlah galat median naik ke kisaran 2,8-2,9$^\circ$ sementara tingkat
@@ -843,7 +855,7 @@ yang menghasilkan skor risiko. \textbf{Status Gate~A: lulus.}
 \subsection{Gate~B: agreement terhadap WebGazer.js}
 \label{sec:gateb}
 
-Gate~B membandingkan aliran gaze Neurogaze dengan WebGazer.js 3.5.3 yang direkam secara
+Gate~B membandingkan aliran gaze Neurogaze dengan implementasi referensi WebGazer.js 3.5.3 yang direkam secara
 simultan di browser. Pemilihan pembandingnya bukan soal kemudahan: WebGazer adalah metode
 webcam yang divalidasi ManyBabies untuk balita usia 18-27 bulan pada 125 anak di 16
 laboratorium~\cite{steffan2024}, sehingga ia satu-satunya referensi terbuka yang punya bukti
@@ -852,7 +864,7 @@ persen, dan angka itu kami pakai sebagai dasar ekspektasi penyelesaian sesi bali
 alasan keadaan ditahan dirancang sebagai hasil kelas satu, bukan sebagai kegagalan.
 Kontrak referensinya adalah callback
 \texttt{setGazeListener} dengan data dan waktu berjalan pada ruang koordinat piksel CSS. Yang
-dibandingkan adalah galat koordinat ternormalisasi, agreement area of interest (AOI), AOI
+WebGazer bukan ground truth atau standar emas. Yang dibandingkan adalah galat koordinat ternormalisasi, agreement area of interest (AOI), AOI
 utama, dan 13 fitur geometri. Pengujian ini mengukur agreement perangkat lunak, bukan
 kemampuan mendiagnosis ASD atau kesetaraan dengan eye-tracker laboratorium.
 
@@ -875,9 +887,29 @@ terhadap batas $\leq 0,05$, agreement AOI rata-rata 99,7118 persen terhadap bata
 persen, dan agreement AOI utama 100 persen terhadap batas $\geq 95$ persen.
 \textbf{Status Gate~B: lulus.}
 
-Kesimpulan ini terbatas pada agreement terhadap WebGazer.js dalam kohort yang terekam.
+Kesimpulan ini terbatas pada agreement terhadap implementasi referensi WebGazer.js dalam kohort yang terekam.
 Generalisasi klinis pada balita, sensitivitas, dan spesifisitas tetap harus dinilai melalui
 Gate~C prospektif dengan hasil klinis independen.
+
+\subsection{Kontrol positif dewasa dan kesiapan}
+
+Kontrol positif menguji apakah rantai kamera-ke-angka merespons ketika orang dewasa sengaja
+memproduksi pola yang dicari. Dua belas orang dewasa memberi persetujuan dan menghasilkan
+23 sesi pada tiga perangkat; 15 sesi lulus mutu. Denominator per kondisi adalah 9 dari 11
+sesi menonton biasa dan 6 dari 12 sesi pola diproduksi yang dapat dipakai. Dalam mode
+demonstrasi, aturan menyala pada 0 dari 9 sesi biasa dan 4 dari 6 sesi pola diproduksi.
+Mode ini mengunci \texttt{emitsReferral} pada \texttt{false}. Tiga sinyal terpisah tanpa
+tumpang tindih, tetapi AUC 1,00 hanya menyatakan tidak ada pasangan yang terurut salah;
+margin terdekat dan denominator lengkap lebih informatif. Hasil ini adalah manipulation
+check dan responsivitas end-to-end, bukan sensitivitas, spesifisitas, ASD, atau status
+klinis peserta.
+
+Matriks kesiapan yang dihasilkan bersama artefak publik menempatkan rantai pengukuran di
+perangkat sebagai siap untuk demonstrasi rekayasa dan respons dewasa sebagai telah
+ditunjukkan. Rujukan otomatis balita ditahan. Keterpakaian kader dan validitas balita
+Indonesia belum diuji. Validasi prospektif memerlukan mitra yang mampu menjalankan kaji
+etik, izin orang tua, acuan klinis buta, linkage privat, rekrutmen, analisis fairness dan
+kegagalan, serta validasi prospektif sebelum pemilihan titik operasi.
 
 \subsection{Ringkasan capaian validasi}
 
@@ -904,39 +936,37 @@ klinis atau operasional Neurogaze.
 
 \subsection{Peran, biaya, dan titik masuk layanan}
 
-Tiga peran sering tertukar, jadi kami pisahkan. Penerima manfaatnya anak 16-30 bulan beserta
-pengasuhnya. Operatornya kader Posyandu di bawah supervisi Puskesmas, tenaga yang sudah hadir
-setiap bulan dan sudah menjalankan SDIDTK, sehingga produk ini tidak menuntut peran baru.
-Pembiayaannya jatuh pada Dinas Kesehatan kabupaten atau kota lewat anggaran program gizi dan
-tumbuh kembang yang sudah ada. Orang tua tidak membayar apa pun; memungut biaya per
-pemeriksaan akan menghancurkan alasan produk ini ada.
+Tiga peran sering tertukar, jadi kami pisahkan sebagai hipotesis implementasi. Penerima
+manfaat yang dituju adalah anak 16--30 bulan beserta pengasuhnya. Operator yang diusulkan
+adalah kader di bawah supervisi Puskesmas, tetapi belum ada kader yang menguji aplikasi.
+Skema pembiayaan dan penerimaan laporan juga belum diuji dengan Dinas Kesehatan atau
+praktisi.
 
-Keunggulan biayanya datang dari keputusan untuk tidak membangun apa pun yang baru:
-distribusinya memakai Posyandu yang sudah berjalan, perangkatnya tablet Android kelas
-menengah bawah, tidak ada bahan habis pakai, dan karena inferensi berjalan luring tanpa
-mengunggah video, tidak ada tagihan server maupun kuota. Biaya marginal satu pemeriksaan
-tambahan mendekati nol. Sebagai pembanding, EarliPoint, satu-satunya instrumen tatapan
+PWA statis membuat biaya distribusi perangkat lunak mendekati nol dan tidak memerlukan
+lisensi per kursi. Biaya operasi belum diukur: waktu kader, pelatihan, dukungan, pencetakan,
+dudukan, pengulangan, pemeliharaan, penggantian tablet, dan tindak lanjut klinis semuanya
+tetap ada. Karena itu simulasi biaya per sesi maupun per kasus di Lampiran hanya skenario
+bersyarat apabila protokol penuh dan titik operasi terbit berhasil direplikasi, bukan
+performa atau biaya NeuroGaze yang diamati. Sebagai pembanding, EarliPoint, instrumen tatapan
 berizin FDA untuk rentang usia yang sama, memerlukan eye-tracker khusus di fasilitas klinis
 dengan biaya pemeriksaan 599 dolar Amerika~\cite{earlipoint2026}. Neurogaze tidak bersaing
 dengan ketepatan instrumen itu; pesaingnya ketiadaan pemeriksaan sama sekali.
 
-Titik masuknya meja keempat Posyandu, dan di sana waktu lebih mengikat daripada harga.
-Stimulus 96 detik menjadi sekitar empat sampai enam menit layanan setelah penempatan anak,
-persetujuan, kemungkinan pengulangan, dan penjelasan hasil. Target penerimaannya ada pada
-Lampiran~C, dan bila meleset kami menambah perangkat, bukan memangkas durasi sesi.
+Titik masuk yang diusulkan adalah alur Posyandu. Baterai pengukuran berlangsung 67 detik;
+izin, penempatan, kalibrasi, kemungkinan pengulangan, dan penjelasan menambah waktu
+kunjungan. Durasi total dan penerimaannya belum diukur pada kader atau balita.
 
 \subsection{Skalabilitas dan jalur adopsi bertahap}
 
-Pada satu kabupaten dengan 300 Posyandu, satu perangkat per Posyandu yang dipakai empat jam
-pada hari layanan bulanan memberi sekitar 12 ribu sesi per bulan. Setelah titik itu, batas
-perluasan berpindah dari jumlah perangkat ke kapasitas asesmen lanjutan di Puskesmas dan
-rumah sakit rujukan.
+Skala kabupaten belum dapat diproyeksikan dari data proyek ini. Kapasitas asesmen lanjutan,
+attrition, waktu kader, dan pengulangan harus diukur sebelum jumlah sesi atau biaya dapat
+dipakai untuk keputusan program.
 
 Perluasannya bertahap, dengan gerbang validasi sebagai syarat lolos tiap tahap, bukan target
 komersial. Tahap pertama kemitraan dengan rumah sakit, klinik tumbuh kembang, dan pusat
 terapi, yang menyelesaikan dua masalah sekaligus: mitra klinis menyediakan kohort berlabel,
-klinisi yang dibutakan untuk menetapkan acuan, dan tinjauan etik yang membuka Gate~C,
-sekaligus menjadi pembeli pertama yang punya anggaran dan antrean triase panjang. Tahap kedua
+klinisi yang dibutakan untuk menetapkan acuan, serta tata kelola kaji etik untuk Gate~C.
+Kemitraan ini tidak dapat direduksi menjadi persetujuan administratif. Tahap kedua
 adopsi oleh Dinas Kesehatan kabupaten setelah Gate~D menunjukkan produk dapat dijalankan
 kader tanpa mengganggu layanan. Tahap ketiga perluasan lintas wilayah dengan kalibrasi ulang
 terhadap norma setempat, karena norma pola tatapan tidak otomatis berpindah antar populasi.
@@ -1026,9 +1056,9 @@ pseudonim. Risiko klaim berlebih ditekan lewat struktur aplikasinya: sesi kamera
 Lapis~A dan Lapis~B beserta provenance tiap indeks dan tidak pernah mengeluarkan skor
 gabungan maupun probabilitas ASD, keluaran regresi logistik dikurung di panel riset berpenapis
 out-of-distribution, dan halaman bukti publik menolak menampilkan metrik tanpa berkas
-comparison dan ambang pra-registrasi. Satu-satunya keluaran yang memicu rujukan adalah
-Lapis~A pada ambang terbitnya, dan Tabel~\ref{tab:operasional} memuat beban rujukan yang
-menyertainya.
+comparison dan ambang pra-registrasi. Lapis~A adalah satu-satunya kandidat rujukan dengan
+titik operasi terbit, tetapi klip 16,75 detik menahan keluarannya. Tabel~\ref{tab:operasional}
+hanya mensimulasikan beban jika titik operasi protokol penuh kelak direplikasi.
 
 Dua risiko masih terbuka. Performa per subkelompok memerlukan demografi yang tidak disediakan
 dataset anchor, dan perilaku model terhadap anak dengan hambatan perkembangan non-autisme
@@ -1087,23 +1117,22 @@ sebagai hipotesis.
 % =============================================================================
 \section{Kesimpulan}
 
-Neurogaze adalah produk yang berjalan dengan model yang tervalidasi dan instrumen yang sudah
-diuji. PWA luringnya sudah dideploy publik dan dapat diuji pihak lain hari ini; modelnya
-melewati validasi algoritmik yang tuntas, dengan AUC tingkat anak 0,8228 pada 54 anak yang
-tidak pernah dilihat saat pelatihan, integritas split yang diverifikasi lewat kontrol
-negatif, ketahanan yang diukur pada proxy perangkat sasaran, dan tata kelola data yang
-diaudit sampai satu dataset kami tolak meski angkanya tertinggi. Uji paritas $10^{-12}$
-menjamin model replay yang divalidasi dan implementasi browsernya adalah objek yang sama.
-Di sisi instrumen, Gate~A lulus pada 100 sesi dewasa dengan galat median 2,2$^\circ$
-dan penyelesaian sesi 94 persen. Gate~B lulus pada 30 perbandingan browser simultan terhadap
-WebGazer.js dengan galat median ternormalisasi 0,040997 dan agreement AOI 99,7118 persen.
-Yang memutuskan rujukan di produk bukan model itu, melainkan ambang GeoPref terbit yang kami
-pakai tanpa penyetelan, dengan beban rujukannya diproyeksikan terbuka pada
-Tabel~\ref{tab:operasional}. Gate~C dan Gate~D masih terbuka, belum ada satu pun balita dalam
-bukti mana pun di sini, dan tidak satu pun hasil di atas merupakan bukti akurasi diagnosis.
-Sasarannya memindahkan pengukuran objektif ke titik layanan yang menjangkau
-hampir setiap desa; tahap berikutnya kohort balita prospektif dengan acuan klinis buta lewat
-kemitraan berizin etik, lalu uji lapangan Posyandu.
+Neurogaze saat ini adalah demonstrasi rekayasa dengan rantai pengukuran, penolakan, dan
+pelaporan yang dapat diaudit. Model Carette memberi bukti konsep participant-grouped pada
+domain sumber anak usia sekolah Prancis 250~Hz; ia tidak memiliki uji eksternal, sengaja
+ditolak penjaga OOD pada sesi sekarang, dan tidak pernah menentukan keputusan. Gate~A
+mencakup 100 sesi berulang dari 25 dewasa dengan 94 lulus mutu. Gate~B mencakup 30
+perbandingan simultan terhadap implementasi referensi WebGazer.js, dengan 27 siap dan tiga
+ditahan; ia mengukur agreement perangkat lunak, bukan ground truth. Kontrol positif dewasa
+menunjukkan respons kamera-ke-angka pada 15 dari 23 sesi yang lulus mutu, dengan aturan demo
+0/9 pada kondisi biasa dan 4/6 pada pola diproduksi. Rujukan otomatis balita ditahan karena
+klip 16,75 detik tidak mereplikasi protokol penuh titik operasi 69 persen.
+
+Belum ada balita, uji kader, validasi Indonesia, wawancara praktisi, atau linkage klinis.
+Tahap berikutnya memerlukan mitra yang mampu menjalankan kaji etik, izin orang tua, acuan
+klinis buta, linkage privat, rekrutmen, analisis fairness dan kegagalan, serta validasi
+prospektif sebelum titik operasi dipilih. Tidak satu pun hasil makalah ini merupakan bukti
+akurasi skrining ASD pada NeuroGaze.
 
 \subsubsection*{Ketersediaan artefak}
 
@@ -1468,8 +1497,8 @@ Instrumen        & ceklis orang tua & eye-tracker khusus & kamera tablet & kamer
 Lokasi           & mana saja        & fasilitas klinis   & layanan primer & Posyandu \\
 Operator         & orang tua        & tenaga terlatih    & tenaga klinis  & kader \\
 Konektivitas     & tidak perlu      & fasilitas          & daring         & luring penuh \\
-Biaya per periksa & mendekati nol   & 599 USD            & tidak dipublikasi & tanpa konsumabel \\
-Tahap validasi   & klinis luas      & izin FDA           & prospektif 475 anak & Gate A-B lulus \\
+Biaya per periksa & mendekati nol   & 599 USD            & tidak dipublikasi & belum diukur; distribusi perangkat lunak statis \\
+Tahap validasi   & klinis luas      & izin FDA           & prospektif 475 anak & demonstrasi rekayasa; klinis belum diuji \\
 Menahan keputusan & tidak            & tidak dipublikasi  & tidak dipublikasi & ya, eksplisit \\
 \bottomrule
 \end{tabular}
@@ -1571,7 +1600,7 @@ D & operasional Posyandu & protokol tersedia; uji lapangan belum ada & terbuka \
 \begin{center}
 \includegraphics[width=0.82\linewidth]{ambang_confusion.png}
 \end{center}
-\caption{Titik kerja model produksi pada 54 anak uji tertahan. (a) ambang dari target
+\caption{Titik kerja model riset Carette pada 54 anak domain sumber. (a) ambang dari target
 sensitivitas 0,9; (b) titik kerja seimbang menurut indeks Youden; (c) sensitivitas,
 spesifisitas, dan fraksi anak yang dirujuk sebagai fungsi ambang, dengan garis titik
 menandai kedua titik kerja.}
@@ -1600,7 +1629,7 @@ Lampiran ini memuat rincian yang diringkas pada Bagian~\ref{sec:tp-ringkas}.
 \caption{Alur penelitian Neurogaze. Pemilihan fitur, model, dan ambang seluruhnya terjadi
 pada tahap 4 memakai lipatan dalam; lipatan uji tertahan hanya dibaca pada tahap 5 dan 6.
 Audit dataset wajah pada Lampiran~D berjalan di luar alur ini dan tidak menyumbang bobot,
-fitur, maupun keputusan apa pun ke model produksi.}
+fitur, maupun keputusan apa pun ke model riset Carette.}
 \label{fig:pipeline}
 \end{figure}
 

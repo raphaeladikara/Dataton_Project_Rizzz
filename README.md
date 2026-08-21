@@ -1,15 +1,19 @@
 # Neurogaze
 
-**Arsitektur inferensi bergerbang untuk skrining atensi dini di Posyandu.** PWA statis
+**Arsitektur inferensi bergerbang untuk riset pengukuran atensi di Posyandu.** PWA statis
 yang berjalan luring di tablet Android biasa: kamera diproses di perangkat, video mentah
 tidak pernah diunggah maupun disimpan, dan tidak ada server di belakangnya. Posyandu
 ke-1 dan Posyandu ke-1.000 memuat berkas yang sama.
 
-> Neurogaze bukan alat diagnosis. Ia instrumen *rule-in*: hasil positif layak
-> ditindaklanjuti, hasil negatif bukan tanda aman.
+> Neurogaze bukan alat diagnosis dan belum mengaktifkan rujukan otomatis balita.
+> Ambang *rule-in* 69% dari literatur ditahan karena klip lapangan lebih pendek
+> daripada protokol tempat titik operasi itu diterbitkan.
 
-Sesi 67 detik menghasilkan laporan satu halaman yang bisa diserahkan ke Puskesmas,
-dibaca berdampingan dengan SDIDTK atau M-CHAT-R/F.
+**Rujukan otomatis balita ditahan.**
+
+Baterai pengukuran berlangsung 67 detik. Waktu kunjungan juga mencakup izin,
+penyiapan, dan kalibrasi. Laporan satu halaman adalah prototipe untuk diuji bersama
+tenaga kesehatan; belum ada kader atau praktisi yang mengujinya.
 
 ---
 
@@ -36,8 +40,10 @@ yang bertahan:
 | 8,7 Hz | bergeser 79,7% | bergeser 2,8% |
 | 5,2 Hz | bergeser 84,4% | bergeser 5,6% |
 
-Selisih **42 kali lipat** pada penurunan laju yang di Posyandu bukan kemungkinan
-melainkan keseharian. Itu yang menentukan arsitektur fiturnya.
+Angka 69,4% dan 1,6% adalah median drift relatif akibat desimasi, bukan akurasi
+klasifikasi. Hasilnya mendukung pemilihan geometri, tetapi tidak membuat seluruh
+fitur geometri kebal: beberapa fitur tetap memiliki pelestarian peringkat lemah atau
+drift besar pada laju yang lebih rendah.
 [`research/hasil/degradasi_temporal.json`](research/hasil/degradasi_temporal.json)
 
 ### 2. Seleksi model yang menjatuhkan model kami sendiri
@@ -74,11 +80,11 @@ looking berjalan kedua, tepat sesudah blok atensi pembuka, karena ia membawa
 satu-satunya ambang terbit di sistem ini dan tidak boleh diukur pada anak yang sudah
 lelah dan sudah terprimasi secara sosial.
 
-| Lapis | Isinya | Bisa memicu rujukan? |
+| Lapis | Isinya | Status hari ini |
 |---|---|---|
-| **A — GeoPref** | Persentase fiksasi geometrik terhadap ambang terbit 69% (Wen dkk. 2022, n=1.863, usia 12–48 bulan, sensitivitas 17%, **spesifisitas 98%**) | **Ya** — satu-satunya pemicu dengan ambang eksternal |
+| **A — GeoPref** | Persentase fiksasi geometrik; titik operasi 69% berasal dari Wen dkk. 2022 (n=1.863, usia 12–48 bulan, sensitivitas 17%, spesifisitas 98%) | Persentase dilaporkan, tetapi rujukan otomatis ditahan pada klip 16,75 detik |
 | **B — Profil perilaku** | Menghadap layar, gerak kepala, laju kedip, respons nama, mengikuti isyarat dengan uji tanda dalam-sesi | Tidak. Deskriptif, dibaca berdampingan dengan SDIDTK/M-CHAT |
-| **B2 — Rekomendasi komposit** | Aturan terbaca atas sinyal yang tidak butuh norma balita: ambang GeoPref terbit, plus satu kontras dalam-subjek (mengikuti isyarat) | Merekomendasikan pemeriksaan lanjutan. Belum tervalidasi pada balita, dan dilaporkan di samping Lapis A, bukan dilebur ke dalamnya |
+| **B2 — Rekomendasi komposit** | Aturan terbaca atas GeoPref dan kontras mengikuti isyarat | Hanya diperagakan pada orang dewasa; `emitsReferral` tetap `false` |
 | **C — Model gabungan berbobot** | Dirancang, belum dipasang. Kalibrasi likelihood-ratio yang tiap sukunya wajib punya sitiran | Belum |
 
 Ambang terbit dibandingkan terhadap **selang kepercayaan 95%** sesi, bukan terhadap satu
@@ -103,9 +109,10 @@ percobaan vektor yang sama; respons nama adalah deteksi kejadian di dalam blok v
 ## Status bukti
 
 Bukti terkuat di sini adalah **kontrol positif**: 12 orang dewasa yang menyetujui untuk
-dirinya sendiri, 23 sesi, tiga perangkat, direkam 19 Agustus 2026 lewat aplikasi yang
-dikirim. Ketiga sinyal keputusan memisahkan kedua kondisi perilaku **tanpa satu sesi pun
-bertumpang tindih**, dan aturan komposit menyala pada **0 dari 9** sesi menonton biasa.
+dirinya sendiri, 23 sesi direkam pada tiga perangkat, dan 15 lulus mutu. Denominator
+per kondisi adalah 9/11 sesi menonton biasa dan 6/12 sesi pola diproduksi yang dapat
+dipakai. Dalam mode demonstrasi, aturan menyala pada 0/9 sesi biasa dan 4/6 sesi pola
+diproduksi; mode ini tidak mengeluarkan rujukan.
 
 Ini juga bukti pertama di proyek ini yang rantainya utuh dari kamera sampai angka —
 direkam lewat aplikasi, lalu **dihitung ulang dari jejak mentah oleh skrip terpisah**
@@ -121,13 +128,15 @@ lengkap dan terinstrumentasi.
 |---|---|---|
 | A | **Lulus** | 100 sesi, 25 peserta, 3 perangkat; 94% selesai, galat kalibrasi median 2,207°, frame valid 96,4%, dropout 3,6% |
 | B | **Lulus** | 30 perbandingan browser simultan terhadap WebGazer.js 3.5.3; 27 siap, 0,040997 galat ternormalisasi median, agreement AOI 99,7118% dihitung ulang dari koordinat mentah |
-| C | Terbuka | Validasi klinis prospektif pada populasi sasaran. Target: sensitivitas 88% / spesifisitas 81% (Perochon dkk. 2023) |
+| C | Terbuka | Validasi klinis prospektif pada populasi sasaran. 87,8% / 80,8% adalah preseden SenseToKnow, bukan hasil NeuroGaze |
 | D | Terbuka | Implementasi lapangan bersama operator Posyandu |
 
-Pembanding Gate B adalah WebGazer.js, metode yang divalidasi ManyBabies untuk balita
-18–27 bulan (Steffan dkk. 2024, *Infancy*, N=125 di 16 lab). Akurasi absolut berasal
-dari target kalibrasi Gate A yang posisinya diketahui: median 2,36°, p90 3,58° pada 94
-sesi, terhadap 4,17° yang diterbitkan WebGazer.
+Pembanding Gate B adalah implementasi referensi WebGazer.js, bukan ground truth atau
+standar emas. ManyBabies menguji metode itu pada balita 18–27 bulan (Steffan dkk. 2024,
+*Infancy*, N=125 di 16 lab). Gate B adalah agreement perangkat lunak; blok target
+diketahui head-to-head belum direkam. Angka Gate A 2,36° median / 3,58° p90 pada 94
+sesi lulus adalah konversi sudut lama tanpa jarak pandang per sesi, bukan akurasi
+absolut eksak atau bukti bahwa NeuroGaze mengungguli angka 4,17° dari protokol lain.
 
 Ekspor mentah, ringkasan turunan, dan manifest SHA-256 ada di
 [`research/hasil`](research/hasil). Setiap metrik pasangan diturunkan ulang dari
@@ -173,10 +182,18 @@ Alasan di balik keputusan yang menentukan batas klaim ada di
   bentuk laporannya terlihat. [`docs/jalur_rujukan.md`](docs/jalur_rujukan.md)
 - Tidak ada balita di bukti mana pun di repositori ini, dan tidak akan ada sebelum kaji
   etik. [`docs/etika_perekaman.md`](docs/etika_perekaman.md)
+- Validasi prospektif memerlukan mitra yang mampu menjalankan kaji etik, izin orang
+  tua, acuan klinis buta, linkage data yang menjaga privasi, rekrutmen, analisis
+  fairness/kegagalan, dan validasi prospektif. Ini bukan urusan satu persetujuan administratif.
 - Blok target-diketahui Gate B sudah terpasang di sisi analisis, tetapi belum ada sesi
   yang merekamnya.
 - Belum ada wawancara praktisi yang terekam.
   [`docs/wawancara_praktisi.md`](docs/wawancara_praktisi.md)
+- Belum ada kader yang menguji alur, waktu, kegagalan, pelatihan, atau dukungan.
+
+Status kanonis lima kapabilitas ada di
+[`docs/readiness_matrix.md`](docs/readiness_matrix.md) dan bentuk machine-readable-nya
+di [`research/hasil/readiness_matrix.json`](research/hasil/readiness_matrix.json).
 
 ---
 

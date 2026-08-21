@@ -4,7 +4,7 @@ Catatan ini merekam alasan di balik pilihan-pilihan yang menentukan apa yang bol
 dan tidak boleh dikatakan aplikasi ini. Ia ditulis supaya penguji, juri, atau
 pengembang berikutnya bisa menilai argumennya, bukan hanya hasilnya.
 
-Terakhir diperbarui: 18 Agustus 2026.
+Terakhir diperbarui: 21 Agustus 2026.
 
 ---
 
@@ -28,16 +28,19 @@ Alasannya berlapis, dan yang paling menentukan bukan yang paling sering disebut:
 3. **Perangkat dan laju sampel.** Sumbernya eye-tracker 250 Hz; sasarannya kamera
    depan tablet ~30 fps.
 
-Konsekuensi di kode: model dijalankan hanya untuk mengisi panel riset, dan penjaga
-OOD menolaknya pada data balita. Penolakan itu ditampilkan, bukan disembunyikan.
+Dataset itu adalah bukti konsep domain sumber pada 54 anak usia sekolah di Prancis,
+dengan pemisahan per partisipan tetapi tanpa uji eksternal. Konsekuensi di kode: model
+dijalankan hanya untuk mengisi panel riset, dan penjaga OOD menolaknya pada sesi
+sekarang. Penolakan itu ditampilkan, bukan disembunyikan.
 `app/src/inference/model.ts` memvalidasi ekspor model, dan `app/tests/parity.test.ts`
 menjaga kesetaraan numerik lintas bahasa.
 
-## 2. Kenapa GeoPref boleh menjadi satu-satunya pemicu rujukan
+## 2. Kenapa GeoPref adalah satu-satunya kandidat pemicu rujukan
 
 Ambang 69% fiksasi geometrik berasal dari Wen dkk. 2022 (*Scientific Reports*,
 n=1.863, usia 12–48 bulan, sensitivitas 17%, spesifisitas 98%, PPV 81%, NPV 65%).
-Empat hal membuatnya bisa dipindahkan ke sini, dan ketiganya harus benar sekaligus:
+Empat hal membuat titik operasi itu layak diuji, tetapi belum membuatnya sah dipakai
+pada cuplikan yang dikirim:
 
 - **Usia sasarannya persis sama.** Bukan ekstrapolasi dari anak usia sekolah.
 - **Stimulusnya jenis yang sama**: dua panel berdampingan, satu sosial dan satu
@@ -45,8 +48,11 @@ Empat hal membuatnya bisa dipindahkan ke sini, dan ketiganya harus benar sekalig
 - **Ambangnya eksternal.** Ia tidak di-fit pada data kami, jadi tidak ada
   kebocoran optimisme dari pemilihan ambang sendiri.
 - **Tuntutan pengukurannya rendah.** Ia hanya perlu membedakan dua AOI besar di
-  kiri dan kanan layar, bukan menentukan titik fiksasi presisi tinggi. Galat
-  median Gate A 2,36° jauh lebih kecil daripada lebar panelnya.
+  kiri dan kanan layar. Angka Gate A 2,36° memberi konteks teknis, tetapi merupakan
+  konversi lama tanpa jarak pandang per sesi dan bukan akurasi absolut eksak.
+
+Syarat yang gagal hari ini adalah protokol: klip lapangan 16,75 detik bukan protokol
+penuh 62,22 atau 90 detik. Karena itu rujukan otomatis balita ditahan.
 
 ## 3. Apa yang GeoPref tidak bisa lakukan
 
@@ -127,8 +133,11 @@ ManyBabies untuk balita 18–27 bulan (Steffan dkk. 2024, *Infancy*, N=125, 16 l
 Perbandingan dua aliran hanya menghasilkan *kesepakatan*, bukan akurasi: dua
 penaksir bisa sepakat sambil sama-sama meleset. Karena itu:
 
-- Akurasi absolut hanya boleh dikutip dari blok target diketahui Gate A
-  (median 2,36°, p90 3,58°, 94 sesi dewasa).
+- Blok target diketahui Gate A memberi konversi sudut lama (median 2,36°, p90 3,58°,
+  94 dari 100 sesi dewasa lulus), tetapi jarak pandang tidak direkam sehingga angka
+  itu tidak boleh disebut akurasi absolut eksak.
+- Blok target diketahui head-to-head Gate B belum direkam, jadi tidak ada bukti
+  superioritas terhadap 4,17° WebGazer dari perangkat dan protokol lain.
 - Kesepakatan AOI 99,7% tidak dipajang sebagai headline: kotak AOI selebar 28%
   layar sementara galat antar aliran 4,1% lebar layar, jadi angka setinggi itu
   nyaris tidak bisa tidak terjadi.
@@ -153,51 +162,23 @@ rekomputasi (0,997118, bukan 0,997574).
   sebelum kaji etik lolos. Itu batas yang dipasang sengaja, bukan celah yang tersisa —
   lihat §17 dan `docs/etika_perekaman.md`.
 - Tidak ada instrumen di sini yang divalidasi di Indonesia.
-- Toleransi balita terhadap baterai 96 detik belum diuji.
+- Toleransi balita terhadap baterai pengukuran 67 detik belum diuji; waktu kunjungan
+  juga mencakup izin, penyiapan, dan kalibrasi.
 - Spesifisitas SenseToKnow berbeda antar kelompok ras pada studi aslinya (53,6%
   pada anak kulit hitam vs 82,7% kulit putih). Analisis subgrup harus
   dipra-registrasi untuk Gate C. GeoPref dilaporkan setara lintas ras.
 
 ---
 
-## 10. Kenapa lapisan rekomendasi boleh dibangun tanpa balita berlabel
+## 10. Kenapa aturan demonstrasi tidak menjadi skor klinis
 
-Keputusan §4 melarang skor gabungan berbobot, dan larangan itu tetap berlaku:
-`PhenotypeProfile.combinedScore` masih bertipe `null` dan tidak ada jalur kode yang
-dapat mengisinya. Yang dibangun di `app/src/outcome/referralRecommendation.ts` bukan
-skor, melainkan **aturan yang dapat dibaca manusia**, dan perbedaannya menentukan.
+Keputusan §4 tetap berlaku: `PhenotypeProfile.combinedScore` bertipe `null` dan lapis B
+tidak pernah digabung. `REFERRAL_DEVIANT_THRESHOLD = 2` masih dikirim sebagai pilihan
+desain yang belum tervalidasi. Ia hanya membuat bentuk aturan dapat diperagakan; ia
+tidak boleh dipromosikan menjadi ambang klinis.
 
-Perochon dkk. mencapai performa gabungannya dengan bobot yang di-fit pada 475 balita
-berlabel. Bobot itu tidak dapat direkonstruksi dari AUC yang mereka laporkan, jadi
-menebaknya berarti mengarang. Jalan keluarnya bukan menebak bobot, melainkan
-**memilih hanya sinyal yang dapat dinilai tanpa norma populasi**:
-
-| Sinyal | Kenapa tidak butuh norma balita |
-|---|---|
-| Preferensi geometrik | Ambangnya terbit dan eksternal (Wen dkk. 2022) |
-| Mengikuti isyarat | Kontras dalam-subjek: sesudah isyarat vs sebelum isyarat, anak yang sama |
-| Diferensial kedipan | Kontras dalam-subjek: fase aktor vs blok pilihan tontonan |
-| Respons nama | Deteksi peristiwa dalam-subjek pada tiga panggilan |
-
-`facingForward` dan `headMovement` sengaja **tidak** masuk keputusan. Keduanya membawa
-AUC preseden tetapi tidak punya ambang terbit yang dapat dipindahkan, jadi
-memasukkannya berarti mengarang angka. Keduanya tetap tampil sebagai deskriptif.
-
-Satu parameter tetap merupakan karangan kami: berapa sinyal harus menyimpang.
-`REFERRAL_DEVIANT_THRESHOLD` bernilai 2, ditandai `design_choice_not_validated_cutoff`
-di tipe datanya, dan dinyatakan sebagai pilihan desain di layar maupun di cetakan.
-Justifikasinya harus lewat jalan yang sama seperti pemilihan titik kerja GeoPref:
-biaya operasional pada antrean nyata, bukan performa pada data kami.
-
-> **Diperbarui.** Parameter itu dicabut, bukan dijustifikasi. Penggantinya adalah
-> penjumlahan likelihood-ratio yang setiap sukunya punya kutipan, dengan sinyal tanpa
-> titik operasi terbit ber-LR = 1. Alasannya di §18; rancangannya di
-> `docs/model_rujukan.md`. Bagian tabel di atas — sinyal mana yang boleh ikut dan
-> kenapa — tetap berlaku apa adanya.
-
-Dua jalur dilaporkan berdampingan dan tidak pernah dilebur. Ambang 69% adalah
-satu-satunya angka di sistem ini yang bukan kami yang menentukan; meleburnya ke dalam
-komposit berarti kehilangan kemampuan mengatakan itu.
+Lapisan likelihood-ratio di `docs/model_rujukan.md` baru dirancang dan belum dibangun.
+Data Cilia juga belum diunduh. Keduanya tidak boleh ditulis dalam bentuk lampau.
 
 ## 11. Kenapa mode demonstrasi tidak melanggar invarian
 
@@ -212,15 +193,16 @@ Mode demonstrasi menerapkan ambang pada klip pendek itu, tetapi menghasilkan
 langsung di cabangnya, bukan dibaca dari konfigurasi.
 
 Invariannya karena itu tetap utuh dan tetap dapat dijaga tes: **protokol yang tidak
-tervalidasi tidak pernah memicu rujukan.** Mode ini hanya dapat dimasuki dari kontrol
-demo dan hanya dalam mode replay; `start()` menghitung ulang flag-nya setiap kali dan
-menggerbangnya pada mode, sehingga tidak ada argumen yang menyalakannya di lapangan.
+tervalidasi tidak pernah memicu rujukan.** Mode ini hanya dapat dimasuki dari replay
+atau `stage_demo`; `start()` menghitung ulang flag-nya setiap kali dan menggerbangnya
+pada purpose, sehingga `target_population_research` tidak dapat menyalakannya.
 Ia dicatat di log audit sebagai `session.demonstration_mode`, jadi sesi yang diekspor
 tidak dapat menyembunyikannya.
 
 ## 12. Kenapa kontrol positif memakai orang dewasa yang memproduksi pola
 
-Gate A membuktikan ketelitian, Gate B membuktikan kesepakatan. Tidak satu pun
+Gate A menguji pengukuran teknis, sedangkan Gate B menguji agreement terhadap
+implementasi referensi WebGazer. Tidak satu pun
 membuktikan bahwa pipeline dapat membedakan dua kondisi perilaku — dan kalau tidak
 bisa, seluruh premisnya runtuh. Kontrol positif menutup celah itu tanpa melibatkan
 balita.
@@ -262,8 +244,8 @@ Sejak v5 ia berjalan kedua, tepat sesudah perhatian awal. Durasi tiap percobaan
 isyarat juga turun dari 7 ke 5 detik — latensi mengikuti pandangan berada jauh di
 bawah 2 detik, sehingga jendela respons 3,3 detik tetap longgar — dan jumlah
 percobaan tetap delapan, karena menguranginya memperburuk daya uji tanda. Baterai
-utuh kini 80 detik, masih yang terpendek di antara seluruh preseden yang dikutip
-makalah ini.
+pengukuran yang dikirim kini 67 detik; izin, penyiapan, dan kalibrasi berada di luar
+angka itu.
 
 ## 15. Kenapa aktornya vektor gambar tangan, bukan rekaman manusia
 
@@ -362,14 +344,11 @@ mewakili kepentingan anaknya.
 menawarkan manfaat apa pun kepada anak yang direkam; yang ditawarkannya kepada kami
 adalah data. Itu persis konfigurasi yang dirancang untuk dicegah kaji etik.
 
-**Anak autistik bukan sumber data.** Larangan menyebut peserta kontrol positif
-"berpura-pura autis" (§12, dan `kontrol_positif.md`) berdiri di atas prinsip yang sama,
-dan prinsip itu berlaku lebih keras ketika yang dibicarakan adalah merekrut anak
-autistik sungguhan untuk memvalidasi alat yang mungkin tidak pernah sampai kepada
-mereka.
-
-Lima lembaga dihubungi untuk kaji etik dan seluruhnya menolak. Pada tahap bukti saat
-ini penolakan itu benar, dan yang mengubah tahapnya adalah bukti — bukan negosiasi.
+Merekam anak tidak dengan sendirinya tidak etis; seluruh preseden titik operasi proyek
+ini juga berasal dari penelitian yang merekam anak. Yang belum ada adalah struktur
+yang membuat perekaman untuk keputusan proxy sah: mitra yang mampu menjalankan kaji
+etik, izin orang tua, acuan klinis buta, linkage privat, rekrutmen, analisis fairness
+dan kegagalan, serta validasi prospektif. Ini bukan formalitas administratif.
 
 Konsekuensi untuk desain: pita normatif dipindahkan ke spesifikasi Gate C, dan
 lapisan keputusan dibangun dari dua sumber yang tidak menuntut satu rekaman anak pun.
@@ -377,7 +356,7 @@ Rinciannya di `docs/etika_perekaman.md` dan `docs/model_rujukan.md`.
 
 ---
 
-## 18. Kenapa likelihood-ratio menggantikan aturan pencacahan
+## 18. Kenapa likelihood-ratio dirancang untuk menggantikan aturan pencacahan
 
 §10 membenarkan aturan komposit dengan alasan yang masih berlaku: hanya sinyal yang
 dapat dinilai tanpa norma populasi yang boleh ikut. Yang tidak dibenarkan §10 adalah
@@ -394,15 +373,15 @@ tidak satu pun soal implementasi.
 3. **`tidak_dapat_dinilai` merusak penyebutnya.** Dua dari dua bukan hal yang sama
    dengan dua dari tiga, tetapi aturannya memperlakukannya begitu.
 
-Penjumlahan log-likelihood-ratio memperbaiki ketiganya sekaligus. Tiap sinyal
-menyumbang LR yang diturunkan dari sensitivitas dan spesifisitas terbit; sinyal tanpa
+Penjumlahan log-likelihood-ratio dirancang untuk menangani ketiganya. Jika dibangun,
+tiap sinyal akan menyumbang LR yang diturunkan dari sensitivitas dan spesifisitas terbit; sinyal tanpa
 titik operasi terbit — dan sinyal yang tidak terukur pada sesi itu — mendapat LR = 1
 dan tidak menggerakkan keputusan sama sekali.
 
 Aturan LR = 1 itu yang menjaga lapis ini jujur. Ia berarti sebuah sinyal boleh tampil
 di laporan sebagai deskriptif tanpa pernah menyelundup ke keputusan hanya karena ada.
 
-Yang dihasilkan adalah probabilitas pasca-tes, dan angkanya rendah hati dengan
+Keluaran yang direncanakan adalah probabilitas pasca-tes. Sebagai ilustrasi matematis,
 sendirinya: pada prevalensi 1%, GeoPref positif menggerakkan probabilitas ke 7,9%.
 Itu membenarkan "disarankan pemeriksaan lanjutan" dan membantah "ini diagnosis" dalam
 satu bilangan yang bisa dicetak dan dipertahankan.
@@ -418,14 +397,14 @@ atas seluruh indeks, dan Lapis A tetap dilaporkan terpisah tanpa pernah dilebur.
 
 ---
 
-## 19. Kenapa bobot dipasang pada data terbit, bukan pada data sendiri
+## 19. Kenapa bobot kelak dipasang pada data terbit, bukan pada data sendiri
 
 §10 menyatakan bobot Perochon dkk. tidak dapat direkonstruksi dari AUC yang mereka
 laporkan, jadi menebaknya berarti mengarang. Itu benar. Yang tidak dipertimbangkan
 waktu itu adalah kemungkinan ketiga: memasang bobot pada anak berlabel yang datanya
 sudah diterbitkan orang lain.
 
-Cilia dkk. 2022 (`10.6084/m9.figshare.20113592.v1`, CC BY 4.0) berisi koordinat
+Cilia dkk. 2022 (`10.6084/m9.figshare.20113592.v1`, CC BY 4.0) menerbitkan koordinat
 eye-tracking mentah 59 anak usia 3–12 tahun, 29 ASD dan 30 TD, pada 60 Hz, lengkap
 dengan ID partisipan. Consent-nya sudah diambil pihak yang punya izinnya, dan
 lisensinya menyatakan penggunaan ulang.
@@ -441,7 +420,7 @@ sempit.
 
 **Ruang indeks, bukan ruang piksel.** Kegagalan transfer model Carette (§1) berasal
 dari fitur yang mengkodekan di mana stimulus studi itu duduk di layar. Koordinat mentah
-membiarkan indeks perilaku dihitung sebagai gantinya — mengikuti isyarat, preferensi
+akan memungkinkan indeks perilaku dihitung setelah dataset diunduh dan diaudit — mengikuti isyarat, preferensi
 sosial/non-sosial, dispersi tatapan — dan indeks itu mengacu ke stimulus, bukan ke
 layar. Respons nama tidak punya padanan di protokol Cilia, jadi bobotnya tidak dapat
 dipasang dari sana dan itu dicatat alih-alih ditambal.
@@ -449,7 +428,7 @@ dipasang dari sana dan itu dicatat alih-alih ditambal.
 Empat audit menggerbanginya, dengan kriteria penolakan yang ditulis sebelum angkanya
 dilihat: desimasi 60 → 30 Hz, alas shortcut tingkat sesi, kebocoran partisipan lewat
 `GroupKFold`, dan penjaga OOD dua arah. Dengan n=59 dan usia yang salah, penolakan
-adalah hasil yang cukup mungkin — dan kalau ditolak, penolakannya yang diterbitkan
-sementara lapis likelihood-ratio tetap dikirim sendirian.
+adalah hasil yang cukup mungkin. Dataset belum diunduh dan tidak ada bobot atau lapis
+likelihood-ratio yang sudah dikirim.
 
 Rinciannya di `docs/model_rujukan.md`.

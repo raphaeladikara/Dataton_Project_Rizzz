@@ -3,14 +3,122 @@
   "status": "gate_b_passed",
   "publishedAt": "2026-08-18T00:00:00.000Z",
   "headline": {
-    "metric": "known_target_median_error_deg",
+    "metric": "adult_positive_control",
+    "title": "Instrumen merespons pola yang sengaja diproduksi",
+    "summary": "Kontrol positif dewasa dengan provenance kamera-ke-angka yang lengkap.",
+    "source": "research/hasil/kontrol_positif/ringkasan.json"
+  },
+  "positiveControl": {
+    "interpretation": "adult_manipulation_check",
+    "participants": 12,
+    "sessions": {
+      "recorded": 23,
+      "qualityPass": 15
+    },
+    "conditions": {
+      "ordinary": {
+        "recorded": 11,
+        "usable": 9,
+        "ruleFired": 0
+      },
+      "produced": {
+        "recorded": 12,
+        "usable": 6,
+        "ruleFired": 4
+      }
+    },
+    "signals": [
+      {
+        "id": "geometric_preference",
+        "nOrdinary": 7,
+        "nProduced": 6,
+        "medianOrdinary": 0.34317343173431736,
+        "medianProduced": 0.9427568970489282,
+        "nearestGap": 0.15989812775330392
+      },
+      {
+        "id": "cue_following",
+        "nOrdinary": 9,
+        "nProduced": 6,
+        "medianOrdinary": 8.0,
+        "medianProduced": 0.0,
+        "nearestGap": 4.0
+      },
+      {
+        "id": "centre_hold_spread",
+        "nOrdinary": 9,
+        "nProduced": 6,
+        "medianOrdinary": 0.31487767317215387,
+        "medianProduced": 0.051260729006101485,
+        "nearestGap": 0.008447514032818182
+      }
+    ],
+    "emitsReferral": false,
+    "boundary": "Responsivitas instrumen pada orang dewasa yang memproduksi pola secara sengaja. Bukan sensitivitas, bukan spesifisitas, bukan akurasi, dan bukan pernyataan apa pun tentang autisme.",
+    "source": "research/hasil/kontrol_positif/ringkasan.json"
+  },
+  "gateAAccuracy": {
+    "metric": "legacy_known_target_angle_conversion",
     "valueDeg": 2.357,
     "p90Deg": 3.576,
     "sessions": 94,
     "population": "94 sesi dewasa Gate A yang lulus mutu, 25 partisipan, 3 perangkat",
-    "definition": "Galat sudut median terhadap target yang posisinya diketahui dan tidak dipakai melatih kalibrasi.",
-    "why": "Ini satu-satunya angka akurasi absolut yang dimiliki proyek ini. Kesepakatan antar dua penaksir tidak bisa menghasilkannya: keduanya bisa sepakat sambil sama-sama meleset.",
+    "definition": "Konversi sudut lama dari galat terhadap target yang diketahui; sesi tidak merekam jarak pandang.",
+    "why": "Angka ini konteks teknis, bukan akurasi absolut eksak dan bukan uji tanding terhadap WebGazer.",
     "source": "research/hasil/gate_a/gate_a_summary.json"
+  },
+  "readiness": {
+    "schema": "neurogaze-readiness-matrix-v1",
+    "asOf": "2026-08-21",
+    "clinicalClaimsAvailable": false,
+    "capabilities": [
+      {
+        "id": "on_device_measurement_chain",
+        "capability": "Rantai pengukuran di perangkat",
+        "status": "ready_for_engineering_demo",
+        "statusLabel": "Siap untuk demonstrasi rekayasa",
+        "evidence": "Pipeline browser, uji parity, Gate A, dan Gate B",
+        "boundary": "Gate A/B menguji pengukuran teknis, bukan skrining klinis."
+      },
+      {
+        "id": "adult_responsivity",
+        "capability": "Respons instrumen pada pola yang diproduksi",
+        "status": "demonstrated",
+        "statusLabel": "Ditunjukkan pada kontrol positif dewasa",
+        "evidence": "12 dewasa; 23 sesi direkam; 15 lulus mutu; aturan demo 0/9 biasa dan 4/6 pola diproduksi",
+        "boundary": "Manipulation check, bukan sensitivitas, spesifisitas, ASD, atau status klinis peserta."
+      },
+      {
+        "id": "automatic_toddler_referral",
+        "capability": "Rujukan otomatis balita",
+        "status": "withheld",
+        "statusLabel": "Ditahan",
+        "evidence": "Klip lapangan 16,75 detik lebih pendek daripada protokol penuh tempat ambang 69% diterbitkan",
+        "boundary": "Perbandingan 69% hanya boleh diperagakan dalam mode demo dan tidak mengeluarkan rujukan."
+      },
+      {
+        "id": "kader_usability",
+        "capability": "Keterpakaian oleh kader",
+        "status": "not_tested",
+        "statusLabel": "Belum diuji",
+        "evidence": "Belum ada kader yang menjalankan aplikasi",
+        "boundary": "Perlu uji tugas, waktu, kegagalan, pelatihan, dan dukungan di alur layanan nyata."
+      },
+      {
+        "id": "indonesian_toddler_validity",
+        "capability": "Validitas pada balita Indonesia",
+        "status": "not_tested",
+        "statusLabel": "Belum diuji",
+        "evidence": "Belum ada balita dalam bukti proyek dan instrumen yang digunakan di sini belum divalidasi di Indonesia",
+        "boundary": "Perlu mitra yang mampu menjalankan kaji etik, izin orang tua setelah penjelasan, acuan klinis buta, linkage privat, rekrutmen, analisis fairness/kegagalan, dan validasi prospektif."
+      }
+    ],
+    "source": {
+      "generator": "research/export_readiness_matrix.py",
+      "positiveControl": "research/hasil/kontrol_positif/ringkasan.json",
+      "gateA": "research/hasil/gate_a/gate_a_summary.json",
+      "gateB": "research/hasil/gate_b/gate_b_summary.json"
+    }
   },
   "comparator": {
     "label": "WebGazer.js",

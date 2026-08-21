@@ -6,16 +6,10 @@ import styles from "./validation.module.css";
 
 const evidence = evidenceJson as GateBPublicEvidence;
 const percent = (value: number) => `${(value * 100).toFixed(2).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",")}%`;
-const degrees = (value: number) => `${value.toFixed(2).replace(".", ",")}°`;
 const signed = (value: number) => `${value >= 0 ? "+" : "−"}${Math.abs(value).toFixed(4).replace(".", ",")}`;
 
-// Both bars share this ceiling so their lengths are directly comparable.
-const SCALE_MAX_DEG = 5;
-const share = (value: number) => `${Math.min(100, (value / SCALE_MAX_DEG) * 100)}%`;
-
 export default function ValidationPage() {
-  const passed = evidence.status === "gate_b_passed";
-  const { headline, comparator, agreement, featureAgreement } = evidence;
+  const { headline, positiveControl, gateAAccuracy, agreement, featureAgreement, readiness } = evidence;
   return <main className={styles.page}>
     <header className={styles.topbar}>
       <Link href="/" className={styles.brand}><span>◉</span> Neurogaze</Link>
@@ -24,45 +18,56 @@ export default function ValidationPage() {
 
     <section className={styles.hero} data-status={evidence.status}>
       <div className={styles.heroCopy}>
-        <span className={styles.status}>{passed ? <IconCheck size={14} /> : <IconAlert size={14} />} {passed ? "GATE B LULUS" : "GATE B BELUM LULUS"}</span>
-        <h1>Galat median {degrees(headline.valueDeg)} terhadap target yang diketahui</h1>
-        <p>{headline.definition} Diukur pada {headline.population}. Persentil 90 ada di {degrees(headline.p90Deg)}.</p>
-        <p className={styles.heroWhy}>{headline.why}</p>
+        <span className={styles.status}><IconCheck size={14} /> BUKTI HARI INI · KONTROL POSITIF DEWASA</span>
+        <h1>{headline.title}</h1>
+        <p>{positiveControl.participants} dewasa memberi persetujuan; {positiveControl.sessions.recorded} sesi direkam dan {positiveControl.sessions.qualityPass} lulus mutu.</p>
+        <p className={styles.heroWhy}>Aturan peragaan menyala pada {positiveControl.conditions.ordinary.ruleFired}/{positiveControl.conditions.ordinary.usable} sesi menonton biasa dan {positiveControl.conditions.produced.ruleFired}/{positiveControl.conditions.produced.usable} sesi pola diproduksi. Ini respons alat ukur, bukan hasil kesehatan peserta, dan tidak mengeluarkan rujukan.</p>
         <div className={styles.validatorLine}><span>Sumber angka</span><strong>{headline.source}</strong></div>
       </div>
 
       <figure className={styles.scale}>
-        <figcaption>Besaran galat, skala sama, makin pendek makin baik</figcaption>
+        <figcaption>Denominator lengkap kontrol positif</figcaption>
         <div className={styles.scaleGrid}>
           <div className={styles.scaleRow}>
-            <span className={styles.scaleLabel}>Neurogaze<small>{headline.sessions} sesi Gate A</small></span>
-            <div className={styles.track}>
-              <div className={styles.fill} style={{ width: share(headline.valueDeg) }} data-self="true" />
-              <span className={styles.tick} style={{ left: share(headline.p90Deg) }} title={`Persentil 90: ${degrees(headline.p90Deg)}`} />
-            </div>
-            <strong>{degrees(headline.valueDeg)}</strong>
+            <span className={styles.scaleLabel}>Menonton biasa<small>{positiveControl.conditions.ordinary.usable}/{positiveControl.conditions.ordinary.recorded} sesi dapat dipakai</small></span>
+            <strong>{positiveControl.conditions.ordinary.ruleFired}/{positiveControl.conditions.ordinary.usable}</strong>
           </div>
           <div className={styles.scaleRow}>
-            <span className={styles.scaleLabel}>{comparator.label}<small>{comparator.source}</small></span>
-            <div className={styles.track}><div className={styles.fill} style={{ width: share(comparator.medianErrorDeg) }} /></div>
-            <strong>{degrees(comparator.medianErrorDeg)}</strong>
+            <span className={styles.scaleLabel}>Pola diproduksi<small>{positiveControl.conditions.produced.usable}/{positiveControl.conditions.produced.recorded} sesi dapat dipakai</small></span>
+            <strong>{positiveControl.conditions.produced.ruleFired}/{positiveControl.conditions.produced.usable}</strong>
           </div>
-          <p className={styles.scaleAxis}><span>0°</span><span>{SCALE_MAX_DEG}°</span></p>
         </div>
-        <p className={styles.scaleNote}>Garis tipis pada batang Neurogaze menandai persentil 90. {comparator.note}</p>
+        <p className={styles.scaleNote}>{positiveControl.boundary}</p>
       </figure>
     </section>
 
     <section className={styles.definition}>
       <IconShieldCheck size={20} />
-      <div><strong>Ini bukan akurasi deteksi autisme.</strong><p>Gate A mengukur seberapa dekat estimasi gaze dengan titik yang sudah diketahui posisinya, pada orang dewasa. Gate B menguji kesepakatan aliran Neurogaze dengan WebGazer.js pada sesi yang sama. Sensitivitas, spesifisitas, dan performa klinis harus diuji terpisah pada Gate C.</p></div>
+      <div><strong>Rujukan otomatis balita masih ditahan.</strong><p>Klip lapangan 16,75 detik tidak mereplikasi protokol penuh tempat ambang 69% diterbitkan. Gate A/B menguji pengukuran teknis; validitas klinis Indonesia, keterpakaian kader, sensitivitas, dan spesifisitas belum diuji.</p></div>
     </section>
 
     <section className={styles.metrics} aria-label="Angka pendukung Gate B">
-      <article><span>Kesepakatan AOI</span><strong>{percent(agreement.meanAoiAgreementRecomputed)}</strong><small>Dihitung ulang dari koordinat mentah; nilai simpanan {percent(agreement.meanAoiAgreement)} pada {agreement.pairsWithAoiClassificationDelta} pasangan berbeda satu sampel</small></article>
-      <article><span>ICC(A,1) rata-rata</span><strong>{featureAgreement.meanIccA1.toFixed(3).replace(".", ",")}</strong><small>{featureAgreement.nFeatures} fitur, rentang {featureAgreement.iccRange.min.toFixed(3).replace(".", ",")}–{featureAgreement.iccRange.max.toFixed(3).replace(".", ",")}</small></article>
+      <article><span>Gate A</span><strong>{gateAAccuracy.sessions}/100</strong><small>sesi dewasa lulus mutu; {gateAAccuracy.valueDeg.toFixed(2).replace(".", ",")}° adalah konversi sudut lama tanpa jarak pandang</small></article>
       <article><span>Valid pair rate</span><strong>{percent(agreement.validPairRate)}</strong><small>{evidence.study.nPairsReady} dari {evidence.study.nPairsTotal} pasangan; {evidence.study.nPairsWithheld} ditahan</small></article>
       <article><span>Galat antar aliran</span><strong>{agreement.medianPairErrorPx.toFixed(1).replace(".", ",")} px</strong><small>{percent(agreement.medianPairErrorNorm)} lebar layar; p90 {agreement.p90PairMedianErrorPx.toFixed(1).replace(".", ",")} px</small></article>
+      <article><span>Kesepakatan AOI</span><strong>{percent(agreement.meanAoiAgreementRecomputed)}</strong><small>Angka sekunder yang jenuh secara geometri, bukan ground truth</small></article>
+    </section>
+
+    <section className={styles.card}>
+      <h2>Matriks kesiapan</h2>
+      <table className={styles.blandTable}>
+        <thead><tr><th scope="col">Kapabilitas</th><th scope="col">Status</th><th scope="col">Batas</th></tr></thead>
+        <tbody>{readiness.capabilities.map((item) => <tr key={item.id}><th scope="row">{item.capability}</th><td>{item.statusLabel}</td><td>{item.boundary}</td></tr>)}</tbody>
+      </table>
+    </section>
+
+    <section className={styles.card}>
+      <h2>Jarak terdekat antar kondisi</h2>
+      <p className={styles.cardLede}>Ketiga ukuran terpisah tanpa tumpang tindih pada sesi yang dapat dihitung. Jarak terdekat ditampilkan karena AUC 1,00 hanya berarti tidak ada pasangan yang terurut salah.</p>
+      <table className={styles.blandTable}>
+        <thead><tr><th scope="col">Sinyal</th><th scope="col">Median biasa</th><th scope="col">Median diproduksi</th><th scope="col">Jarak terdekat</th></tr></thead>
+        <tbody>{positiveControl.signals.map((signal) => <tr key={signal.id}><th scope="row">{signal.id}</th><td>{signal.medianOrdinary.toFixed(3).replace(".", ",")} (n={signal.nOrdinary})</td><td>{signal.medianProduced.toFixed(3).replace(".", ",")} (n={signal.nProduced})</td><td>{signal.nearestGap.toFixed(3).replace(".", ",")}</td></tr>)}</tbody>
+      </table>
     </section>
 
     <div className={styles.contentGrid}>
@@ -105,10 +110,10 @@ export default function ValidationPage() {
       <h2>Pemodelan: yang diukur, dan yang ditolak</h2>
       <p className={styles.cardLede}>Lima angka, dua di antaranya sengaja tidak dipakai. Selengkapnya di <code>research/hasil</code> dan makalah.</p>
       <ul>
-        <li><strong>Regresi logistik 13 fitur geometri — AUC tingkat anak 0,823</strong> (95% CI 0,697–0,929; 547 scanpath, 54 anak, pemisahan per partisipan). Dikirim ke perangkat dan dijalankan tiap sesi, tetapi dikurung penjaga out-of-distribution dan tidak punya jalur kode untuk memutuskan apa pun.</li>
+        <li><strong>Regresi logistik Carette adalah bukti konsep domain sumber.</strong> Data berasal dari 54 anak usia sekolah di Prancis pada eye-tracker 250 Hz, dipisah per partisipan tetapi tanpa uji eksternal. Model sengaja ditolak penjaga OOD pada sesi sekarang dan tidak punya jalur kode untuk memutuskan apa pun.</li>
         <li><strong>CNN EfficientNetB0 pada citra yang sama — AUC 0,882, selisihnya tidak dapat dibedakan dari nol.</strong> Bootstrap berpasangan atas 54 partisipan yang sama: ΔAUC +0,059, CI 95% −0,007 sampai +0,137, p = 0,087. Prediksi kedua model berkorelasi 0,93, jadi CNN menemukan sinyal yang sama, bukan sinyal tambahan. Alasan utama menolaknya tetap kontrak masukan: kanal warnanya membawa kecepatan, akselerasi, dan jerk dari eye-tracker 250 Hz.</li>
         <li><strong>Degradasi raster — proxy sparsifikasi piksel, bukan resampling waktu.</strong> Geometri 0,683 vs 19 fitur penuh 0,605 pada kondisi sasaran. Citra Carette tidak punya stempel waktu, jadi laju cuplik hanya dapat ditiru dengan menghapus piksel; berkasnya menyatakan batas itu sendiri.</li>
-        <li><strong>Degradasi temporal sungguhan — 27 sesi Gate B, desimasi waktu asli.</strong> Menurunkan laju dari 26 Hz ke 13 Hz menggeser fitur kinematik sebesar 69% nilainya dan fitur geometri sebesar 1,6% — beda 42 kali. Ini yang membenarkan pembekuan set geometri, menggantikan proxy di atas. Geometri lebih tahan, bukan kebal: ρ-nya turun ke 0,44 pada 6,5 Hz.</li>
+        <li><strong>Degradasi temporal sungguhan — 27 sesi Gate B, desimasi waktu asli.</strong> Median drift relatif saat laju turun dari 26 Hz ke 13 Hz adalah 69,4% untuk fitur kinematik dan 1,6% untuk fitur geometri. Ini bukan perbandingan akurasi klasifikasi. Beberapa fitur geometri tetap menunjukkan pelestarian peringkat yang lemah atau drift besar pada laju lebih rendah.</li>
         <li><strong>CNN pada dataset wajah statis — AUC 0,932, angka tertinggi di proyek ini, dikarantina.</strong> Enam dari enam metadata tata kelola tidak tersedia dan tidak ada ID partisipan, sehingga kebocoran identitas tidak dapat disingkirkan. Uji shortcut menunjukkan statistik piksel saja sudah mencapai 0,751 (permutasi p = 0,005). Bobotnya tidak ada di repositori.</li>
       </ul>
       <div className={styles.claimLock}><IconAlert size={16} /><span><strong>Tidak satu pun angka ini memutuskan rujukan</strong><small>Validasi algoritmik pada anak usia sekolah · bukan balita</small></span></div>

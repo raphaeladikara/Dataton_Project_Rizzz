@@ -2517,11 +2517,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             <div className="heroCopy">
               <span className="heroBadge" style={{ "--i": 0 } as CSSProperties}>
                 <i aria-hidden="true"><IconEye size={13} /></i>
-                Pendamping skrining untuk Posyandu
+                Prototipe riset pengukuran atensi
               </span>
               <h1 id="home-heading" tabIndex={-1} style={{ "--i": 1 } as CSSProperties}>Amati pola perhatian anak <em>melalui baterai pengukuran {sessionSeconds} detik</em>.</h1>
               <p className="lead" style={{ "--i": 2 } as CSSProperties}>
-                Neurogaze membantu kader dan orang tua mendokumentasikan pola perhatian anak saat menonton stimulus singkat untuk dibaca bersama skrining perkembangan yang tervalidasi. Total waktu kunjungan juga mencakup persetujuan, penyiapan, dan kalibrasi.
+                Rantai kamera, kalibrasi, gerbang mutu, dan laporan siap untuk demonstrasi rekayasa. Belum ada balita, uji kader, atau validasi klinis Indonesia. Total waktu kunjungan juga mencakup persetujuan, penyiapan, dan kalibrasi.
               </p>
               {/* One action, and it is the real session.
                   Every demo path now lives behind "Panduan & demo". A second
@@ -2540,7 +2540,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               </div>
               <div className="warning heroWarning" style={{ "--i": 5 } as CSSProperties}>
                 <span aria-hidden="true"><IconAlert size={18} /></span>
-                <p><strong>Neurogaze adalah alat skrining awal dan bukan alat diagnosis.</strong> Neurogaze tidak menggantikan tenaga kesehatan.</p>
+                <p><strong>Rujukan otomatis balita ditahan.</strong> Klip 16,75 detik tidak mereplikasi protokol penuh tempat titik operasi 69% diterbitkan. Hasil observasi bukan diagnosis atau tanda aman.</p>
               </div>
             </div>
           </section>
@@ -2598,8 +2598,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <section className="homeSection evidenceSection" id="evidence" aria-labelledby="evidence-heading">
             <div className="sectionHead">
               <span className="sectionPill" data-tone="slate"><IconShieldCheck size={12} /> Bukti, batas, privasi</span>
-              <h2 id="evidence-heading">Dibangun agar dapat diaudit.</h2>
-              <p>Jejak teknis tersedia untuk evaluasi, sementara media mentah tetap berada di luar laporan.</p>
+              <h2 id="evidence-heading">Bukti hari ini: respons alat pada orang dewasa.</h2>
+              <p>Kontrol positif memiliki provenance kamera-ke-angka lengkap. Ini manipulation check, bukan sensitivitas, spesifisitas, atau ASD.</p>
             </div>
             <div className="evidenceRow">
               <article id="privacy" className="evidenceCard privacy" style={{ "--i": 0 } as CSSProperties}>
@@ -2608,14 +2608,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <p>Video dan landmark mentah tidak disimpan. Log teknis hanya berada di memori sampai diekspor.</p>
               </article>
               <article className="evidenceCard" style={{ "--i": 1 } as CSSProperties}>
-                <span className="evidenceNumber">13</span>
-                <strong>Fitur geometri</strong>
-                <p>Baseline replay yang dapat dijelaskan dan diuji parity Python ↔ browser.</p>
+                <span className="evidenceNumber">15/23</span>
+                <strong>Sesi dewasa lulus mutu</strong>
+                <p>12 peserta; 23 direkam. Denominator kondisi: 9/11 biasa dan 6/12 pola diproduksi.</p>
               </article>
               <article className="evidenceCard" style={{ "--i": 2 } as CSSProperties}>
-                <span className="evidenceNumber">54</span>
-                <strong>Partisipan anchor POC</strong>
-                <p>Anak usia sekolah dengan evaluasi group-aware; bukan validasi klinis balita.</p>
+                <span className="evidenceNumber">0/9 · 4/6</span>
+                <strong>Aturan demonstrasi</strong>
+                <p>Tidak menyala pada sesi biasa; menyala pada pola diproduksi. <code>emitsReferral=false</code>.</p>
               </article>
             </div>
             <div className="evidenceActions">
@@ -2748,10 +2748,9 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                     skipped because the copy never said what only it can do. */}
                 <p>Peragaan kamera langsung menjalankan sesi sungguhan untuk peserta dewasa: kamera, kalibrasi, dan gerbang mutu yang sama, dengan ambang yang sama diterapkan. Hanya lewat jalur ini “Disarankan pemeriksaan lanjutan” bisa muncul di depan penonton — dan hanya lewat jalur ini pula kebalikannya bisa ditunjukkan, karena peserta yang menonton adegan sosial dan mengikuti isyarat arah keluar tanpa rekomendasi. Jalankan dua orang berturut-turut kalau yang perlu terlihat adalah bahwa alat ini membedakan, bukan merujuk semua orang. Ia tidak tersedia pada jalur anak.</p>
               </div>
-              {/* One button per registered recording rather than a single control
-                  that silently plays whichever file is first. The presenter has
-                  to pick the condition out loud, which is the only thing keeping
-                  an ordinary-viewing session from being narrated as the other. */}
+              {/* Each registered recording has its own button. The presenter must
+                  name the condition, so an ordinary-viewing session cannot be
+                  narrated as the produced-pattern condition. */}
               <div className="demoAsideActions">
                 {recordingEntries.map((entry) => (
                   <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
@@ -3087,7 +3086,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </div>}
             <div className="reportNotice" data-kind="limit">
               <span aria-hidden="true"><IconAlert size={17} /></span>
-              <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : "Gunakan bersama SDIDTK/M-CHAT dan penilaian tenaga kesehatan. Ambang rujukan mengikuti GeoPref (Wen dkk., 2022); indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
+              <p><strong>Bukan diagnosis ASD.</strong> {isEngineeringStudy ? "Sesi ini menguji perangkat, bukan perkembangan peserta." : demonstrationMode ? "Ini simulasi pola rujukan pada orang dewasa dan tidak mengeluarkan rujukan." : "Klip lapangan terlalu pendek untuk titik operasi GeoPref terbit, jadi arahan rujukan otomatis ditahan. Indeks lain bersifat deskriptif dan belum punya ambang tervalidasi."}</p>
             </div>
             {!isEngineeringStudy && quality.passed && sessionOutcome.recordedSession && (recording
               ? <div className="reportNotice" data-kind="replay" role="status"><span aria-hidden="true"><IconInfo size={17} /></span><p><strong>REKAMAN — bukan sesi langsung.</strong> Diputar ulang dari sesi {recording.label}{recording.capturedAt ? ` (${new Date(recording.capturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})` : ""}. Angka di bawah adalah hasil sesi itu.</p></div>
@@ -3147,7 +3146,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   separately-bordered blocks with three different paddings. Each
                   index now leads with its number and carries its provenance in
                   the size provenance deserves, so a card is a number with a
-                  caption rather than a paragraph with a number in it. */}
+                  short caption. */}
               <section className="measurementLane" data-demoted={String(Boolean(verdict))} aria-labelledby="measurement-heading">
                 <div className="laneHead">
                   <small>Angka yang diukur sesi ini</small>
@@ -3157,8 +3156,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 </div>
                 <div className="observationMetrics" role="list" aria-label="Indeks perilaku sesi">
                   <article role="listitem"><span><IconScanpathSpread size={17} /> Pola geometrik</span><strong>{geoprefResult?.percentGeometric == null ? "—" : <Ticker value={geoprefResult.percentGeometric * 100} format={(n) => `${Math.round(n)}%`} />}</strong><p>{geoprefResult?.percentGeometricCi
-                    ? `95% CI ${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%. Ambang rujukan 69% dibandingkan terhadap selang ini, bukan terhadap satu angka (Wen dkk., 2022; n=1.863, spesifisitas 98%).`
-                    : "Ambang rujukan 69% (Wen dkk., 2022; n=1.863, spesifisitas 98%)."}</p></article>
+                    ? `95% CI ${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%. Titik operasi terbit 69% hanya dibandingkan dalam mode demonstrasi; lajur lapangan menahannya (Wen dkk., 2022; n=1.863, spesifisitas 98%).`
+                    : "Titik operasi terbit 69% ditahan pada klip lapangan 16,75 detik (Wen dkk., 2022; n=1.863, spesifisitas 98%)."}</p></article>
                   <article role="listitem"><span><IconJointAttention size={17} /> Isyarat diikuti</span><strong>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</strong><p>{jointAttention?.pValue == null ? "Belum cukup percobaan." : `Uji tanda p = ${jointAttention.pValue.toFixed(3).replace(".", ",")}.`}</p></article>
                   <article role="listitem"><span><IconEye size={17} /> Menghadap layar</span><strong>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</strong><p>Padanan indeks ber-AUC 0,838 pada preseden tablet.</p></article>
                   <article role="listitem"><span><IconRoute size={17} /> Gerak kepala</span><strong>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</strong><p>Padanan indeks ber-AUC 0,864, tertinggi pada preseden.</p></article>
@@ -3412,7 +3411,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             <h2>Angka yang diukur</h2>
             <table>
               <tbody>
-                <tr><th scope="row">Pola geometrik</th><td>{geoprefResult?.percentGeometric == null ? "—" : `${Math.round(geoprefResult.percentGeometric * 100)}%${geoprefResult.percentGeometricCi ? ` (${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%)` : ""}`}</td><td>Ambang rujukan 69% dibandingkan terhadap selang kepercayaan (Wen dkk. 2022, n=1.863, spesifisitas 98%)</td></tr>
+                <tr><th scope="row">Pola geometrik</th><td>{geoprefResult?.percentGeometric == null ? "—" : `${Math.round(geoprefResult.percentGeometric * 100)}%${geoprefResult.percentGeometricCi ? ` (${Math.round(geoprefResult.percentGeometricCi[0] * 100)}–${Math.round(geoprefResult.percentGeometricCi[1] * 100)}%)` : ""}`}</td><td>Titik operasi terbit 69% ditahan pada lajur lapangan; hanya mode demonstrasi membandingkannya terhadap selang (Wen dkk. 2022)</td></tr>
                 <tr><th scope="row">Isyarat arah diikuti</th><td>{jointAttention ? `${jointAttention.trialsFollowed}/${jointAttention.trialsScored}` : "—"}</td><td>Deskriptif, tanpa ambang tervalidasi</td></tr>
                 <tr><th scope="row">Menghadap layar</th><td>{phenotype.facingForward.proportion == null ? "—" : `${Math.round(phenotype.facingForward.proportion * 100)}%`}</td><td>Padanan indeks AUC 0,838 pada preseden tablet</td></tr>
                 <tr><th scope="row">Gerak kepala</th><td>{phenotype.headMovement.rangePerSecond == null ? "—" : phenotype.headMovement.rangePerSecond.toFixed(3).replace(".", ",")}</td><td>Padanan indeks AUC 0,864 pada preseden tablet</td></tr>
@@ -3423,7 +3422,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </table>
             <h2>Batas klaim</h2>
             <ul>
-              <li>Ini bukan diagnosis. Hanya ambang GeoPref 69% yang memicu arahan rujukan; indeks lain bersifat deskriptif.</li>
+              <li>Ini bukan diagnosis. Rujukan otomatis balita ditahan karena klip 16,75 detik tidak mereplikasi protokol penuh; indeks lain bersifat deskriptif.</li>
               <li>Hasil di bawah ambang bukan tanda aman: sensitivitas ambang ini 17%, jadi sebagian besar anak ASD tidak terdeteksi.</li>
               <li>Indeks perilaku belum punya ambang tervalidasi untuk balita Indonesia.</li>
               <li>Keputusan rujukan tetap milik tenaga kesehatan, bukan aplikasi ini.</li>

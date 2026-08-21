@@ -16,10 +16,16 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from research.export_readiness_matrix import build as build_readiness_matrix
+except ModuleNotFoundError:  # Direct execution: Python adds research/, not the repo root.
+    from export_readiness_matrix import build as build_readiness_matrix
+
 
 ROOT = Path(__file__).resolve().parent.parent
 GATE_A = ROOT / "research" / "hasil" / "gate_a" / "gate_a_summary.json"
 GATE_B = ROOT / "research" / "hasil" / "gate_b" / "gate_b_summary.json"
+POSITIVE_CONTROL = ROOT / "research" / "hasil" / "kontrol_positif" / "ringkasan.json"
 TARGET = ROOT / "app" / "public" / "validation" / "gate-b-public.json"
 
 SCHEMA = "neurogaze-gate-b-public-evidence-v3"
@@ -48,6 +54,7 @@ def _feature_example(agreement: dict[str, Any], name: str, reading: str) -> dict
 def build() -> dict[str, Any]:
     gate_a = _load(GATE_A)
     gate_b = _load(GATE_B)
+    positive = _load(POSITIVE_CONTROL)
     known = gate_a["knownTargetValidation"]
     agreement = gate_b["featureAgreement"]
     icc_values = [item["iccA1"] for item in agreement.values() if item["iccA1"] is not None]
@@ -57,15 +64,56 @@ def build() -> dict[str, Any]:
         "status": "gate_b_passed" if gate_b["decision"] == "PASSED" else "gate_b_not_passed",
         "publishedAt": PUBLISHED_AT,
         "headline": {
-            "metric": "known_target_median_error_deg",
+            "metric": "adult_positive_control",
+            "title": "Instrumen merespons pola yang sengaja diproduksi",
+            "summary": "Kontrol positif dewasa dengan provenance kamera-ke-angka yang lengkap.",
+            "source": "research/hasil/kontrol_positif/ringkasan.json",
+        },
+        "positiveControl": {
+            "interpretation": "adult_manipulation_check",
+            "participants": positive["participants"],
+            "sessions": {
+                "recorded": positive["sessionsRecorded"],
+                "qualityPass": positive["sessionsUsable"],
+            },
+            "conditions": {
+                "ordinary": {
+                    "recorded": positive["attritionByCondition"]["biasa"]["direkam"],
+                    "usable": positive["attritionByCondition"]["biasa"]["dipakai"],
+                    "ruleFired": positive["compositeRule"]["demonstrasi"]["fired"]["biasa"],
+                },
+                "produced": {
+                    "recorded": positive["attritionByCondition"]["produksi"]["direkam"],
+                    "usable": positive["attritionByCondition"]["produksi"]["dipakai"],
+                    "ruleFired": positive["compositeRule"]["demonstrasi"]["fired"]["produksi"],
+                },
+            },
+            "signals": [
+                {
+                    "id": item["signal"],
+                    "nOrdinary": item["n_biasa"],
+                    "nProduced": item["n_produksi"],
+                    "medianOrdinary": item["median_biasa"],
+                    "medianProduced": item["median_produksi"],
+                    "nearestGap": item["margin"],
+                }
+                for item in positive["signals"]
+            ],
+            "emitsReferral": False,
+            "boundary": positive["scope"],
+            "source": "research/hasil/kontrol_positif/ringkasan.json",
+        },
+        "gateAAccuracy": {
+            "metric": "legacy_known_target_angle_conversion",
             "valueDeg": known["medianErrorDeg"],
             "p90Deg": known["p90ErrorDeg"],
             "sessions": known["sessions"],
             "population": f"{known['sessions']} sesi dewasa Gate A yang lulus mutu, {gate_a['participants']} partisipan, {gate_a['devices']} perangkat",
-            "definition": "Galat sudut median terhadap target yang posisinya diketahui dan tidak dipakai melatih kalibrasi.",
-            "why": "Ini satu-satunya angka akurasi absolut yang dimiliki proyek ini. Kesepakatan antar dua penaksir tidak bisa menghasilkannya: keduanya bisa sepakat sambil sama-sama meleset.",
+            "definition": "Konversi sudut lama dari galat terhadap target yang diketahui; sesi tidak merekam jarak pandang.",
+            "why": "Angka ini konteks teknis, bukan akurasi absolut eksak dan bukan uji tanding terhadap WebGazer.",
             "source": "research/hasil/gate_a/gate_a_summary.json",
         },
+        "readiness": build_readiness_matrix(),
         "comparator": {
             "label": "WebGazer.js",
             "medianErrorDeg": 4.17,
