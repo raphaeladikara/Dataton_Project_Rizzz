@@ -42,6 +42,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SESSIONS = os.path.join(ROOT, "research", "hasil", "kontrol_positif", "sesi", "*.json")
 SHEET = os.path.join(ROOT, "research", "hasil", "kontrol_positif", "lembar_sesi.csv")
 OUT = os.path.join(ROOT, "research", "hasil", "audit_shortcut_sendiri.json")
+# Also written as a flat table so research/shortcut_audit.py — the standalone
+# tool — can be run against it directly, which is how the released check is
+# demonstrated on a dataset that passes rather than only on one that fails.
+CSV_OUT = os.path.join(ROOT, "research", "hasil", "kontrol_positif_nuisance.csv")
 
 SEED = 20260821
 PERMUTATIONS = 5000
@@ -160,6 +164,7 @@ def audit(frame: pd.DataFrame, scope: str) -> dict:
 
 def main() -> None:
     frame = load()
+    frame.to_csv(CSV_OUT, index=False)
     results = {
         "all_filed": audit(frame, "seluruh sesi terfilekan, termasuk yang ditahan gerbang mutu"),
         "usable_only": audit(frame[frame["usable"]],

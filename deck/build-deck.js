@@ -686,6 +686,62 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
   s.addNotes("Ini slide AI Implementation, bukan slide integritas — jual temuannya lebih dulu, penolakannya belakangan. Kalimat kuncinya: setiap makalah pada dataset ini yang tidak menjalankan alas semacam ini berisiko melaporkan performa yang sebagian berasal dari perbedaan pengumpulan data. Dataset wajah cukup satu baris; jangan diceritakan ulang.");
 }
 
+// ═══════════════════════════════════════════════════════ 10b · Yang sudah diserahkan
+{
+  const s = lightSlide("Studi yang akan menjawab pertanyaan ini belum bisa dimulai — instrumennya tidak ada", "Dampak yang sudah selesai hari ini");
+
+  s.addText(
+    "Itu bukan retorika. Kelompok riset mana pun yang ingin menguji ukuran atensi berbasis tablet pada balita Indonesia harus membangun seluruh rantai ini lebih dulu, sebelum merekrut satu anak pun. Rantai itu sudah selesai, sudah diuji, dan sudah bisa diserahkan.",
+    {
+      x: M, y: 2.3, w: 11.4, h: 0.7, margin: 0,
+      fontFace: B, fontSize: 14, color: INK_2, lineSpacing: 20,
+    },
+  );
+
+  const ready = [
+    ["Instrumen luring terinstrumentasi", "kamera, kalibrasi, gerbang mutu, jejak audit"],
+    ["Parity Python–TypeScript", "fitur riset dan fitur tablet diuji berpasangan"],
+    ["Bukti instrumen Gate A dan B", "130 berkas mentah, manifest SHA-256"],
+    ["Kontrol positif dewasa", "provenance kamera-ke-angka lengkap"],
+    ["Protokol Gate C dan kriteria terimanya", "beserta empat audit wajib"],
+    ["Simulasi beban rujukan per titik kerja", "termasuk titik impas kapasitas"],
+  ];
+  ready.forEach(([t, d], i) => {
+    const x = M + (i % 2) * 5.85;
+    const y = 3.15 + Math.floor(i / 2) * 0.78;
+    s.addText("✓", {
+      x, y, w: 0.3, h: 0.3, margin: 0,
+      fontFace: B, fontSize: 14, bold: true, color: TEAL,
+    });
+    s.addText(t, {
+      x: x + 0.34, y, w: 5.3, h: 0.28, margin: 0,
+      fontFace: B, fontSize: 13, bold: true, color: INK,
+    });
+    s.addText(d, {
+      x: x + 0.34, y: y + 0.28, w: 5.3, h: 0.28, margin: 0,
+      fontFace: B, fontSize: 11, color: MUTED,
+    });
+  });
+
+  card(s, { x: M, y: 5.6, w: 11.4, h: 1.0, fill: TEAL_WASH, line: TEAL_WASH });
+  stat(s, {
+    x: M + 0.4, y: 5.72, w: 2.2, value: "10/14", size: 30, color: TEAL,
+    label: "berkas paket mitra siap kirim",
+  });
+  s.addText(
+    "Empat sisanya — naskah kaji etik, lembar persetujuan orang tua, perjanjian data — menuntut mitra sebagai penanggung jawabnya, dan tidak dapat dikarang lebih dulu. “Kami belum punya mitra” dan “paketnya siap, mitranya yang belum ada” menggambarkan keadaan yang sama; hanya satu yang menggambarkan pekerjaannya.",
+    {
+      x: M + 3.1, y: 5.78, w: 8.0, h: 0.72, margin: 0,
+      fontFace: B, fontSize: 12, color: INK_2, lineSpacing: 16,
+    },
+  );
+  s.addText("Rinciannya di docs/paket_mitra.md", {
+    x: M, y: 6.72, w: 11.4, h: 0.3, margin: 0,
+    fontFace: B, fontSize: 10, color: MUTED,
+  });
+  s.addNotes("0:40. INI pembuka bagian dampak, bukan tabel biaya. Klaim yang tidak bersyarat, sudah selesai, dan tidak butuh satu balita pun untuk dibuktikan. Baru setelah ini masuk ke biaya, dan biaya selalu disebut sebagai skenario.");
+}
+
 // ═══════════════════════════════════════════════════════ 11 · Biaya
 {
   const s = lightSlide("Ambil metrik yang paling keras terhadap kami", "Dampak dan biaya");

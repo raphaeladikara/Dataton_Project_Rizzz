@@ -24,7 +24,7 @@ Ketika andaian itu salah, modelnya tetap mengeluarkan angka — dengan percaya d
 memberi tahu siapa pun. Di skrining anak, itu rasa aman palsu yang diserahkan ke orang
 tua.
 
-Neurogaze memasang gerbang tepat di titik itu. Enam komponen menyusunnya, dan tiap
+Neurogaze memasang gerbang tepat di titik itu. Tujuh komponen menyusunnya, dan tiap
 komponen punya berkas buktinya.
 
 ### 1. Fitur dipilih dengan pengukuran, bukan selera
@@ -123,7 +123,22 @@ dinilai*, bukan positif.
 Lemparan koinnya hilang; sensitivitas pada preferensi tinggi tidak.
 [`docs/ambang_selang_kepercayaan.md`](docs/ambang_selang_kepercayaan.md)
 
-Bingkai presentasi untuk keenamnya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md) dan
+### 7. Audit shortcut, dirilis sebagai alat
+
+Pemeriksaan yang menolak bobot lapis 2 tidak berlaku khusus untuk proyek ini. Ia berlaku
+untuk siapa pun yang melatih klasifikator pada dua kelompok yang direkam sedikit berbeda,
+dan kegagalan yang dicarinya senyap: setiap fitur yang dibaca modelnya tetap punya nama
+yang terdengar seperti perilaku.
+
+```bash
+python research/shortcut_audit.py data.csv --label kelas     --nuisance n_sampel rasio_pelacakan fraksi_kedip     --behaviour indeks_1 indeks_2 --group id_partisipan
+```
+
+Ia dijalankan pada dua arah di repositori ini: `shortcut_present` pada data Cilia, dan
+`no_shortcut_detected` pada kontrol positif kami sendiri.
+[`research/shortcut_audit.py`](research/shortcut_audit.py)
+
+Bingkai presentasi untuk ketujuhnya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md) dan
 [`docs/bingkai_kompetisi.md`](docs/bingkai_kompetisi.md).
 
 ---
