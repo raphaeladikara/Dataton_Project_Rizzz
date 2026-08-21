@@ -415,6 +415,73 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
   s.addNotes("Lambatkan di sini. Ini satu-satunya temuan terukur milik sendiri di seluruh proyek — semua angka lain milik studi orang lain.");
 }
 
+// ═══════════════════════════════════════════════════════ 7b · Ambang vs selang
+{
+  const s = lightSlide("Kami membandingkan ambang terhadap selang, bukan terhadap satu angka", "Kontribusi metodologis");
+
+  s.addText(
+    "Hampir setiap penerapan ambang terbit membandingkan estimasi titik sesi dengan cutoff. Klip 16,75 detik hanya menghasilkan sekitar 300 sampel di dalam AOI, dan galat pencuplikan pada angka sebesar itu berjalan belasan poin. Jadi kami bandingkan selang kepercayaan 95% sesi — dan sesi yang selangnya melintasi ambang berstatus tidak dapat dinilai, bukan positif.",
+    {
+      x: M, y: 2.3, w: 11.4, h: 0.85, margin: 0,
+      fontFace: B, fontSize: 14, color: INK_2, lineSpacing: 20,
+    },
+  );
+
+  const rows = [
+    [
+      { text: "Preferensi sebenarnya", options: { bold: true } },
+      { text: "Aturan titik lama", options: { bold: true } },
+      { text: "Aturan selang sekarang", options: { bold: true } },
+    ],
+    [
+      { text: "0,69 — persis di ambang", options: { bold: true } },
+      { text: "52,2%", options: { bold: true, color: CORAL } },
+      { text: "4,8%", options: { bold: true, color: TEAL } },
+    ],
+    ["0,75", "89,5%", "24,2%"],
+    ["0,80", "98,8%", "59,5%"],
+    [
+      { text: "0,90 — preferensi tinggi", options: { bold: true } },
+      { text: "100%", options: { bold: true } },
+      { text: "99,0%", options: { bold: true, color: TEAL } },
+    ],
+  ];
+  s.addTable(rows, {
+    x: M, y: 3.35, w: 7.0,
+    colW: [3.0, 2.0, 2.0],
+    fontFace: B, fontSize: 13, color: INK_2,
+    border: { type: "solid", color: LINE, pt: 1 },
+    fill: { color: WHITE },
+    rowH: 0.44, valign: "middle", margin: 0.09,
+  });
+  s.addText("Peluang aturan menyala · simulasi 400 sesi per titik, 17 jendela · research/simulate_geopref_interval.py", {
+    x: M, y: 5.65, w: 7.0, h: 0.3, margin: 0,
+    fontFace: B, fontSize: 10, color: MUTED,
+  });
+
+  card(s, { x: M + 7.3, y: 3.3, w: 4.1, h: 2.55, fill: TEAL_WASH, line: TEAL_WASH });
+  s.addText("Kami membuang lemparan koinnya, bukan sensitivitasnya.", {
+    x: M + 7.58, y: 3.55, w: 3.55, h: 0.8, margin: 0,
+    fontFace: H, fontSize: 18, bold: true, color: TEAL, lineSpacing: 23,
+  });
+  s.addText(
+    "Anak yang preferensinya persis di ambang dulu memicu rujukan separuh waktu — koin yang disajikan sebagai pengukuran. Sekarang 4,8%. Yang preferensinya benar-benar tinggi tetap terbaca 99%.",
+    {
+      x: M + 7.58, y: 4.45, w: 3.55, h: 1.3, margin: 0,
+      fontFace: B, fontSize: 12.5, color: INK_2, lineSpacing: 17,
+    },
+  );
+
+  s.addText(
+    "Standar buktinya jadi sama untuk kedua sinyal: mengikuti isyarat sudah memakai uji tanda sejak awal. Yang tidak dapat menempatkan dirinya di satu sisi ambang belum mengukur apa pun tentang ambang itu.",
+    {
+      x: M, y: 6.1, w: 11.4, h: 0.6, margin: 0,
+      fontFace: H, fontSize: 15, italic: true, color: INK_2, lineSpacing: 21,
+    },
+  );
+  s.addNotes("0:35. Ini kontribusi metodologis yang selama ini cuma catatan kaki. Baris 0,69 yang dijual: 52% jadi 4,8%. Lalu segera sebut baris 0,90 — 99% — supaya tidak terdengar seperti alat yang jadi tumpul.");
+}
+
 // ═══════════════════════════════════════════════════════ 8 · Penjaga
 {
   const s = lightSlide("Modelnya jalan. Penjaganya menolak — dan kami buktikan ia tidak menolak semuanya.", "Penjaga out-of-distribution");
@@ -598,14 +665,24 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     },
   );
 
-  card(s, { x: M, y: 6.0, w: 11.4, h: 0.85, fill: INK, line: INK });
+  // Pertanyaan yang pasti datang: kalian mengaudit dataset orang, di rumah
+  // sendiri bagaimana? Jawabannya harus sudah ada di slide, bukan di tanya jawab.
+  card(s, { x: M, y: 5.95, w: 11.4, h: 0.95, fill: INK, line: INK });
+  s.addText("Lalu kami jalankan audit yang sama pada data kami sendiri.", {
+    x: M + 0.45, y: 6.1, w: 5.4, h: 0.35, margin: 0,
+    fontFace: B, fontSize: 13, bold: true, color: TEAL_LT,
+  });
   s.addText(
-    "Ini kedua kalinya audit kami membunuh angka terbaik kami — yang pertama CNN dataset wajah, AUC 0,932, bobotnya tidak ada di repositori.",
+    "Mutu rekaman saja, kontrol positif kami: AUC 0,537 · p = 0,26. Kebetulan. Yang memisahkan kedua kondisi kami adalah perilaku, bukan cara sesinya direkam.",
     {
-      x: M + 0.45, y: 6.2, w: 10.5, h: 0.45, margin: 0,
-      fontFace: H, fontSize: 16, italic: true, bold: true, color: WHITE, lineSpacing: 22,
+      x: M + 0.45, y: 6.45, w: 10.6, h: 0.4, margin: 0,
+      fontFace: H, fontSize: 15, italic: true, color: WHITE, lineSpacing: 20,
     },
   );
+  s.addText("Cilia 0,905  ·  kami 0,537", {
+    x: M + 6.1, y: 6.08, w: 4.9, h: 0.35, margin: 0,
+    fontFace: B, fontSize: 14, bold: true, color: "F0A189", align: "right",
+  });
   s.addNotes("Ini slide AI Implementation, bukan slide integritas — jual temuannya lebih dulu, penolakannya belakangan. Kalimat kuncinya: setiap makalah pada dataset ini yang tidak menjalankan alas semacam ini berisiko melaporkan performa yang sebagian berasal dari perbedaan pengumpulan data. Dataset wajah cukup satu baris; jangan diceritakan ulang.");
 }
 
@@ -733,9 +810,12 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
       fontFace: H, fontSize: 18, italic: true, color: TEAL_LT, lineSpacing: 25,
     },
   );
-  s.addText("Yang kami minta: satu mitra klinis yang mampu menjalankan kaji itu.", {
-    x: M, y: 6.05, w: 11.4, h: 0.3, margin: 0,
-    fontFace: B, fontSize: 13, bold: true, color: WHITE,
+  // "Kami belum punya mitra" dan "paketnya siap, mitranya yang belum ada"
+  // menggambarkan keadaan yang sama. Hanya satu di antaranya menggambarkan
+  // pekerjaan yang sudah dilakukan.
+  s.addText("Yang kami minta: satu mitra klinis yang mampu menjalankan kaji itu. Paketnya sudah siap dikirim — 10 dari 14 berkas jadi, sisanya menuntut mitra sebagai penanggung jawabnya.", {
+    x: M, y: 5.95, w: 11.4, h: 0.45, margin: 0,
+    fontFace: B, fontSize: 13, bold: true, color: WHITE, lineSpacing: 18,
   });
   s.addText("Target Gate C: sensitivitas 88%  ·  spesifisitas 81%  —  ditetapkan dari literatur, bukan dari harapan", {
     x: M, y: 6.45, w: 11.4, h: 0.3, margin: 0,

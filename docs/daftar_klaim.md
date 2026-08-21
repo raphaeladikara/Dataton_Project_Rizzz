@@ -6,7 +6,7 @@ Setiap angka yang diucapkan di panggung, sumbernya, dan apakah ia milik proyek i
 > membaca nilai kanonis dari berkas bukti dan berhenti dengan galat kalau ada yang
 > tidak cocok, jadi tabel ini tidak dapat melenceng dari buktinya diam-diam.
 
-**21 klaim milik sendiri · 5 dikutip · 3 asumsi dinyatakan.**
+**24 klaim milik sendiri · 5 dikutip · 3 asumsi dinyatakan.**
 
 | Klaim | Yang disebut | Milik | Sumber | Berkas bukti |
 |---|---|---|---|---|
@@ -23,6 +23,9 @@ Setiap angka yang diucapkan di panggung, sumbernya, dan apakah ia milik proyek i
 | Alas shortcut tingkat sesi pada data Cilia | AUC 0,905 | milik sendiri | Tanpa satu pun fitur perilaku; mengungguli model indeks 0,784 | `research/hasil/model_rujukan.json` |
 | Model indeks perilaku pada data Cilia | AUC 0,784 | milik sendiri | Tiga indeks, 57 partisipan, lipatan per partisipan | `research/hasil/model_rujukan.json` |
 | Bobot lapis 2 | ditolak audit | milik sendiri | Kriteria penolakan ditulis sebelum fitting dijalankan | `research/hasil/model_rujukan.json` |
+| Alas shortcut pada kontrol positif sendiri | AUC 0,537 · p = 0,26 | milik sendiri | Audit identik dengan yang menolak lapis 2, dijalankan pada data sendiri | `research/hasil/audit_shortcut_sendiri.json` |
+| Aturan ambang terhadap selang, pada preferensi 0,69 | menyala 4,8% (aturan titik lama: 52,2%) | milik sendiri | Simulasi 400 sesi per titik, research/simulate_geopref_interval.py | — |
+| Aturan ambang terhadap selang, pada preferensi 0,90 | menyala 99,0% | milik sendiri | Sumber yang sama; sensitivitas pada preferensi tinggi tidak hilang | — |
 | Penjaga OOD menerima di domain sumber | 544 dari 547 | milik sendiri | Kohort Carette; kalibrasi empiris 99,5% jadi ini pemeriksaan kewarasan | `research/hasil/ood_dua_arah.json` |
 | Penjaga OOD pada stimulus yang dikirim | 1 dari 23 sesi diterima | milik sendiri | Sesi kontrol positif yang terekam | `research/hasil/ood_dua_arah.json` |
 | Keputusan penjaga direproduksi lintas runtime | 23 dari 23 | milik sendiri | Keputusan browser dihitung ulang oleh Python dari nilai fitur tersimpan | `research/hasil/ood_dua_arah.json` |

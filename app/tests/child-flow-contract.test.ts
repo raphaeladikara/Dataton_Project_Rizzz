@@ -5,6 +5,10 @@ import test from "node:test";
 const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 const stimulusProtocol = readFileSync(new URL("../src/stimulus/protocol.ts", import.meta.url), "utf8");
 const sessionCss = readFileSync(new URL("../app/session.css", import.meta.url), "utf8");
+// The report's notice copy moved into a pure module when the three stacked
+// warning cards were merged into one. The guarantee is unchanged — the app
+// still says these sentences — so the assertions follow the copy.
+const reportPresentation = readFileSync(new URL("../src/outcome/reportPresentation.ts", import.meta.url), "utf8");
 const responsiveCss = readFileSync(new URL("../app/responsive.css", import.meta.url), "utf8");
 const chromeCss = readFileSync(new URL("../app/chrome.css", import.meta.url), "utf8");
 const validationCss = readFileSync(new URL("../app/validation/validation.module.css", import.meta.url), "utf8");
@@ -479,8 +483,11 @@ test("the quick demo runs the real pipeline and says what produced the report", 
   // It must not stage a fake report: the demo goes through runCalibration and
   // runStimulus like any other session.
   assert.match(page, /await runStimulus\(\{ fast: true \}\)/);
-  assert.match(page, /REKAMAN — bukan sesi langsung/);
-  assert.match(page, /SIMULASI — bukan sesi langsung/);
+  assert.match(reportPresentation, /Rekaman, bukan sesi langsung/);
+  assert.match(reportPresentation, /Simulasi, bukan sesi langsung/);
+  // One notice, not three: the merge is the point, so a second card coming
+  // back should fail here.
+  assert.equal((page.match(/className="reportNotice"/g) ?? []).length, 1);
 });
 
 test("demonstration mode never reaches the child path and never emits a referral", () => {
@@ -509,8 +516,9 @@ test("demonstration mode never reaches the child path and never emits a referral
   assert.equal((page.match(/setDemonstrationMode\(/g) ?? []).length, 1);
   // The operator-facing banner has to say the threshold was applied on purpose
   // and that the session produces no referral.
-  assert.match(page, /MODE DEMONSTRASI/);
-  assert.match(page, /demonstrationMode && <div className="reportNotice" data-kind="demonstration"/);
+  assert.match(reportPresentation, /MODE DEMONSTRASI/);
+  assert.match(reportPresentation, /tidak mengeluarkan rujukan/);
+  assert.match(page, /data-kind=\{reportNotice\.tone\}/);
   // It is written into the audit log, so an exported session cannot hide it —
   // and it is written where the log actually exists. Recording it before
   // start() appended the event to the previous session's log, which start()

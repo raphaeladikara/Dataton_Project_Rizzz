@@ -66,6 +66,65 @@ const CONFIDENCE_SYNTHETIC =
 const CONFIDENCE_DEMONSTRATION =
   "Seberapa yakin: tidak berlaku untuk siapa pun. Ini peragaan pada orang dewasa dengan klip yang dipersingkat.";
 
+export type ReportNoticeInput = {
+  demonstrationMode: boolean;
+  isEngineeringStudy: boolean;
+  sourceKind: ReportSourceKind;
+  recordingLabel: string | null;
+  recordingCapturedAt: string | null;
+};
+
+export type ReportNotice = {
+  tone: "demonstration" | "limit";
+  /** The strongest applicable label, read first. */
+  lead: string;
+  /** Every remaining clause, in one pass. */
+  body: string;
+};
+
+/**
+ * One notice, not three.
+ *
+ * The report used to open with three stacked warning cards before a reader
+ * reached a single result. Every sentence in them was correct and load-bearing;
+ * the stack was not. Three cards of caveat ahead of the conclusion reads as an
+ * apology, and it was the first thing anyone saw of the system's output.
+ *
+ * Nothing is dropped here. The clauses are the same clauses, merged into one
+ * block so they are read in one pass instead of three.
+ */
+export function buildReportNotice(input: ReportNoticeInput): ReportNotice {
+  const clauses: string[] = [];
+
+  if (input.demonstrationMode) {
+    clauses.push(DEMONSTRATION_BANNER);
+    clauses.push(
+      "Ambang 69% sengaja diterapkan agar bentuk respons arsitektur dapat diperagakan; angkanya tidak sah untuk keputusan apa pun.");
+    clauses.push("Bukan diagnosis ASD: ini simulasi pola rujukan pada orang dewasa dan tidak mengeluarkan rujukan.");
+  } else if (input.isEngineeringStudy) {
+    clauses.push("Sesi ini menguji perangkat, bukan perkembangan peserta.");
+  } else {
+    clauses.push(
+      "Klip lapangan terlalu pendek untuk titik operasi GeoPref terbit, jadi arahan rujukan otomatis ditahan. Indeks lain bersifat deskriptif dan belum punya ambang tervalidasi.");
+  }
+
+  if (input.sourceKind === "recorded_replay" && input.recordingLabel) {
+    const when = input.recordingCapturedAt
+      ? ` (${new Date(input.recordingCapturedAt).toLocaleDateString("id-ID", { dateStyle: "long" })})`
+      : "";
+    clauses.push(`Rekaman, bukan sesi langsung: diputar ulang dari sesi ${input.recordingLabel}${when}, dan angka di bawah adalah hasil sesi itu.`);
+  } else if (input.sourceKind === "synthetic_preview") {
+    clauses.push(
+      "Simulasi, bukan sesi langsung: titik tatapan dibangkitkan dan bukan direkam, jadi indeks perilaku tetap kosong.");
+  }
+
+  return {
+    tone: input.demonstrationMode ? "demonstration" : "limit",
+    lead: input.demonstrationMode ? "MODE DEMONSTRASI." : "Bukan diagnosis ASD.",
+    body: clauses.join(" "),
+  };
+}
+
 /**
  * Builds only the caregiver-facing reading layer. Measurements, statistical
  * detail, decision lanes, and provenance remain separate in the practitioner

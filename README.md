@@ -24,7 +24,7 @@ Ketika andaian itu salah, modelnya tetap mengeluarkan angka — dengan percaya d
 memberi tahu siapa pun. Di skrining anak, itu rasa aman palsu yang diserahkan ke orang
 tua.
 
-Neurogaze memasang gerbang tepat di titik itu. Empat komponen menyusunnya, dan tiap
+Neurogaze memasang gerbang tepat di titik itu. Enam komponen menyusunnya, dan tiap
 komponen punya berkas buktinya.
 
 ### 1. Fitur dipilih dengan pengukuran, bukan selera
@@ -103,7 +103,27 @@ memprediksi labelnya daripada apa yang ditatap anak itu.** Bobot tidak dipromosi
 lapis likelihood-ratio dikirim sendirian, dan penolakannya diterbitkan sebagai hasil.
 [`research/hasil/model_rujukan.json`](research/hasil/model_rujukan.json)
 
-Bingkai presentasi untuk kelimanya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md) dan
+Dan kami menjalankan audit yang sama pada data sendiri. Mutu rekaman tingkat sesi saja,
+pada kontrol positif kami: **AUC 0,537, p = 0,26** — kebetulan. Yang memisahkan kedua
+kondisi kami adalah perilaku, bukan cara sesinya direkam.
+[`research/hasil/audit_shortcut_sendiri.json`](research/hasil/audit_shortcut_sendiri.json)
+
+### 6. Ambang dibandingkan terhadap selang, bukan terhadap satu angka
+
+Klip 16,75 detik hanya menghasilkan sekitar 300 sampel di dalam AOI, jadi galat
+pencuplikan berjalan belasan poin. Ambang 69% karena itu dibandingkan dengan selang
+kepercayaan 95% sesi; selang yang melintasi ambang membuat sinyalnya *tidak dapat
+dinilai*, bukan positif.
+
+| Preferensi sebenarnya | Aturan titik lama | Aturan selang sekarang |
+|---:|---:|---:|
+| 0,69 — persis di ambang | 52,2% | **4,8%** |
+| 0,90 — preferensi tinggi | 100% | **99,0%** |
+
+Lemparan koinnya hilang; sensitivitas pada preferensi tinggi tidak.
+[`docs/ambang_selang_kepercayaan.md`](docs/ambang_selang_kepercayaan.md)
+
+Bingkai presentasi untuk keenamnya ada di [`docs/bingkai_ai.md`](docs/bingkai_ai.md) dan
 [`docs/bingkai_kompetisi.md`](docs/bingkai_kompetisi.md).
 
 ---

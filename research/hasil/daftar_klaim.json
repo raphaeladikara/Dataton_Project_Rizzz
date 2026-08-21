@@ -8,7 +8,7 @@
     "asumsi dinyatakan": "Aritmetika atas asumsi yang dinyatakan. Bukan hasil pengukuran."
   },
   "counts": {
-    "milik sendiri": 21,
+    "milik sendiri": 24,
     "dikutip": 5,
     "asumsi dinyatakan": 3
   },
@@ -129,6 +129,33 @@
       "evidence_file": "research/hasil/model_rujukan.json",
       "evidence_path": "verdict",
       "canonical_value": "weights_rejected_layer_1_ships_alone"
+    },
+    {
+      "claim": "Alas shortcut pada kontrol positif sendiri",
+      "shown": "AUC 0,537 · p = 0,26",
+      "ownership": "milik sendiri",
+      "source": "Audit identik dengan yang menolak lapis 2, dijalankan pada data sendiri",
+      "evidence_file": "research/hasil/audit_shortcut_sendiri.json",
+      "evidence_path": "results.usable_only.auc_oof_nuisance_only",
+      "canonical_value": 0.537037037037037
+    },
+    {
+      "claim": "Aturan ambang terhadap selang, pada preferensi 0,69",
+      "shown": "menyala 4,8% (aturan titik lama: 52,2%)",
+      "ownership": "milik sendiri",
+      "source": "Simulasi 400 sesi per titik, research/simulate_geopref_interval.py",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
+    },
+    {
+      "claim": "Aturan ambang terhadap selang, pada preferensi 0,90",
+      "shown": "menyala 99,0%",
+      "ownership": "milik sendiri",
+      "source": "Sumber yang sama; sensitivitas pada preferensi tinggi tidak hilang",
+      "evidence_file": null,
+      "evidence_path": null,
+      "canonical_value": null
     },
     {
       "claim": "Penjaga OOD menerima di domain sumber",

@@ -961,6 +961,17 @@ berisiko melaporkan performa yang sebagian bersumber dari perbedaan pengumpulan 
 kelompok. Bobot tidak dipromosikan, Lapis~1 dikirim sendirian, dan penolakannya diterbitkan
 sebagai hasil di \texttt{research/hasil/model\_rujukan.json}.
 
+Menolak dataset pihak lain karena confound tanpa memeriksa confound yang sama pada data
+sendiri bukan kekakuan, jadi alas yang identik dijalankan pada kontrol positif. Tujuh
+ukuran mutu tingkat sesi --- laju wajah terbaca, dropout tatapan, galat kalibrasi,
+pencahayaan, jumlah sampel, frame yang dicoba, dan frame yang ditolak karena pose ---
+menghasilkan AUC out-of-fold 0,537 pada 15 sesi yang dipakai, dengan $p = 0{,}26$ pada
+permutasi dalam-perangkat 5.000 replikasi. Mutu rekaman tidak memisahkan kedua kondisi di
+atas kebetulan; yang memisahkannya adalah sinyal perilaku. Uji ini lebih lemah daripada
+padanannya pada data Cilia dan batasnya dinyatakan: $n$ kecil, dan identitas peserta tidak
+terekam pada 22 dari 24 log sehingga perangkat menjadi satu-satunya pengelompokan yang
+tersedia. Artefaknya \texttt{research/hasil/audit\_shortcut\_sendiri.json}.
+
 \subsection{Wawancara praktisi}
 
 Satu wawancara dengan seorang guru sekolah luar biasa di Jambi menjadi riset primer pertama
