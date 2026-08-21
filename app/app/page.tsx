@@ -1280,7 +1280,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
    * the stimulus block, the quality gate, and the same outcome resolver a live
    * session uses. The only difference is where the gaze comes from.
    */
-  async function startQuickDemo(options: { demonstration?: boolean; entry?: RecordingEntry } = {}) {
+  async function startQuickDemo(options: { demonstration: true; entry: RecordingEntry } | { demonstration?: false; entry?: RecordingEntry } = {}) {
     start("replay", SCENARIOS[0], "demo_replay", options);
     setProfile({ childId: options.demonstration ? "NG-PERAGA-01" : "NG-DEMO-01", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" });
     if (options.demonstration) recordAudit("session.demonstration_mode", { enabled: true, reason: "ambang_69_diterapkan_pada_protokol_dipersingkat" }, "warning");
@@ -2359,21 +2359,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                   to pick the condition out loud, which is the only thing keeping
                   an ordinary-viewing session from being narrated as the other. */}
               <div className="demoAsideActions">
-                {recordingEntries.length > 1 ? (
-                  recordingEntries.map((entry) => (
-                    <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
-                      <IconResearch size={15} /> Peragakan · {entry.label}
-                    </button>
-                  ))
-                ) : (
-                  <button className="secondary" onClick={() => void startQuickDemo({ demonstration: true })}>
-                    <IconResearch size={15} /> Peragakan bentuk laporan rujukan
+                {recordingEntries.map((entry) => (
+                  <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
+                    <IconResearch size={15} /> Peragakan · {entry.label}
                   </button>
-                )}
+                ))}
                 {/* Live camera, adult purpose, threshold applied under the same
-                    banner. Kept even though the switch below reaches the same
-                    place: it is the path that works when nobody remembered to
-                    flip anything. */}
+                    banner. This explicit guide control is the only live entry
+                    point for a stage demonstration. */}
                 <button
                   className="secondary"
                   onClick={() => start("live", scenario, "stage_demo", { demonstration: true })}
