@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable react-hooks/purity -- Every site this rule flags here is a
+/* Every site the React purity rule previously flagged here is a
    `performance.now()` or a setState inside an async event handler:
    runCalibration, runSanityCheck, runStimulus. None of them runs during render.
    The rule stayed quiet until this component shrank enough for the React
@@ -137,6 +137,18 @@ import {
 import { CalibrationCharacter } from "../src/ui/calibration-character";
 import { HeroDevice } from "../src/ui/hero-device";
 import { StimulusScene } from "../src/ui/stimulus-scene";
+import {
+  MEDIA_READY_TIMEOUT_MS,
+  canCaptureTimedMedia,
+  canStartTimedScoring,
+  initialMediaReadiness,
+  isMediaFailure,
+  mediaFailure,
+  transitionMediaReadiness,
+  type MediaReadiness,
+  type MediaReadinessEvent,
+  type MediaReadinessStatus,
+} from "../src/ui/mediaReadiness";
 import { CameraFramingArt, GuideScene, NaturalWatchingArt } from "../src/ui/scene-art";
 
 type Stage =
@@ -675,6 +687,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [online, setOnline] = useState(true);
   const [busy, setBusy] = useState(false);
   const [stimulusPaused, setStimulusPaused] = useState(false);
+  const [mediaReadiness, setMediaReadiness] = useState<MediaReadiness>(() => initialMediaReadiness());
+  const [mediaGeneration, setMediaGeneration] = useState(0);
   const [tracking, setTracking] = useState<TrackingSnapshot | null>(null);
   const [calibrationProgress, setCalibrationProgress] = useState<CalibrationProgress | null>(null);
   const [calibrationAttempts, setCalibrationAttempts] = useState(0);
@@ -685,6 +699,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const captureVideoRef = useRef<HTMLVideoElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
   const calibrationVideoRef = useRef<HTMLVideoElement>(null);
+  const geoprefVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const cameraRequestIdRef = useRef(0);
   const landmarkerRef = useRef<Awaited<ReturnType<typeof createFaceLandmarker>> | null>(null);
@@ -695,6 +710,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   // `profile`, never reaches the audit log, and never leaves the device.
   const callNameRef = useRef("");
   const stimulusPausedRef = useRef(false);
+  const mediaReadinessRef = useRef<MediaReadiness>(initialMediaReadiness());
+  const mediaWaitersRef = useRef(new Set<(readiness: MediaReadiness) => void>());
+  const mediaGenerationRef = useRef(0);
+  const stimulusRunIdRef = useRef(0);
 
   useEffect(() => {
     const originalConsoleError = console.error;
@@ -748,6 +767,16 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       console.error = originalConsoleError;
       window.removeEventListener("online", updateOnline);
       window.removeEventListener("offline", updateOnline);
+      stimulusRunIdRef.current += 1;
+      // The current node is intentionally read at unmount rather than captured
+      // on the home-screen mount, when the stimulus video does not exist yet.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      geoprefVideoRef.current?.pause();
+      const interrupted = transitionMediaReadiness(mediaReadinessRef.current, "interrupt");
+      // Resolve the current run's waiter, not the empty Set from initial mount.
+      mediaWaitersRef.current.forEach((waiter) => waiter(interrupted));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      mediaWaitersRef.current.clear();
       streamRef.current?.getTracks().forEach((track) => track.stop());
       landmarkerRef.current?.close();
     };
@@ -796,6 +825,17 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     return () => { stopped = true; cancelAnimationFrame(frame); };
   }, [busy, mode, stage, deviceStatus]);
 
+  useEffect(() => {
+    if (stage !== "stimulus" || !busy) return;
+    const interruptHiddenSession = () => {
+      if (!document.hidden) return;
+      geoprefVideoRef.current?.pause();
+      transitionMedia("interrupt");
+    };
+    document.addEventListener("visibilitychange", interruptHiddenSession);
+    return () => document.removeEventListener("visibilitychange", interruptHiddenSession);
+  }, [busy, stage]);
+
   function commitAudit(next: SessionAuditLog | null) {
     auditRef.current = next;
     setAuditLog(next);
@@ -811,6 +851,148 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   ) {
     if (!auditRef.current) return;
     commitAudit(appendAuditEvent(auditRef.current, type, data, level));
+  }
+
+  function transitionMedia(event: MediaReadinessEvent): MediaReadiness {
+    const next = transitionMediaReadiness(mediaReadinessRef.current, event);
+    if (next !== mediaReadinessRef.current) {
+      mediaReadinessRef.current = next;
+      setMediaReadiness(next);
+      mediaWaitersRef.current.forEach((waiter) => waiter(next));
+    }
+    return next;
+  }
+
+  function transitionMediaGeneration(event: MediaReadinessEvent, generation: number): MediaReadiness {
+    if (generation !== mediaGenerationRef.current) return mediaReadinessRef.current;
+    return transitionMedia(event);
+  }
+
+  function resetMediaPlayback() {
+    stimulusRunIdRef.current += 1;
+    geoprefVideoRef.current?.pause();
+    const interrupted = transitionMediaReadiness(mediaReadinessRef.current, "interrupt");
+    mediaWaitersRef.current.forEach((waiter) => waiter(interrupted));
+    mediaWaitersRef.current.clear();
+    const loading = initialMediaReadiness();
+    mediaGenerationRef.current += 1;
+    setMediaGeneration(mediaGenerationRef.current);
+    mediaReadinessRef.current = loading;
+    setMediaReadiness(loading);
+  }
+
+  function waitForMedia(
+    accepted: readonly MediaReadinessStatus[],
+    runId: number,
+  ): Promise<MediaReadiness> {
+    if (runId !== stimulusRunIdRef.current) return Promise.resolve({ status: "interrupted" });
+    const generation = mediaGenerationRef.current;
+    const current = mediaReadinessRef.current;
+    if (accepted.includes(current.status) || isMediaFailure(current.status)) return Promise.resolve(current);
+
+    return new Promise((resolve) => {
+      let timer = 0;
+      const settle = (readiness: MediaReadiness) => {
+        if (runId !== stimulusRunIdRef.current) {
+          cleanup();
+          resolve({ status: "interrupted" });
+          return;
+        }
+        if (!accepted.includes(readiness.status) && !isMediaFailure(readiness.status)) return;
+        cleanup();
+        resolve(readiness);
+      };
+      const cleanup = () => {
+        window.clearTimeout(timer);
+        mediaWaitersRef.current.delete(settle);
+      };
+      mediaWaitersRef.current.add(settle);
+      timer = window.setTimeout(() => {
+        if (runId !== stimulusRunIdRef.current || generation !== mediaGenerationRef.current) {
+          settle({ status: "interrupted" });
+          return;
+        }
+        transitionMediaGeneration("timeout", generation);
+      }, MEDIA_READY_TIMEOUT_MS);
+    });
+  }
+
+  async function holdForMedia(status: MediaReadinessStatus, runId: number) {
+    if (runId !== stimulusRunIdRef.current || !isMediaFailure(status)) return;
+    stimulusRunIdRef.current += 1;
+    geoprefVideoRef.current?.pause();
+    const failure = mediaFailure(status);
+    const heldValidity: SessionValidityResult = {
+      canScore: false,
+      outcome: "HELD",
+      heldKind: "HELD_SYSTEM",
+      primaryReasonCode: "SESSION_INCOMPLETE",
+      userMessage: `${failure.userMessage} Ini bukan hasil risiko anak.`,
+      operatorAction: failure.operatorAction,
+      invalidStages: [GEOPREF_PHASE_ID],
+      debugEvidence: { mediaStatus: status, mediaReason: failure.reason },
+    };
+    const heldQuality: Quality = {
+      faceRate: 0,
+      gazeDropout: 1,
+      calibrationErrorDeg: calibration?.errorDeg ?? 99,
+      calibrationLimitDeg,
+      brightness: deviceDiagnostics?.brightness ?? 0,
+      sampleCount: 0,
+      reasons: [failure.userMessage],
+      passed: false,
+    };
+    setPoints([]);
+    frameTraceRef.current.reset();
+    setGazeDiagnostics(null);
+    setCueSummary(null);
+    setOodAssessment(null);
+    setLatencyMs(null);
+    setPhenotype(EMPTY_PHENOTYPE);
+    setRisk(null);
+    setRiskInterpretable(false);
+    setQuality(heldQuality);
+    setValidity(heldValidity);
+    setStimulusPhase(null);
+    setStimulusCueActive(false);
+    setStimulusOstensiveActive(false);
+    setProgress(0);
+    if (auditRef.current) {
+      commitAudit(appendAuditEvent(
+        { ...auditRef.current, quality: heldQuality, gaze: undefined, assessment: undefined, decision: undefined },
+        "stimulus.media_withheld",
+        { reason: failure.reason, status, scoredSamples: 0 },
+        "error",
+      ));
+    }
+    if (mode === "live") stopCamera();
+    void leaveMeasurementFullscreen();
+    setBusy(false);
+    setStage("quality");
+  }
+
+  async function stopIfMediaTerminated(runId: number): Promise<boolean> {
+    if (runId !== stimulusRunIdRef.current) return true;
+    const status = mediaReadinessRef.current.status;
+    if (!isMediaFailure(status)) return false;
+    await holdForMedia(status, runId);
+    return true;
+  }
+
+  function toggleStimulusPause() {
+    const next = !stimulusPausedRef.current;
+    stimulusPausedRef.current = next;
+    setStimulusPaused(next);
+    if (next) {
+      geoprefVideoRef.current?.pause();
+      if (stimulusPhase?.id === GEOPREF_PHASE_ID) transitionMedia("waiting");
+    }
+    else if (stimulusPhase?.id === GEOPREF_PHASE_ID) {
+      const media = geoprefVideoRef.current;
+      const generation = mediaGenerationRef.current;
+      void media?.play().catch(() => transitionMediaGeneration("error", generation));
+    }
+    recordAudit(next ? "stimulus.paused" : "stimulus.resumed");
   }
 
   function beginAuditedSession() {
@@ -911,6 +1093,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
   function goHome() {
     void leaveMeasurementFullscreen();
+    resetMediaPlayback();
     stopCamera();
     setBusy(false);
     setStage("home");
@@ -1045,6 +1228,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     options: { demonstration?: boolean } = {},
   ) {
     setBusy(false);
+    resetMediaPlayback();
     recordingRef.current = null;
     setRecording(null);
     setDemoRun("idle");
@@ -1549,6 +1733,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
   async function runStimulus(options: { fast?: boolean } = {}) {
     if (!calibration || (mode === "replay" && !model)) return;
+    const runId = stimulusRunIdRef.current + 1;
+    stimulusRunIdRef.current = runId;
     // Cue order is counterbalanced per session, so the run order comes from the
     // session id rather than the declaration order. Everything downstream that
     // cares about ordering has to read this, not STIMULUS_PHASES.
@@ -1591,6 +1777,57 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const capturedStageAspect = window.innerWidth / Math.max(window.innerHeight, 1);
     setStageAspect(capturedStageAspect);
     recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0, stageAspect: Number(capturedStageAspect.toFixed(4)) });
+    const preloaded = await waitForMedia(["ready", "playing"], runId);
+    if (isMediaFailure(preloaded.status)) {
+      await holdForMedia(preloaded.status, runId);
+      return;
+    }
+    if (runId !== stimulusRunIdRef.current) return;
+
+    const ensureGeoprefPlaying = async () => {
+      const current = mediaReadinessRef.current;
+      if (isMediaFailure(current.status)) {
+        await holdForMedia(current.status, runId);
+        return false;
+      }
+      const media = geoprefVideoRef.current;
+      if (!media) {
+        const failed = transitionMedia("error");
+        await holdForMedia(failed.status, runId);
+        return false;
+      }
+      const generation = mediaGenerationRef.current;
+      if (canCaptureTimedMedia(current, media)) return true;
+      // `playing` is an event history, not proof that the element is still
+      // advancing. A spontaneous pause or early end is a media failure.
+      if (canStartTimedScoring(current)) transitionMedia("error");
+      if (isMediaFailure(mediaReadinessRef.current.status)) {
+        await holdForMedia(mediaReadinessRef.current.status, runId);
+        return false;
+      }
+      if (runId !== stimulusRunIdRef.current
+        || generation !== mediaGenerationRef.current
+        || media !== geoprefVideoRef.current) return false;
+      try {
+        if (media.currentTime !== 0 && media.paused) media.currentTime = 0;
+        await media.play();
+      } catch {
+        transitionMediaGeneration("error", generation);
+      }
+      if (runId !== stimulusRunIdRef.current
+        || generation !== mediaGenerationRef.current
+        || media !== geoprefVideoRef.current) return false;
+      const playback = await waitForMedia(["playing"], runId);
+      if (isMediaFailure(playback.status)) {
+        await holdForMedia(playback.status, runId);
+        return false;
+      }
+      return runId === stimulusRunIdRef.current && canCaptureTimedMedia(playback, media);
+    };
+    const geoprefCaptureReady = () => {
+      const media = geoprefVideoRef.current;
+      return Boolean(media && canCaptureTimedMedia(mediaReadinessRef.current, media));
+    };
     let captured: Point[] = [];
     const rawCaptured: Point[] = [];
     const rawSignals: Array<{ u: number; v: number }> = [];
@@ -1616,13 +1853,26 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       }
       const stepPause = options.fast ? 8 : 140;
       for (let index = 0; index < totalFrames; index += 6) {
+        if (await stopIfMediaTerminated(runId)) return;
         setProgress(Math.round((index / totalFrames) * 100));
-        while (stimulusPausedRef.current) await pause(100);
+        while (stimulusPausedRef.current) {
+          await pause(100);
+          if (await stopIfMediaTerminated(runId)) return;
+        }
         const state = phaseAtElapsed((index / totalFrames) * durationMs, runPhases)!;
         setStimulusPhase(state.phase);
         setStimulusCueActive(state.cueActive);
         setStimulusOstensiveActive(state.ostensiveActive);
+        if (state.phase.id === GEOPREF_PHASE_ID && !geoprefCaptureReady()) {
+          if (!await ensureGeoprefPlaying()) return;
+        } else if (state.phase.id !== GEOPREF_PHASE_ID && geoprefVideoRef.current && !geoprefVideoRef.current.paused) {
+          geoprefVideoRef.current.pause();
+          transitionMedia("waiting");
+        }
         await pause(stepPause);
+        if (state.phase.id === GEOPREF_PHASE_ID && !geoprefCaptureReady()) {
+          if (!await ensureGeoprefPlaying()) return;
+        }
       }
       faceFrames = Math.round((replayed?.faceRate ?? scenario.faceRate) * totalFrames);
       attemptedFrames = totalFrames;
@@ -1644,6 +1894,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       const ostensiveStartedPhaseIds = new Set<string>();
       const nameCallsDelivered = new Set<number>();
       while (performance.now() - startedAt - pausedTotalMs < durationMs) {
+        if (await stopIfMediaTerminated(runId)) return;
         if (stimulusPausedRef.current) {
           pausedAt ??= performance.now();
           await pause(100);
@@ -1656,6 +1907,21 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
         const frameStartedAt = performance.now();
         const elapsed = frameStartedAt - startedAt - pausedTotalMs;
         const phaseState = phaseAtElapsed(elapsed, runPhases)!;
+        if (phaseState.phase.id === GEOPREF_PHASE_ID && !geoprefCaptureReady()) {
+          const mediaWaitStarted = performance.now();
+          setStimulusPhase(phaseState.phase);
+          setStimulusCueActive(phaseState.cueActive);
+          setStimulusOstensiveActive(phaseState.ostensiveActive);
+          // Let React reveal the already-mounted stage before playback starts.
+          await pause(0);
+          if (!await ensureGeoprefPlaying()) return;
+          pausedTotalMs += performance.now() - mediaWaitStarted;
+          continue;
+        }
+        if (phaseState.phase.id !== GEOPREF_PHASE_ID && geoprefVideoRef.current && !geoprefVideoRef.current.paused) {
+          geoprefVideoRef.current.pause();
+          transitionMedia("waiting");
+        }
         const nextPhaseIndex = phaseState.index;
         if (nextPhaseIndex !== phaseIndex) {
           phaseIndex = nextPhaseIndex;
@@ -1740,11 +2006,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       processedDiagnostics = processed.diagnostics;
       setGazeDiagnostics(processed.diagnostics);
     }
+    if (await stopIfMediaTerminated(runId)) return;
     captured = [...preservedPoints, ...captured].sort((a, b) => {
       const phaseDelta = orderedPhases.findIndex((phase) => phase.id === a.phase) - orderedPhases.findIndex((phase) => phase.id === b.phase);
       return phaseDelta || a.t - b.t;
     });
     setProgress(100);
+    geoprefVideoRef.current?.pause();
+    if (canStartTimedScoring(mediaReadinessRef.current)) transitionMedia("waiting");
     setStimulusPhase(null);
     setStimulusCueActive(false);
     setPoints(captured);
@@ -2037,6 +2306,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
   function restart() {
     void leaveMeasurementFullscreen();
+    resetMediaPlayback();
     if (mode === "live") stopCamera();
     setQuality(null);
     setValidity(null);
@@ -3056,9 +3326,22 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       {stage === "stimulus" && (
         <section className="stimulusPage">
           {!busy && <div className="stimulusHeader"><Logo /><span>{isEngineeringStudy ? "Uji peserta dewasa" : "Anak cukup menonton"} · siap</span>{mode === "live" && <span className={`stimulusTracking ${tracking?.accepted ? "good" : "bad"}`}><i />{trackingCopy(tracking).title}</span>}<button onClick={restart}><IconArrowLeft size={15} /> Kembali</button></div>}
-          {busy && <div className="stimulusOperatorControls"><button onClick={() => { const next = !stimulusPausedRef.current; stimulusPausedRef.current = next; setStimulusPaused(next); recordAudit(next ? "stimulus.paused" : "stimulus.resumed"); }} aria-pressed={stimulusPaused}>{stimulusPaused ? <><IconPlay size={14} /> Lanjutkan</> : "Jeda"}</button><button onClick={restart} aria-label="Hentikan stimulus"><IconArrowLeft size={14} /> Hentikan</button></div>}
+          {busy && <div className="stimulusOperatorControls"><button onClick={toggleStimulusPause} aria-pressed={stimulusPaused}>{stimulusPaused ? <><IconPlay size={14} /> Lanjutkan</> : "Jeda"}</button><button onClick={restart} aria-label="Hentikan stimulus"><IconArrowLeft size={14} /> Hentikan</button></div>}
           <div className={`stimulusCanvas phase-${stimulusPhase?.id ?? "ready"}`} aria-label="Adegan perhatian bersama dengan wajah dan dua mainan">
-            <StimulusScene visualCue={stimulusPhase?.visualCue ?? "attention"} cueActive={stimulusCueActive} ostensiveActive={stimulusOstensiveActive} paused={stimulusPaused} geoprefSource={geoprefAsset.path} geometricSide={geoprefLayout(counterbalanceKey ?? "NG-0000").geometricSide} />
+            <StimulusScene
+              visualCue={stimulusPhase?.visualCue ?? "attention"}
+              cueActive={stimulusCueActive}
+              ostensiveActive={stimulusOstensiveActive}
+              paused={stimulusPaused}
+              geoprefSource={geoprefAsset.path}
+              geometricSide={geoprefLayout(counterbalanceKey ?? "NG-0000").geometricSide}
+              geoprefMediaKey={mediaGeneration}
+              geoprefVideoRef={geoprefVideoRef}
+              onGeoprefCanPlay={() => transitionMediaGeneration("can_play", mediaGeneration)}
+              onGeoprefPlaying={() => transitionMediaGeneration("playing", mediaGeneration)}
+              onGeoprefWaiting={() => transitionMediaGeneration("waiting", mediaGeneration)}
+              onGeoprefError={() => transitionMediaGeneration("error", mediaGeneration)}
+            />
             {!busy && progress === 0 && <div className={`stimulusIntro ${isEngineeringStudy ? "gateA" : "child"}`}>
               <span className="stimulusAudience">{introCopy.audience}</span>
               <strong>{introCopy.task}</strong>
@@ -3067,6 +3350,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 {introCopy.steps.map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}
               </div>
               <small>{isEngineeringStudy ? `Stimulus berlangsung ${sessionSeconds} detik. Selama pengukuran, layar hanya menampilkan adegan; jaga kepala relatif diam dan tidak perlu mengklik.` : `Stimulus berlangsung ${sessionSeconds} detik, dibuka dengan satu klip pendek lalu adegan bergambar. Hentikan bila anak tidak nyaman.`}</small>
+              {mediaReadiness.status === "loading" && <small role="status">Menyiapkan video stimulus…</small>}
+              {isMediaFailure(mediaReadiness.status) && <div className="falloutNotice" role="alert"><IconAlert size={18} /><div><strong>Video stimulus belum siap</strong><p>{mediaFailure(mediaReadiness.status).operatorAction}</p></div></div>}
               <button className="startStimulus" disabled={!calibration || sanityPassed !== true || (mode === "replay" && !model)} onClick={() => void runStimulus()}><IconPlay size={15} />{mode === "replay" ? "Saya paham · mulai demo" : isEngineeringStudy ? "Saya paham · mulai pengukuran" : "Mulai tes"}</button>
             </div>}
             </div>

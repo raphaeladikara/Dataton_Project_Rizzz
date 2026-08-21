@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import { geoprefNeedsMirror } from "../geopref/protocol";
 
 type StimulusSceneProps = {
@@ -11,6 +12,12 @@ type StimulusSceneProps = {
   geoprefSource?: string;
   /** Which half carries the geometric panel, counterbalanced per session. */
   geometricSide?: "left" | "right";
+  geoprefMediaKey?: number;
+  geoprefVideoRef?: RefObject<HTMLVideoElement | null>;
+  onGeoprefCanPlay?: () => void;
+  onGeoprefPlaying?: () => void;
+  onGeoprefWaiting?: () => void;
+  onGeoprefError?: () => void;
 };
 
 /** One identical target object, mirrored to both sides of the model.
@@ -61,7 +68,20 @@ function PointingHand({ side }: { side: "left" | "right" }) {
   );
 }
 
-export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, paused = false, geoprefSource, geometricSide = "left" }: StimulusSceneProps) {
+export function StimulusScene({
+  visualCue,
+  cueActive,
+  ostensiveActive = false,
+  paused = false,
+  geoprefSource,
+  geometricSide = "left",
+  geoprefMediaKey = 0,
+  geoprefVideoRef,
+  onGeoprefCanPlay,
+  onGeoprefPlaying,
+  onGeoprefWaiting,
+  onGeoprefError,
+}: StimulusSceneProps) {
   const state = [
     "stimulusScene",
     `visual-${visualCue}`,
@@ -70,12 +90,14 @@ export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, p
     paused ? "paused" : "",
   ].filter(Boolean).join(" ");
 
-  // The preferential-looking block replaces the vector actor entirely: the
-  // measure is where the child looks on a side-by-side geometric/social video,
-  // so nothing else may compete for attention.
-  if (visualCue === "geopref" && geoprefSource) {
-    return (
-      <div className={`${state} geoprefStage`} data-mirrored={String(geoprefNeedsMirror(geometricSide))} aria-hidden="true">
+  const geoprefActive = visualCue === "geopref" && geoprefSource;
+
+  return (
+    <>
+      {/* Kept mounted while the operator reads the intro so preload and decode
+          happen before the timed block. Hidden means absent visually, not
+          absent from the media pipeline. */}
+      {geoprefSource && <div className={`${state} geoprefStage`} data-mirrored={String(geoprefNeedsMirror(geometricSide))} aria-hidden="true" hidden={!geoprefActive}>
         {/* The asset is a supplementary illustration: two panels inside a wide
             black surround. Shown whole, each panel subtends about 7.6 x 4.9
             degrees on a target tablet against the 12.9 x 9.1 the threshold was
@@ -87,20 +109,26 @@ export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, p
               replay the opening frames into the dwell score. Muted because the
               published protocol has no audio, not because we removed it. */}
           <video
+            key={geoprefMediaKey}
+            ref={geoprefVideoRef}
             className="geoprefVideo"
             src={geoprefSource}
-            autoPlay
             muted
             playsInline
             preload="auto"
+            onCanPlay={onGeoprefCanPlay}
+            onPlaying={onGeoprefPlaying}
+            onWaiting={onGeoprefWaiting}
+            onStalled={onGeoprefWaiting}
+            onError={onGeoprefError}
           />
         </div>
-      </div>
-    );
-  }
+      </div>}
 
-  return (
-    <div className={state} aria-hidden="true">
+      {/* The preferential-looking block replaces the vector actor entirely: the
+          measure is where the child looks on a side-by-side geometric/social
+          video, so nothing else may compete for attention. */}
+      {!geoprefActive && <div className={state} aria-hidden="true">
       <svg className="stimulusPerson" viewBox="0 0 880 900" preserveAspectRatio="xMidYMid meet" role="presentation">
         <defs>
           <linearGradient id="stimulus-shirt" x1="0.14" y1="0" x2="0.92" y2="1">
@@ -198,6 +226,7 @@ export function StimulusScene({ visualCue, cueActive, ostensiveActive = false, p
       <TargetToy side="right" />
 
       <div className="stimulusAttention"><span /><i /><b /></div>
-    </div>
+      </div>}
+    </>
   );
 }
