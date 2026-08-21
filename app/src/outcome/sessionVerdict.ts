@@ -57,12 +57,6 @@ export type SessionVerdict = {
 export const VERDICT_FOLLOW_UP = "Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit";
 export const VERDICT_NO_FOLLOW_UP = "Tidak ada tanda yang perlu ditindaklanjuti dari sesi ini";
 
-const CAVEAT_FOLLOW_UP =
-  "Ini peragaan, bukan rujukan resmi. Ambang 69% sengaja diterapkan pada klip yang lebih pendek "
-  + "daripada protokol tempat ambang itu diturunkan, jadi sesi ini tidak mengeluarkan rujukan ke "
-  + "sistem layanan dan bukan diagnosis. Bawa hasilnya bersama SDIDTK atau M-CHAT-R/F; keputusan "
-  + "pemeriksaan tetap ada pada tenaga kesehatan.";
-
 const CAVEAT_FOLLOW_UP_FIELD =
   "Ini bukan diagnosis. Ambang GeoPref menandai pola yang jarang muncul pada anak tanpa ASD, dan "
   + "itu alasan untuk memeriksa lebih lanjut — bukan kesimpulan. Bawa hasilnya bersama SDIDTK atau "
@@ -73,6 +67,10 @@ const CAVEAT_NO_FOLLOW_UP =
   + "menyingkirkan ASD: sensitivitasnya 17%, jadi sebagian besar anak ASD tidak tertangkap di sini. "
   + "Skrining perkembangan rutin tetap diperlukan, dan kekhawatiran orang tua tetap alasan yang sah "
   + "untuk memeriksakan anak.";
+
+const CAVEAT_DEMONSTRATION =
+  "Peragaan ini memakai peserta dewasa dan klip pendek. Angka dan status di atas hanya "
+  + "menunjukkan respons arsitektur; keduanya bukan hasil klinis.";
 
 function subline(referral: ReferralRecommendation): string {
   const { assessableCount, deviantCount, threshold, signals } = referral;
@@ -89,6 +87,21 @@ function subline(referral: ReferralRecommendation): string {
   return `${assessableCount} dari ${signals.length} sinyal dinilai · tidak ada yang menyimpang`;
 }
 
+function demonstrationSubline(referral: ReferralRecommendation): string {
+  const { assessableCount, deviantCount, signals } = referral;
+  const unassessable = signals.length - assessableCount;
+  if (referral.recommendsFollowUp) {
+    return `Respons arsitektur pola produksi · ${deviantCount} dari ${assessableCount} sinyal menyimpang`;
+  }
+  if (deviantCount > 0) {
+    return `Respons arsitektur kontrol biasa · ${deviantCount} dari ${assessableCount} sinyal menyimpang`;
+  }
+  if (unassessable > 0) {
+    return `Respons arsitektur kontrol biasa · ${assessableCount} sinyal dinilai dan ${unassessable} sinyal tidak dapat dinilai`;
+  }
+  return `Respons arsitektur kontrol biasa · ${assessableCount} dari ${signals.length} sinyal dinilai`;
+}
+
 const formatPercent = (value: number) => `${(value * 100).toFixed(1).replace(".", ",")}%`;
 
 /**
@@ -99,18 +112,24 @@ const formatPercent = (value: number) => `${(value * 100).toFixed(1).replace("."
  * needs. Printing it as the verdict itself would invite reading it as a
  * calibrated probability for this child, and it is not one.
  */
-function posteriorReason(posterior: PosteriorOdds): VerdictReason {
+function posteriorReason(posterior: PosteriorOdds, demonstrationMode: boolean): VerdictReason {
   const moved = posterior.terms.filter((term) => term.likelihoodRatio !== 1);
   return {
     id: "posterior_odds",
-    label: "Peluang sesudah pengukuran",
+    label: demonstrationMode ? "Respons perhitungan" : "Peluang sesudah pengukuran",
     measured: `${formatPercent(posterior.pretestProbability)} → ${formatPercent(posterior.posteriorProbability)}`,
-    body: moved.length
-      ? `${moved.map((term) => `${term.label} membawa rasio kemungkinan ${term.likelihoodRatio.toString().replace(".", ",")}`).join("; ")}. `
-        + `Dipasang pada peluang awal ${formatPercent(posterior.pretestProbability)}, hasilnya `
-        + `${formatPercent(posterior.posteriorProbability)} — cukup tinggi untuk membenarkan pemeriksaan lanjutan, `
-        + `dan jauh dari cukup untuk menyebutnya kesimpulan. ${posterior.scopeNote}`
-      : `Tidak ada sinyal yang membawa titik operasi terbit pada sesi ini, jadi peluangnya tidak bergerak dari ${formatPercent(posterior.pretestProbability)}. ${posterior.scopeNote}`,
+    body: demonstrationMode
+      ? moved.length
+        ? `${moved.map((term) => `${term.label} membawa rasio kemungkinan ${term.likelihoodRatio.toString().replace(".", ",")}`).join("; ")}. `
+          + `Dengan nilai awal ${formatPercent(posterior.pretestProbability)}, arsitektur menghasilkan ${formatPercent(posterior.posteriorProbability)}. `
+          + `Perhitungan ini hanya menunjukkan jalur hitung pada peragaan. ${posterior.scopeNote}`
+        : `Tidak ada sinyal yang mengubah nilai awal ${formatPercent(posterior.pretestProbability)} pada peragaan ini. ${posterior.scopeNote}`
+      : moved.length
+        ? `${moved.map((term) => `${term.label} membawa rasio kemungkinan ${term.likelihoodRatio.toString().replace(".", ",")}`).join("; ")}. `
+          + `Dipasang pada peluang awal ${formatPercent(posterior.pretestProbability)}, hasilnya `
+          + `${formatPercent(posterior.posteriorProbability)} — cukup tinggi untuk membenarkan pemeriksaan lanjutan, `
+          + `dan jauh dari cukup untuk menyebutnya kesimpulan. ${posterior.scopeNote}`
+        : `Tidak ada sinyal yang membawa titik operasi terbit pada sesi ini, jadi peluangnya tidak bergerak dari ${formatPercent(posterior.pretestProbability)}. ${posterior.scopeNote}`,
     source: posterior.terms.map((term) => term.source).join(" · "),
   };
 }
@@ -134,16 +153,26 @@ export function buildSessionVerdict(input: {
     body: signal.reason,
     source: signal.source,
   }));
-  if (followUp && input.posterior) reasons.push(posteriorReason(input.posterior));
+  if (followUp && input.posterior) reasons.push(posteriorReason(input.posterior, input.demonstrationMode));
+
+  const headline = input.demonstrationMode
+    ? followUp
+      ? "Arsitektur menampilkan respons pola produksi"
+      : "Arsitektur menampilkan respons kontrol biasa"
+    : followUp
+      ? VERDICT_FOLLOW_UP
+      : VERDICT_NO_FOLLOW_UP;
 
   return {
     tone: followUp ? "follow_up" : "no_follow_up",
-    headline: followUp ? VERDICT_FOLLOW_UP : VERDICT_NO_FOLLOW_UP,
-    subline: subline(input.referral),
+    headline,
+    subline: input.demonstrationMode ? demonstrationSubline(input.referral) : subline(input.referral),
     reasons,
-    caveat: followUp
-      ? (input.demonstrationMode ? CAVEAT_FOLLOW_UP : CAVEAT_FOLLOW_UP_FIELD)
-      : CAVEAT_NO_FOLLOW_UP,
+    caveat: input.demonstrationMode
+      ? CAVEAT_DEMONSTRATION
+      : followUp
+        ? CAVEAT_FOLLOW_UP_FIELD
+        : CAVEAT_NO_FOLLOW_UP,
     demonstration: input.demonstrationMode,
   };
 }

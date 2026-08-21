@@ -394,6 +394,9 @@ test("the report can be handed over on paper, not only as audit.json", () => {
   assert.match(hiddenPrintSelectors, /\.reportPractitioner/);
   assert.match(printCss, /\.caregiverReport\s*\{[^}]*display:\s*block/);
   assert.match(printCss, /\.printDemonstration\s*\{[^}]*display:\s*block/);
+  assert.match(page, /<p className="printVerdict"[^>]*>\{verdict\.headline\}<\/p>/);
+  assert.match(page, /verdict\.reasons\.filter\(\(reason\) => reason\.id === "posterior_odds"\)/);
+  assert.match(page, /verdict\.demonstration \? "Respons arsitektur peragaan"/);
 });
 
 test("deleting the in-memory audit log requires confirmation", () => {
@@ -407,7 +410,19 @@ test("mobile evidence and admin controls remain readable and touchable", () => {
   for (const selector of [".definition p", ".metrics span", ".metrics small", ".card dt", ".card dd", ".card li", ".nextEvidence p"])
     assert.match(cssDeclarationsForSelector(mobileValidation, selector), /font-size:\s*14px/);
   const mobileReport = sessionCss.slice(sessionCss.indexOf("@media (max-width: 520px)"), sessionCss.indexOf("@media (prefers-reduced-motion: reduce)"));
-  for (const selector of [".reportPractitioner > summary small", ".observationMetrics span", ".observationMetrics p", ".referralReason", ".referralSignals li small", ".verdictReasons li small"])
+  for (const selector of [
+    ".reportHeader .eyebrow",
+    ".reportHeader p",
+    ".decisionBadge",
+    ".reportNotice p",
+    ".observationStatus",
+    ".reportPractitioner > summary small",
+    ".observationMetrics span",
+    ".observationMetrics p",
+    ".referralReason",
+    ".referralSignals li small",
+    ".verdictReasons li small",
+  ])
     assert.match(cssDeclarationsForSelector(mobileReport, selector), /font-size:\s*14px/);
   assert.match(cssDeclarationsForSelector(chromeCss.slice(chromeCss.indexOf("@media (max-width: 520px)")), ".presentationStrip small"), /font-size:\s*14px/);
   assert.match(adminCss, /@media \(max-width: 900px\)[\s\S]*?\.navToggle\s*\{[^}]*min-height:\s*44px/);
