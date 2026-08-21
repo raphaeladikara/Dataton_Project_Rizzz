@@ -26,6 +26,7 @@
 - [`pembersihan_dataset_wajah.md`](pembersihan_dataset_wajah.md): mengeluarkan dataset wajah dari riwayat Git sebelum repositori dipublikkan.
 - [`keputusan_ilmiah.md`](keputusan_ilmiah.md): alasan di balik keputusan yang menentukan batas klaim.
 - [`provenance/permintaan_stimulus_ucsd.md`](provenance/permintaan_stimulus_ucsd.md): draf permintaan akses stimulus GeoPref penuh.
+- [`tangkapan_layar/`](tangkapan_layar/README.md): tangkapan layar aplikasi dari build produksi, lengkap dengan tabel asal tiap gambar. Kedua laporan berasal dari rekaman terdaftar, bukan jalur sintetis.
 - [`verifikasi.md`](verifikasi.md): pemeriksaan sebelum commit atau rilis.
 
 Dokumen ini mengikuti ringkasan yang dibangun dari data mentah di `research/hasil`. Jika angka berubah setelah penambahan bukti baru, perbarui ringkasan, manifest, aplikasi, paper, dan dokumen dalam perubahan yang sama.

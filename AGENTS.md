@@ -110,10 +110,13 @@ Three layers. Do not blur them.
 - No practitioner has been interviewed and no kader has touched the application.
   `docs/wawancara_praktisi.md` holds the protocol for the first; the second is the
   cheapest test left and is still undone.
-- There are no screenshots of the running application. The `neurogaze-v3` set was
-  deleted: it showed a battery length and a referral report the current code cannot
-  produce, and nothing has replaced it. A new set needs a registered real recording,
-  because the synthetic path is always withheld by the OOD guard.
+- Screenshots of the running application live in `docs/tangkapan_layar`, taken from a
+  production build on 2026-08-21. Both report shots come from the registered
+  recordings, never from the synthetic path, which the OOD guard always withholds.
+  Their provenance table is in that folder's README; keep it truthful when reshooting.
+  What is still missing is a live-camera session with a real participant, which needs
+  consent to publish someone's face, and a field referral report, which
+  `target_population_research` cannot produce by design.
 - `paper/Rizzz_Paper_Final.pdf` is older than `paper/sumber/paper_final.tex`, and
   neither carries the positive control. Recompile before submitting.
 
