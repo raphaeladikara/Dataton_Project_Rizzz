@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { appendAuditEvent, auditFilename, createSessionAudit, serializeAuditLog } from "../src/audit/sessionLog";
+import {
+  appendAuditEvent,
+  auditFilename,
+  createSessionAudit,
+  prepareAuditExport,
+  serializeAuditLog,
+} from "../src/audit/sessionLog";
 
 test("audit log is versioned, pseudonymous, and never claims to store raw media", () => {
   const initial = createSessionAudit({
@@ -80,4 +86,28 @@ test("a session with a model loaded carries no model error", () => {
   });
   assert.equal(log.modelError, undefined);
   assert.equal(log.modelVersion, "neurogaze-gaze-lr-1.0.0");
+});
+
+test("a field research export requires consent and records consent before download", () => {
+  const field = createSessionAudit({
+    appVersion: "test", stimulusVersion: "test", mode: "live", purpose: "target_population_research",
+    profile: { childId: "NG-01", age: "24", site: "Posyandu", operator: "K-1" }, researchConsent: false,
+  });
+  const refused = prepareAuditExport(field, "research_analysis");
+  assert.equal(refused.ok, false);
+  assert.match(refused.ok ? "" : refused.reason, /persetujuan riset/i);
+
+  const consented = appendAuditEvent({
+    ...field,
+    privacy: { ...field.privacy, researchConsent: true },
+  }, "privacy.research_consent", { enabled: true, declaredAt: "laporan_sebelum_ekspor" });
+  const prepared = prepareAuditExport(consented, "research_analysis");
+  assert.equal(prepared.ok, true);
+  if (!prepared.ok) return;
+  assert.deepEqual(prepared.log.events.slice(-2).map((event) => event.type), [
+    "privacy.research_consent",
+    "audit.downloaded",
+  ]);
+  assert.equal(prepared.log.privacy.researchConsent, true);
+  assert.equal(prepared.log.privacy.storage, "download_by_operator");
 });

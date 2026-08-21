@@ -1249,6 +1249,14 @@
   justify-items: stretch;
 }
 
+.demoReplayError {
+  max-width: 34ch;
+  margin: 2px 0 0;
+  color: var(--coral-700);
+  font-size: 12.8px;
+  line-height: 1.5;
+}
+
 /* The demo controls, now on the guide page rather than the landing page.
    They keep the scenario-card and aside styling but drop the full-bleed
    treatment the home sections use: the guide is a narrow workspace column, and

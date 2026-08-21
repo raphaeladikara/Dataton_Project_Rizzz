@@ -224,6 +224,32 @@ export async function loadRecording(
   }
 }
 
+export type RegisteredReplayOrchestration =
+  | { ok: true; recording: RecordedSession }
+  | { ok: false; message: string };
+
+/**
+ * A registered demonstration may initialize only after its named recording is
+ * loaded and validated. Null is a hard stop here; it never crosses into the
+ * replay pipeline where null deliberately means "use synthetic points" for the
+ * three ordinary preview scenarios.
+ */
+export async function orchestrateRegisteredReplay(
+  entry: RecordingEntry,
+  initialize: (recording: RecordedSession) => void,
+  fetcher: typeof fetch = fetch,
+): Promise<RegisteredReplayOrchestration> {
+  const recording = await loadRecording(entry.file, fetcher);
+  if (!recording) {
+    return {
+      ok: false,
+      message: `Rekaman terdaftar “${entry.label}” tidak dapat dimuat. Periksa berkas replay lalu coba lagi.`,
+    };
+  }
+  initialize(recording);
+  return { ok: true, recording };
+}
+
 export async function loadFirstRecording(
   manifestUrl: string = RECORDING_MANIFEST_URL,
   fetcher: typeof fetch = fetch,
