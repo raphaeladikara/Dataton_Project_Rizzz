@@ -135,6 +135,8 @@ test("the composite lane is reported beside the GeoPref lane, never merged into 
   // Lane 2 renders as its own section with its own heading, and every signal
   // ships its measured value, its reason, and its literature source.
   assert.match(page, /className="referralLane"/);
+  assert.match(page, /compositeLaneHeadline/);
+  assert.match(page, /<h2 id="referral-heading">\{compositeHeadline\}<\/h2>/);
   assert.match(page, /referral\.signals\.map/);
   assert.match(page, /referralMeasured/);
   assert.match(page, /referralReason/);
@@ -145,6 +147,8 @@ test("the composite lane is reported beside the GeoPref lane, never merged into 
   assert.match(page, /\{!isEngineeringStudy && <section className="referralLane"/);
   // The printed hand-off carries the same per-signal reasoning the screen shows.
   assert.match(page, /<h2>Rekomendasi komposit<\/h2>/);
+  assert.match(page, /<p className="printHeadline">\{compositeHeadline\}<\/p>/);
+  assert.equal((page.match(/\{referral\.headline\}/g) ?? []).length, 0);
   // Deviant signals must not borrow the coral used for the published rule-in.
   assert.match(sessionCssText, /\.referralLane\b/);
   assert.match(sessionCssText, /\[data-status="menyimpang"\][^}]*--amber/);
