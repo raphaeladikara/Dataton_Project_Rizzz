@@ -187,6 +187,57 @@ test("error, timeout, and hidden-page interruption withhold through one callback
   }
 });
 
+test("a page hidden before listener attachment interrupts immediately and cannot resume", async () => {
+  const { createMediaReadinessController } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  visibility.setHidden(true);
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+  const waiting = controller.waitUntil(["playing"]);
+
+  controller.connectVisibility(visibility);
+  assert.equal(controller.snapshot().status, "interrupted");
+  assert.equal((await waiting).status, "interrupted");
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_INTERRUPTED"]);
+
+  visibility.setHidden(false);
+  controller.event("playing", controller.generation());
+  assert.equal(controller.snapshot().status, "interrupted");
+  assert.equal(controller.canAdvance("live", { paused: false, ended: false, readyState: 4 }), false);
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_INTERRUPTED"]);
+});
+
+test("a directional-only retry bypasses failed GeoPref media while a full run is withheld", async () => {
+  const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const retryWithheld: string[] = [];
+  const retryController = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => retryWithheld.push(failure.reason),
+  });
+  retryController.event("error", retryController.generation());
+
+  const directionalRetry = await retryController.prepareRun(false, ["ready", "playing"]);
+  assert.equal(directionalRetry, null);
+  assert.equal(retryController.blockingFailure(), null);
+  assert.deepEqual(retryWithheld, []);
+
+  const fullWithheld: string[] = [];
+  const fullController = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => fullWithheld.push(failure.reason),
+  });
+  const fullRun = fullController.prepareRun(true, ["ready", "playing"]);
+  fakeClock.advanceBy(MEDIA_READY_TIMEOUT_MS);
+  assert.equal((await fullRun)?.status, "timed_out");
+  assert.equal(fullController.blockingFailure(), "timed_out");
+  assert.deepEqual(fullWithheld, ["GEOPREF_MEDIA_TIMED_OUT"]);
+});
+
 test("reset and dispose cancel timers, listeners, waiters, and late media events", async () => {
   const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
   const fakeClock = createFakeClock();
@@ -258,7 +309,7 @@ test("the stimulus page mounts browser callbacks into the behavioral controller"
   assert.match(scene, /onError=\{onGeoprefError\}/);
   assert.match(scene, /key=\{geoprefMediaKey\}/);
   assert.match(page, /createMediaReadinessController/);
-  assert.match(page, /mediaController\(\)\.waitUntil/);
+  assert.match(page, /mediaController\(\)\.prepareRun\(includesGeopref,/);
   assert.match(page, /mediaController\(\)\.canAdvance\(mode,/);
   assert.match(page, /mediaController\(\)\.connectVisibility\(document\)/);
   assert.match(page, /mediaController\(\)\.reset\(\)/);
@@ -267,15 +318,25 @@ test("the stimulus page mounts browser callbacks into the behavioral controller"
   assert.match(page, /stimulus\.media_withheld/);
   assert.match(page, /gaze: undefined, assessment: undefined, decision: undefined/);
   const timedStartGate = page.indexOf("if (includesGeopref && !await ensureGeoprefPlaying()) return;");
+  const includesGeoprefIndex = page.indexOf("const includesGeopref = runPhases.some");
+  const prepareRunIndex = page.indexOf("mediaController().prepareRun(includesGeopref,");
+  assert.ok(includesGeoprefIndex >= 0, "run media requirement must be derived from the actual retry phase set");
+  assert.ok(prepareRunIndex >= 0, "run preparation call must remain present");
+  assert.ok(includesGeoprefIndex < prepareRunIndex, "partial retry phases must be known before media preparation");
   assert.ok(timedStartGate >= 0, "a baseline-first battery must preflight actual playback before its clock starts");
-  assert.ok(timedStartGate < page.indexOf("const startedAt = performance.now();", timedStartGate));
-  assert.ok(timedStartGate < page.indexOf("setProgress(Math.round((index / totalFrames) * 100));", timedStartGate));
+  const liveClockIndex = page.indexOf("const startedAt = performance.now();", timedStartGate);
+  const replayProgressIndex = page.indexOf("setProgress(Math.round((index / totalFrames) * 100));", timedStartGate);
+  assert.ok(liveClockIndex >= 0, "live clock start must remain present");
+  assert.ok(replayProgressIndex >= 0, "replay progress update must remain present");
+  assert.ok(timedStartGate < liveClockIndex);
+  assert.ok(timedStartGate < replayProgressIndex);
   const replayStep = page.slice(
     page.indexOf("for (let index = 0; index < totalFrames; index += 6)"),
     page.indexOf("await pause(stepPause)"),
   );
-  assert.ok(
-    replayStep.indexOf("ensureGeoprefPlaying()") < replayStep.indexOf("setProgress("),
-    "replay progress must remain still while media is paused or buffering",
-  );
+  const replayGateIndex = replayStep.indexOf("ensureGeoprefPlaying()");
+  const replayStepProgressIndex = replayStep.indexOf("setProgress(");
+  assert.ok(replayGateIndex >= 0, "replay step must retain its playback gate");
+  assert.ok(replayStepProgressIndex >= 0, "replay step must retain its progress update");
+  assert.ok(replayGateIndex < replayStepProgressIndex, "replay progress must remain still while media is paused or buffering");
 });

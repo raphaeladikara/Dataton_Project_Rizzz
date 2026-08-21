@@ -110,8 +110,10 @@ export type MediaReadinessController = {
   generation(): number;
   event(event: MediaReadinessEvent, generation?: number): MediaReadiness;
   waitUntil(accepted: readonly MediaReadinessStatus[]): Promise<MediaReadiness>;
+  prepareRun(required: boolean, accepted: readonly MediaReadinessStatus[]): Promise<MediaReadiness | null>;
   requestPlaying(startPlayback: () => Promise<void>, generation?: number): Promise<MediaReadiness>;
   canAdvance(mode: MediaPlaybackMode, playback: MediaPlaybackSnapshot): boolean;
+  blockingFailure(): MediaFailureStatus | null;
   reset(): number;
   deactivate(): void;
   connectVisibility(source: MediaVisibilitySource): () => void;
@@ -203,6 +205,13 @@ export function createMediaReadinessController(options: {
         }, timeoutMs);
       });
     },
+    prepareRun(required, accepted) {
+      if (!required) {
+        active = false;
+        return Promise.resolve(null);
+      }
+      return controller.waitUntil(accepted);
+    },
     requestPlaying(startPlayback, eventGeneration = generation) {
       if (disposed || eventGeneration !== generation) return Promise.resolve({ status: "interrupted" });
       // Register the deadline before calling play(): browsers may leave the
@@ -217,6 +226,9 @@ export function createMediaReadinessController(options: {
     },
     canAdvance(_mode, playback) {
       return !disposed && canCaptureTimedMedia(readiness, playback);
+    },
+    blockingFailure() {
+      return active && isMediaFailure(readiness.status) ? readiness.status : null;
     },
     reset() {
       active = false;
@@ -244,6 +256,9 @@ export function createMediaReadinessController(options: {
       };
       source.addEventListener("visibilitychange", interruptWhenHidden);
       visibilityCleanups.add(disconnect);
+      // The document may have become hidden before React attached this
+      // listener. Inspect current state so that race cannot escape the gate.
+      interruptWhenHidden();
       return disconnect;
     },
     dispose() {
