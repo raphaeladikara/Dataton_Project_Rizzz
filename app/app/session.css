@@ -8,6 +8,45 @@
   padding: clamp(38px, 5vw, 64px) 24px 84px;
 }
 
+/* Operational screens use the familiar product register. Display type and
+   decorative depth stay on the public homepage; the operator path stays quiet. */
+.sessionShell,
+.reportPage {
+  font-family: var(--font-sans-stack);
+}
+
+.sessionShell .sectionHeading h1,
+.reportPage h1,
+.reportPage h2,
+.reportPage h3,
+.reportPage summary {
+  font-family: var(--font-sans-stack);
+  font-variation-settings: normal;
+}
+
+.sessionShell .sectionHeading h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.sessionShell .eyebrow,
+.reportPage .eyebrow {
+  margin-bottom: 10px;
+  font-family: var(--font-sans-stack);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sessionShell .formCard,
+.sessionShell .checkPanel {
+  border-radius: var(--r-sm);
+  box-shadow: none;
+}
+
 .sectionHeading {
   max-width: 72ch;
   margin-bottom: 32px;
@@ -1370,7 +1409,7 @@
 
 .gateDecision.passed {
   border-color: var(--teal-100);
-  background: linear-gradient(120deg, var(--teal-50), var(--paper) 80%);
+  background: var(--teal-50);
 }
 .gateDecision.passed > span {
   background: var(--teal-600);
@@ -1381,7 +1420,7 @@
 
 .gateDecision.failed {
   border-color: var(--coral-100);
-  background: linear-gradient(120deg, var(--coral-50), var(--paper) 80%);
+  background: var(--coral-50);
 }
 .gateDecision.failed > span {
   background: var(--coral-500);
@@ -2299,6 +2338,114 @@ dd {
   --rpt-radius-inner: 12px;
 }
 
+.reportPage .decisionBadge,
+.reportPage .withheldPanel,
+.reportPage .researchPanel,
+.reportPage .gateDecision {
+  animation: none;
+  box-shadow: none;
+}
+
+.reportPage .withheldPanel { background: var(--slate-50); }
+.reportPage .withheldPanel.validCapture { background: var(--teal-50); }
+.reportPage .researchPanel { background: var(--indigo-50); }
+
+.caregiverReport {
+  margin: 0 0 20px;
+  border-block: 1px solid var(--line);
+}
+
+.caregiverReport article {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 14px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.caregiverReport article:last-child { border-bottom: 0; }
+
+.caregiverStep {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--teal-800);
+  background: var(--teal-50);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.caregiverReport small {
+  display: block;
+  color: var(--ink-600);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.caregiverReport h2 {
+  max-width: 54ch;
+  margin: 6px 0 0;
+  font-size: 1.2rem;
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+
+.caregiverReport p {
+  max-width: 72ch;
+  margin: 7px 0 0;
+  color: var(--ink-600);
+  font-size: 15px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.reportPractitioner {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+}
+
+.reportPractitioner > summary {
+  display: grid;
+  gap: 4px;
+  min-height: 56px;
+  padding: 14px 44px 14px 16px;
+  color: var(--ink-800);
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.reportPractitioner > summary small {
+  color: var(--ink-500);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.reportPractitioner > summary:focus-visible {
+  outline: 3px solid var(--teal-300);
+  outline-offset: 3px;
+}
+
+.practitionerReport {
+  padding: 0 16px 18px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.practitionerReport > :first-child { margin-top: 16px; }
+
+.reportTechnical h3 {
+  margin: 14px 0 0;
+  color: var(--ink-700);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .observationReport { display: grid; gap: var(--rpt-gap); }
 
 /* The shell every report section wears. */
@@ -2536,7 +2683,8 @@ dd {
 @media print {
   /* Only the summary prints. Everything else is operator chrome. */
   body { background: #fff; }
-  .topbar, .sessionRail, .cardActions, .skipLink,
+  .topbar, .sessionRail, .cardActions, .skipLink, .presentationStrip,
+  .reportHeader, .caregiverReport, .reportPractitioner,
   .observationReport, .researchPanel, .researchLane, .reportTechnical, .decisionRules,
   .resultNext, .observationAnswer, .qualityGrid, .gateDecision, .warning,
   .reportNotices, .measurementLane, .referralLane, .sessionVerdict,

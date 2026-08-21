@@ -118,6 +118,39 @@
   box-shadow: var(--e1);
 }
 
+.operationalTopbar .topbarInner {
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.primaryNavigation {
+  position: relative;
+  justify-self: center;
+}
+
+.navMenuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink-700);
+  background: var(--paper);
+  font: 700 14px/1 var(--font-sans-stack);
+}
+
+.navMenuButton:focus-visible,
+.topnav button:focus-visible {
+  outline: 3px solid var(--teal-300);
+  outline-offset: 3px;
+}
+
 /* Stays at the 44px touch target the tablet QA enforces. */
 .topnav button {
   min-width: 0;
@@ -235,6 +268,28 @@
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   box-shadow: var(--e2), var(--e-inset);
+}
+
+.sessionShell .sessionRail {
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.sessionShell .sessionMain > .workspace {
+  animation: none;
+}
+
+.sessionShell .railMark {
+  transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.sessionShell .railList li[data-state="active"] .railMark {
+  background: var(--teal-700);
+  transform: none;
+  box-shadow: none;
 }
 
 .railHead {
