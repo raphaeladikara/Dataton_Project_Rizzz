@@ -373,7 +373,12 @@ test("demonstration mode never reaches the child path and never emits a referral
     !/start\([^)]*"target_population_research"[^)]*demonstration/i.test(page),
     "the child purpose must never be started with demonstration mode on",
   );
-  assert.match(page, /startQuickDemo\(\{ demonstration: true \}\)/);
+  const replayDemonstrationCalls = [...page.matchAll(/startQuickDemo\(\{([^}]*demonstration: true[^}]*)\}\)/g)];
+  assert.ok(replayDemonstrationCalls.length > 0, "a registered replay demonstration should remain available");
+  for (const call of replayDemonstrationCalls) {
+    assert.match(call[1], /\bentry\b/, "every demonstration replay must name its registered recording");
+  }
+  assert.doesNotMatch(page, /startQuickDemo\(\{\s*demonstration: true\s*\}\)/);
   // Live stage demonstration runs under its own purpose, from the guide control
   // that names it out loud.
   assert.match(page, /start\("live", scenario, "stage_demo", \{ demonstration: true \}\)/);
