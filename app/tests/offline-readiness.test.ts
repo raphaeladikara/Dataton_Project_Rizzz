@@ -315,6 +315,47 @@ test("a current active controller remains ready while a background update is wai
   stop();
 });
 
+test("an already-redundant update does not flicker incomplete before active verification", async () => {
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: {
+        postMessage(message, transfer) {
+          const request = message as { requestId: string };
+          (transfer[0] as MessagePort).postMessage({
+            type: "NEUROGAZE_OFFLINE_STATUS",
+            requestId: request.requestId,
+            cacheVersion: OFFLINE_CACHE_VERSION,
+            complete: true,
+            missing: [],
+          });
+        },
+      },
+      register: async () => ({
+        installing: {
+          state: "redundant",
+          addEventListener() {},
+          removeEventListener() {},
+        },
+      }),
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+    timeoutMs: 100,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(states.at(-1), "ready");
+  assert.equal(states.includes("incomplete"), false);
+  stop();
+});
+
 test("a failed background update does not invalidate a current active controller", async () => {
   for (const failure of ["redundant", "error"] as const) {
     const listeners = new Map<string, Set<() => void>>();
