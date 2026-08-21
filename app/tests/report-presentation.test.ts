@@ -5,6 +5,7 @@ import { buildReportPresentation } from "../src/outcome/reportPresentation";
 
 const base = {
   qualityPassed: true,
+  sourceKind: "live" as const,
   demonstrationMode: false,
   recommendsFollowUp: false,
   emitsReferral: false,
@@ -24,6 +25,7 @@ test("caregiver report has one stable four-part reading order", () => {
     ["Apa yang terjadi", "Rekaman dapat digunakan", "Langkah berikutnya", "Batas hasil"],
   );
   assert.equal(report.demoBanner, null);
+  assert.notEqual(report.pageTitle, report.sections[0].title);
   assert.match(report.sections[3].body, /bukan diagnosis/i);
   assert.match(report.sections[3].body, /bukan tanda aman/i);
 });
@@ -38,9 +40,28 @@ test("a withheld session says the recording cannot be used", () => {
   });
 
   assert.equal(report.sections[1].label, "Rekaman tidak dapat digunakan");
-  assert.match(report.sections[1].body, /Wajah terlalu sering keluar dari bingkai/);
+  assert.equal(
+    report.sections.filter((section) => section.body.includes("Wajah terlalu sering keluar dari bingkai.")).length,
+    1,
+  );
   assert.match(report.sections[2].body, /ulangi/i);
 });
+
+for (const [sourceKind, expectedLabel, expectedTitle] of [
+  ["live", "Rekaman dapat digunakan", "Data sesi cukup untuk dibaca."],
+  ["recorded_replay", "Rekaman dapat digunakan", "Data sesi cukup untuk dibaca."],
+  ["synthetic_preview", "Pratinjau sintetis selesai", "Tidak ada rekaman peserta."],
+] as const) {
+  test(`a passing ${sourceKind} report names its source honestly`, () => {
+    const report = buildReportPresentation({ ...base, sourceKind });
+
+    assert.equal(report.sections[1].label, expectedLabel);
+    assert.equal(report.sections[1].title, expectedTitle);
+    if (sourceKind === "synthetic_preview") {
+      assert.doesNotMatch(report.sections[1].label + report.sections[1].title, /Rekaman dapat digunakan/i);
+    }
+  });
+}
 
 for (const [label, recommendsFollowUp] of [
   ["produced-pattern response", true],
@@ -57,6 +78,7 @@ for (const [label, recommendsFollowUp] of [
       report.sections.map((section) => section.id),
       ["what_happened", "recording_status", "next_steps", "result_limits"],
     );
+    assert.notEqual(report.pageTitle, report.sections[0].title);
     assert.match(report.sections[0].title, /arsitektur/i);
     assert.match(report.sections[0].body, recommendsFollowUp ? /jalur pemeriksaan lanjutan/i : /jalur tanpa arahan pemeriksaan/i);
     assert.match(report.sections[1].label, /Rekaman dapat digunakan/);
@@ -83,7 +105,11 @@ for (const recommendsFollowUp of [true, false]) {
     });
 
     assert.match(report.sections[0].title, /rekaman.*tidak dapat digunakan/i);
-    assert.match(report.sections[0].body, /Wajah terlalu sering keluar dari bingkai/);
+    assert.notEqual(report.pageTitle, report.sections[0].title);
+    assert.equal(
+      report.sections.filter((section) => section.body.includes("Wajah terlalu sering keluar dari bingkai.")).length,
+      1,
+    );
     assert.doesNotMatch(report.sections[0].title + report.sections[0].body, /berhasil|respons.*terlihat|jalur.*diperagakan/i);
     assert.equal(report.sections[1].label, "Rekaman tidak dapat digunakan");
     assert.match(report.sections[2].title, /ulangi/i);

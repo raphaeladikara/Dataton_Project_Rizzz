@@ -275,15 +275,23 @@
   }
 
   .topbarInner {
-    grid-template-columns: 1fr auto;
-    padding-left: 15px;
+    grid-template-areas: "brand status menu";
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 6px;
+    min-height: 58px;
+    padding: 6px 7px 6px 14px;
   }
+  .brandButton { grid-area: brand; }
+  .primaryNavigation { grid-area: menu; }
+  .statusCluster { grid-area: status; }
   .logo {
     font-size: 20px;
   }
   .statusCluster {
-    gap: 8px;
+    gap: 0;
   }
+  .version { display: none; }
+  .offlineBadge { padding-inline: 9px; }
   .hero {
     padding: 30px 17px 50px;
   }

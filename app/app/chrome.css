@@ -154,12 +154,12 @@
 
 .navMenuButton:focus-visible,
 .topnav button:focus-visible {
-  outline: 3px solid var(--teal-300);
+  outline: 3px solid var(--teal-700);
   outline-offset: 3px;
 }
 
 :is(#home-heading, #guide-heading, #evidence, #privacy):focus-visible {
-  outline: 3px solid var(--teal-300);
+  outline: 3px solid var(--teal-700);
   outline-offset: 6px;
 }
 

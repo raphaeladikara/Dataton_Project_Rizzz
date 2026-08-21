@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { focusNavigationDestination } from "../src/ui/navigationFocus";
+import { compactNavigationTransition, focusNavigationDestination } from "../src/ui/navigationFocus";
 
 test("navigation focus makes the destination programmatically focusable and focuses it", () => {
   const attributes = new Map<string, string>();
@@ -33,4 +33,29 @@ test("navigation focus preserves an existing tabindex and reports a missing dest
   assert.equal(attributes.get("tabindex"), "0");
   assert.equal(focused, true);
   assert.equal(focusNavigationDestination({ getElementById: () => null }, "missing"), false);
+});
+
+test("compact navigation selection closes and names the destination focus target", () => {
+  assert.deepEqual(
+    compactNavigationTransition(true, { type: "select", destinationId: "evidence" }),
+    { open: false, focusTarget: "evidence" },
+  );
+});
+
+test("Escape closes compact navigation and restores its trigger", () => {
+  assert.deepEqual(
+    compactNavigationTransition(true, { type: "escape" }),
+    { open: false, focusTarget: "trigger" },
+  );
+});
+
+test("outside dismissal closes without stealing focus, while toggle only changes state", () => {
+  assert.deepEqual(
+    compactNavigationTransition(true, { type: "outside" }),
+    { open: false, focusTarget: null },
+  );
+  assert.deepEqual(
+    compactNavigationTransition(false, { type: "toggle" }),
+    { open: true, focusTarget: null },
+  );
 });
