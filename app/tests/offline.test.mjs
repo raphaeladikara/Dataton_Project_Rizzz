@@ -5,6 +5,7 @@ import { runInNewContext } from "node:vm";
 
 const root = new URL("../", import.meta.url);
 const workerSource = await readFile(new URL("public/sw.js", root), "utf8");
+const readinessSource = await readFile(new URL("src/offline/readiness.ts", root), "utf8");
 const required = [
   "public/favicon.svg",
   "public/manifest.webmanifest",
@@ -42,6 +43,9 @@ function createWorkerHarness() {
   const listeners = new Map();
   const stores = new Map();
   const putGates = new Map();
+  let addAllGate = Promise.resolve();
+  let deleteGate = Promise.resolve();
+  let fetchCalls = 0;
   let fetchImpl = async (request) => {
     const url = typeof request === "string" ? new URL(request, origin) : new URL(request.url);
     if (url.pathname === "/") {
@@ -67,6 +71,7 @@ function createWorkerHarness() {
       this.entries.set(key, response.clone());
     }
     async addAll(paths) {
+      await addAllGate;
       for (const path of paths) {
         this.entries.set(requestKey(path), new Response(`precache:${path}`, { status: 200 }));
       }
@@ -79,7 +84,10 @@ function createWorkerHarness() {
       return stores.get(name);
     },
     async keys() { return [...stores.keys()]; },
-    async delete(name) { return stores.delete(name); },
+    async delete(name) {
+      await deleteGate;
+      return stores.delete(name);
+    },
     async match(request) {
       for (const cache of stores.values()) {
         const response = await cache.match(request);
@@ -90,6 +98,7 @@ function createWorkerHarness() {
   };
 
   const self = {
+    location: new URL(origin),
     clients: { claim: () => claimPromise },
     addEventListener: (name, listener) => listeners.set(name, listener),
     skipWaiting: () => skipWaitingPromise,
@@ -97,7 +106,10 @@ function createWorkerHarness() {
   runInNewContext(workerSource, {
     self,
     caches,
-    fetch: (...args) => fetchImpl(...args),
+    fetch: (...args) => {
+      fetchCalls += 1;
+      return fetchImpl(...args);
+    },
     Response,
     URL,
     Promise,
@@ -121,6 +133,16 @@ function createWorkerHarness() {
   return {
     cache: () => stores.get(cacheName),
     caches,
+    delayAddAll() {
+      const gate = deferred();
+      addAllGate = gate.promise;
+      return gate;
+    },
+    delayDelete() {
+      const gate = deferred();
+      deleteGate = gate.promise;
+      return gate;
+    },
     delayPut(path) {
       const gate = deferred();
       putGates.set(requestKey(path), gate);
@@ -152,6 +174,7 @@ function createWorkerHarness() {
       return event;
     },
     request,
+    fetchCalls: () => fetchCalls,
     setClaimPromise: (promise) => { claimPromise = promise; },
     setFetch: (implementation) => { fetchImpl = implementation; },
     setSkipWaitingPromise: (promise) => { skipWaitingPromise = promise; },
@@ -181,10 +204,12 @@ test("offline cache has a bumped version and verifies its canonical critical lis
   assert.match(workerSource, /NEUROGAZE_OFFLINE_STATUS/);
   assert.match(workerSource, /caches\.open\(CACHE\)/);
   assert.match(workerSource, /criticalOfflinePaths/);
+  assert.match(readinessSource, new RegExp(cacheName.replaceAll("-", "\\-")));
 });
 
 test("install lifetime retains precache and skipWaiting", async () => {
   const harness = createWorkerHarness();
+  const precache = harness.delayAddAll();
   const skipWaiting = deferred();
   harness.setSkipWaitingPromise(skipWaiting.promise);
   const event = harness.dispatchInstall();
@@ -192,6 +217,8 @@ test("install lifetime retains precache and skipWaiting", async () => {
   assert.equal(event.waits.length, 1);
   assert.equal(await pendingAfter(10, event.waits[0]), true);
   skipWaiting.resolve();
+  assert.equal(await pendingAfter(10, event.waits[0]), true);
+  precache.resolve();
   await event.waits[0];
 
   const cache = harness.cache();
@@ -203,6 +230,7 @@ test("install lifetime retains precache and skipWaiting", async () => {
 test("activate lifetime retains old-cache cleanup and clients.claim", async () => {
   const harness = createWorkerHarness();
   await harness.caches.open("neurogaze-old-cache");
+  const cleanup = harness.delayDelete();
   const claim = deferred();
   harness.setClaimPromise(claim.promise);
   const event = harness.dispatchActivate();
@@ -210,6 +238,8 @@ test("activate lifetime retains old-cache cleanup and clients.claim", async () =
   assert.equal(event.waits.length, 1);
   assert.equal(await pendingAfter(10, event.waits[0]), true);
   claim.resolve();
+  assert.equal(await pendingAfter(10, event.waits[0]), true);
+  cleanup.resolve();
   await event.waits[0];
   assert.deepEqual(await harness.caches.keys(), []);
 });
@@ -241,8 +271,11 @@ test("navigation caches the exact route and falls back to route before root", as
   const cache = await harness.caches.open(cacheName);
   await cache.put("/", new Response("root-shell", { status: 200 }));
 
+  const navigationWrite = harness.delayPut("/panduan?step=2");
   const online = harness.dispatchFetch("/panduan?step=2", "navigate");
   assert.equal(await (await online.response).text(), "network:/panduan");
+  assert.equal(await pendingAfter(10, online.waits[0]), true);
+  navigationWrite.resolve();
   await Promise.all(online.waits);
   assert.equal(await (await cache.match(harness.request("/panduan?step=2"))).text(), "network:/panduan");
   assert.equal(await (await cache.match("/")).text(), "root-shell");
@@ -254,6 +287,24 @@ test("navigation caches the exact route and falls back to route before root", as
   assert.equal(await (await rootFallback.response).text(), "root-shell");
 });
 
+test("navigation and critical requests use good cache entries for fulfilled HTTP failures", async () => {
+  for (const status of [404, 500, 503]) {
+    const harness = createWorkerHarness();
+    const cache = await harness.caches.open(cacheName);
+    await cache.put("/models/model.json", new Response(`cached-model-${status}`, { status: 200 }));
+    await cache.put("/route", new Response(`cached-route-${status}`, { status: 200 }));
+    harness.setFetch(async () => new Response(`network-${status}`, { status }));
+
+    const critical = harness.dispatchFetch("/models/model.json");
+    assert.equal((await critical.response).status, 200);
+    assert.equal(await (await cache.match("/models/model.json")).text(), `cached-model-${status}`);
+
+    const navigation = harness.dispatchFetch("/route", "navigate");
+    assert.equal((await navigation.response).status, 200);
+    assert.equal(await (await cache.match("/route")).text(), `cached-route-${status}`);
+  }
+});
+
 test("verification replies from the active cache and names missing critical assets", async () => {
   const harness = createWorkerHarness();
   await Promise.all(harness.dispatchInstall().waits);
@@ -261,6 +312,7 @@ test("verification replies from the active cache and names missing critical asse
   const complete = harness.dispatchMessage({ type: "NEUROGAZE_VERIFY_OFFLINE", requestId: "complete" });
   await Promise.all(complete.waits);
   assert.equal(complete.replies[0].complete, true);
+  assert.equal(complete.replies[0].cacheVersion, cacheName);
   assert.deepEqual([...complete.replies[0].missing], []);
 
   harness.cache().entries.delete(requestKey("/stimuli/geopref-social-geometric-ccby.mp4"));
@@ -270,14 +322,22 @@ test("verification replies from the active cache and names missing critical asse
   assert.deepEqual([...incomplete.replies[0].missing], ["/stimuli/geopref-social-geometric-ccby.mp4"]);
 });
 
-test("a non-ok network response never replaces a usable critical asset", async () => {
+test("a non-ok critical response falls back without replacing the usable asset", async () => {
   const harness = createWorkerHarness();
   const cache = await harness.caches.open(cacheName);
   await cache.put("/models/model.json", new Response("usable-model", { status: 200 }));
   harness.setFetch(async () => new Response("server-error", { status: 500 }));
 
   const event = harness.dispatchFetch("/models/model.json");
-  assert.equal((await event.response).status, 500);
+  assert.equal((await event.response).status, 200);
   await Promise.all(event.waits);
   assert.equal(await (await cache.match("/models/model.json")).text(), "usable-model");
+});
+
+test("cross-origin GET requests bypass the service worker cache policy", () => {
+  const harness = createWorkerHarness();
+  const event = harness.dispatchFetch("https://cdn.example.test/library.js");
+  assert.equal(event.response, undefined);
+  assert.equal(event.waits.length, 0);
+  assert.equal(harness.fetchCalls(), 0);
 });

@@ -1,3 +1,5 @@
+export const OFFLINE_CACHE_VERSION = "neurogaze-shell-v20-offline-readiness";
+
 export type OfflineReadinessStatus = "online" | "preparing" | "ready" | "incomplete";
 
 export type OfflineReadinessSnapshot = {
@@ -91,7 +93,7 @@ export function deriveOfflineReadiness(snapshot: OfflineReadinessSnapshot): Offl
 export async function verifyCriticalOfflineAssets(
   worker: { postMessage(message: unknown, transfer: Transferable[]): void },
   timeoutMs: number,
-): Promise<{ complete: boolean; missing: string[] }> {
+): Promise<{ complete: boolean; missing: string[]; cacheVersion: string | null }> {
   const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const channel = new MessageChannel();
 
@@ -112,6 +114,7 @@ export async function verifyCriticalOfflineAssets(
         requestId?: unknown;
         complete?: unknown;
         missing?: unknown;
+        cacheVersion?: unknown;
       };
       if (
         response.type !== "NEUROGAZE_OFFLINE_STATUS" ||
@@ -127,11 +130,21 @@ export async function verifyCriticalOfflineAssets(
         reject(new Error("OFFLINE_VERIFICATION_INVALID_RESPONSE"));
         return;
       }
-      resolve({ complete: response.complete, missing: response.missing });
+      const cacheVersion =
+        typeof response.cacheVersion === "string" ? response.cacheVersion : null;
+      resolve({
+        complete: response.complete && cacheVersion === OFFLINE_CACHE_VERSION,
+        missing: response.missing,
+        cacheVersion,
+      });
     };
     try {
       worker.postMessage(
-        { type: "NEUROGAZE_VERIFY_OFFLINE", requestId },
+        {
+          type: "NEUROGAZE_VERIFY_OFFLINE",
+          requestId,
+          expectedCacheVersion: OFFLINE_CACHE_VERSION,
+        },
         [channel.port2],
       );
     } catch (error) {
@@ -145,15 +158,20 @@ type OfflineWorker = {
   postMessage(message: unknown, transfer: Transferable[]): void;
 };
 
+type OfflineInstallingWorker = {
+  state: string;
+  addEventListener(name: "statechange" | "error", listener: () => void): void;
+  removeEventListener(name: "statechange" | "error", listener: () => void): void;
+};
+
+type OfflineRegistration = {
+  installing?: OfflineInstallingWorker | null;
+  waiting?: OfflineInstallingWorker | null;
+};
+
 type OfflineServiceWorkerContainer = {
   controller: OfflineWorker | null;
-  register(scriptURL: string): Promise<{
-    installing?: {
-      state: string;
-      addEventListener(name: "statechange", listener: () => void): void;
-      removeEventListener(name: "statechange", listener: () => void): void;
-    } | null;
-  }>;
+  register(scriptURL: string): Promise<OfflineRegistration>;
   addEventListener(name: "controllerchange", listener: () => void): void;
   removeEventListener(name: "controllerchange", listener: () => void): void;
 };
@@ -180,9 +198,11 @@ export function monitorOfflineReadiness(options: {
   } = options;
   let stopped = false;
   let verificationAttempt = 0;
+  let registrationAttempt = 0;
   let installationTimer: ReturnType<typeof setTimeout> | undefined;
-  let installingWorker: Awaited<ReturnType<OfflineServiceWorkerContainer["register"]>>["installing"];
+  let installingWorker: OfflineInstallingWorker | null | undefined;
   let installationListener: (() => void) | undefined;
+  let installationErrorListener: (() => void) | undefined;
   let snapshot: OfflineReadinessSnapshot = {
     online: network.online,
     serviceWorkerSupported: serviceWorker !== null,
@@ -203,21 +223,32 @@ export function monitorOfflineReadiness(options: {
     if (installingWorker && installationListener) {
       installingWorker.removeEventListener("statechange", installationListener);
     }
+    if (installingWorker && installationErrorListener) {
+      installingWorker.removeEventListener("error", installationErrorListener);
+    }
     installingWorker = undefined;
     installationListener = undefined;
+    installationErrorListener = undefined;
   };
 
-  const watchFirstInstall = (
-    registration: Awaited<ReturnType<OfflineServiceWorkerContainer["register"]>>,
-  ) => {
+  const failInstallation = () => {
     clearInstallationWatch();
-    installingWorker = registration.installing;
+    update({ registration: "failed", controlled: false, verification: "incomplete" });
+  };
+
+  const watchInstallation = (registration: OfflineRegistration) => {
+    clearInstallationWatch();
+    installingWorker = registration.installing ?? registration.waiting;
     installationListener = () => {
-      if (installingWorker?.state !== "redundant") return;
-      clearInstallationWatch();
-      update({ registration: "failed", controlled: false, verification: "incomplete" });
+      if (installingWorker?.state === "redundant") failInstallation();
     };
-    installingWorker?.addEventListener("statechange", installationListener);
+    installationErrorListener = failInstallation;
+    if (installingWorker) {
+      installingWorker.addEventListener("statechange", installationListener);
+      installingWorker.addEventListener("error", installationErrorListener);
+      installationListener();
+      return;
+    }
     installationTimer = setTimeout(() => {
       clearInstallationWatch();
       if (!serviceWorker?.controller) update({ controlled: false, verification: "timeout" });
@@ -250,28 +281,46 @@ export function monitorOfflineReadiness(options: {
 
   const register = async () => {
     if (!serviceWorker) return;
+    const attempt = ++registrationAttempt;
     if (!network.online && !serviceWorker.controller) {
       update({ online: false, controlled: false, verification: "incomplete" });
       return;
     }
 
     if (serviceWorker.controller) {
-      update({ registration: "registered" });
-      const registration = network.online
-        ? serviceWorker.register("/sw.js").catch(() => undefined)
-        : Promise.resolve();
-      void verifyController();
-      await registration;
+      if (!network.online) {
+        update({ registration: "registered" });
+        await verifyController();
+        return;
+      }
+
+      update({ registration: "registering", verification: "idle" });
+      try {
+        const registration = await serviceWorker.register("/sw.js");
+        if (stopped || attempt !== registrationAttempt) return;
+        update({ registration: "registered" });
+        if (registration.installing || registration.waiting) {
+          watchInstallation(registration);
+          return;
+        }
+        await verifyController();
+      } catch {
+        if (stopped || attempt !== registrationAttempt) return;
+        update({ registration: "failed", verification: "incomplete" });
+        await verifyController();
+      }
       return;
     }
 
     update({ registration: "registering", verification: "idle" });
     try {
       const registration = await serviceWorker.register("/sw.js");
+      if (stopped || attempt !== registrationAttempt) return;
       update({ registration: "registered" });
-      if (!serviceWorker.controller) watchFirstInstall(registration);
+      if (!serviceWorker.controller) watchInstallation(registration);
       await verifyController();
     } catch {
+      if (stopped || attempt !== registrationAttempt) return;
       update({ registration: "failed", controlled: false, verification: "incomplete" });
     }
   };
@@ -299,6 +348,7 @@ export function monitorOfflineReadiness(options: {
   return () => {
     stopped = true;
     verificationAttempt += 1;
+    registrationAttempt += 1;
     clearInstallationWatch();
     serviceWorker?.removeEventListener("controllerchange", handleControllerChange);
     network.removeEventListener("online", handleNetworkChange);
