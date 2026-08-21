@@ -256,3 +256,23 @@ Three rules that matter while editing anything public-facing:
   placeholders when the folder is empty so the deck builds anywhere. Its README carries the
   consent rule: consenting to a recorded session is not consenting to appear in a
   competition deck, and no photograph of a child may ever appear.
+
+## Pitch documents, and which one is authoritative
+
+Three files, three jobs. Keep them from drifting into three competing scripts.
+
+| File | Holds | Read when |
+|---|---|---|
+| `docs/naskah_lengkap.md` | What is **said**, word for word, timed | Rehearsing |
+| `docs/run_sheet.md` | What is **done**, one page | On stage |
+| `docs/pitch_10_menit.md` | **Why** it is shaped that way, plus full Q&A | Editing |
+
+`naskah_lengkap.md` is authoritative on wording. If the other two disagree with it, fix
+them, not it. Sentences marked 🔒 are spoken verbatim and each protects a claim that
+collapses if paraphrased; paragraphs marked ◇ are dropped for the 10-minute cut and read
+for the 12-minute one. Measured at 145 wpm the two versions run ~10.3 and ~10.8 minutes of
+speech.
+
+Every number in the script appears in `docs/daftar_klaim.md`, which is generated and fails
+when a value stops matching its evidence file. After changing any evidence, regenerate the
+register first, then reconcile the script — not the other way round.
