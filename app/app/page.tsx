@@ -162,6 +162,7 @@ import {
   mediaFailure,
   type MediaReadiness,
   type MediaReadinessController,
+  type MediaVisibilitySource,
   type MediaReadinessEvent,
   type MediaReadinessStatus,
 } from "../src/ui/mediaReadiness";
@@ -876,6 +877,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     frame = requestAnimationFrame(watch);
     return () => { stopped = true; cancelAnimationFrame(frame); };
   }, [busy, mode, stage, deviceStatus]);
+
+  // The stimulus-stage effect below subscribes to later visibility changes.
+  // A run prepared before that effect commits reads the document through this
+  // helper instead, so a session started on a hidden tab is withheld as an
+  // interruption rather than waiting out the clip's load deadline.
+  function visibilitySource(): MediaVisibilitySource | null {
+    return typeof document === "undefined" ? null : document;
+  }
 
   useEffect(() => {
     if (stage !== "stimulus" || !busy) return;
@@ -1878,7 +1887,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const capturedStageAspect = window.innerWidth / Math.max(window.innerHeight, 1);
     setStageAspect(capturedStageAspect);
     recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0, stageAspect: Number(capturedStageAspect.toFixed(4)) });
-    const preloaded = await mediaController().prepareRun(includesGeopref, ["ready", "playing"]);
+    const preloaded = await mediaController().prepareRun(includesGeopref, ["ready", "playing"], visibilitySource());
     if (preloaded && isMediaFailure(preloaded.status)) {
       await holdForMedia(preloaded.status, runId);
       return;

@@ -366,3 +366,137 @@ test("the stimulus page mounts browser callbacks into the behavioral controller"
   assert.ok(replayStepProgressIndex >= 0, "replay step must retain its progress update");
   assert.ok(replayGateIndex < replayStepProgressIndex, "replay progress must remain still while media is paused or buffering");
 });
+
+test("a run started while the page is already hidden interrupts instead of timing out", async () => {
+  // The page attaches `connectVisibility(document)` on mount, long before a
+  // session starts. If the operator switches away in between, no
+  // `visibilitychange` fires when the run begins, so the run must consult the
+  // current visibility itself rather than sit out the load deadline.
+  const { createMediaReadinessController } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  const withheld: Array<{ reason: string; operatorAction: string }> = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure),
+  });
+
+  controller.connectVisibility(visibility);
+  visibility.setHidden(true);
+  assert.equal(controller.snapshot().status, "loading", "an idle controller must not withhold");
+
+  const prepared = await controller.prepareRun(true, ["ready", "playing"]);
+
+  assert.equal(prepared?.status, "interrupted");
+  assert.deepEqual(withheld.map((failure) => failure.reason), ["GEOPREF_MEDIA_INTERRUPTED"]);
+  assert.match(withheld[0].operatorAction, /layar tetap terbuka/i);
+  assert.equal(fakeClock.pendingCount(), 0, "the load deadline must not outlive an interrupted run");
+  assert.equal(controller.blockingFailure(), "interrupted");
+  controller.dispose();
+});
+
+test("a run started on a visible page still honours the load deadline", async () => {
+  const { createMediaReadinessController, MEDIA_READY_TIMEOUT_MS } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+
+  controller.connectVisibility(visibility);
+  const prepared = controller.prepareRun(true, ["ready", "playing"]);
+  fakeClock.advanceBy(MEDIA_READY_TIMEOUT_MS);
+
+  assert.equal((await prepared)?.status, "timed_out");
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_TIMED_OUT"]);
+  controller.dispose();
+});
+
+test("a directional-only retry on a hidden page is still withheld", async () => {
+  // A retry that skips GeoPref does not need the clip, but a page the operator
+  // has left cannot be measured either way.
+  const { createMediaReadinessController } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+
+  controller.connectVisibility(visibility);
+  visibility.setHidden(true);
+  await controller.prepareRun(false, ["ready", "playing"]);
+
+  assert.equal(controller.blockingFailure(), "interrupted");
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_INTERRUPTED"]);
+  controller.dispose();
+});
+
+test("a run consults the visibility source it is handed, before any listener is attached", async () => {
+  // `connectVisibility` is a stimulus-stage effect, so it has not run yet when
+  // `runStimulus` prepares the clip. The run therefore has to be given the
+  // document directly, or a session started on a hidden tab spends the whole
+  // load deadline and then blames the video file.
+  const { createMediaReadinessController } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  visibility.setHidden(true);
+  const withheld: string[] = [];
+  const controller = createMediaReadinessController({
+    clock: fakeClock.clock,
+    onWithhold: (failure) => withheld.push(failure.reason),
+  });
+
+  const prepared = await controller.prepareRun(true, ["ready", "playing"], visibility);
+
+  assert.equal(prepared?.status, "interrupted");
+  assert.deepEqual(withheld, ["GEOPREF_MEDIA_INTERRUPTED"]);
+  assert.equal(fakeClock.pendingCount(), 0);
+  controller.dispose();
+});
+
+test("a visible source handed to the run does not pre-empt normal preparation", async () => {
+  const { createMediaReadinessController } = await readinessModule();
+  const fakeClock = createFakeClock();
+  const visibility = createFakeVisibility();
+  const controller = createMediaReadinessController({ clock: fakeClock.clock });
+
+  const prepared = controller.prepareRun(true, ["ready", "playing"], visibility);
+  controller.event("can_play", controller.generation());
+
+  assert.equal((await prepared)?.status, "ready");
+  controller.dispose();
+});
+
+test("the stimulus page hands the document to run preparation", async () => {
+  const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /prepareRun\(includesGeopref, \["ready", "playing"\], visibilitySource\(\)\)/);
+  assert.match(page, /function visibilitySource\(\)/);
+});
+
+test("a disposed controller reports an interrupted run whether or not the page is hidden", async () => {
+  // `waitUntil` already refuses a disposed controller. The visibility
+  // shortcut in `prepareRun` must not become a way around that guard.
+  const { createMediaReadinessController } = await readinessModule();
+
+  for (const hidden of [true, false]) {
+    const fakeClock = createFakeClock();
+    const visibility = createFakeVisibility();
+    visibility.setHidden(hidden);
+    const withheld: string[] = [];
+    const controller = createMediaReadinessController({
+      clock: fakeClock.clock,
+      onWithhold: (failure) => withheld.push(failure.reason),
+    });
+    controller.dispose();
+
+    const prepared = await controller.prepareRun(true, ["ready", "playing"], visibility);
+
+    assert.equal(prepared?.status, "interrupted", `hidden=${hidden}`);
+    assert.deepEqual(withheld, [], "a disposed controller must not emit a withhold callback");
+    assert.equal(fakeClock.pendingCount(), 0);
+  }
+});
