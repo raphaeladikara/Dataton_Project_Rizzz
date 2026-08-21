@@ -867,16 +867,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setMediaGeneration(mediaController().reset());
   }
 
-  function waitForMedia(
-    accepted: readonly MediaReadinessStatus[],
-    runId: number,
-  ): Promise<MediaReadiness> {
-    if (runId !== stimulusRunIdRef.current) return Promise.resolve({ status: "interrupted" });
-    return mediaController().waitUntil(accepted).then((readiness) =>
-      runId === stimulusRunIdRef.current ? readiness : { status: "interrupted" },
-    );
-  }
-
   async function holdForMedia(status: MediaReadinessStatus, runId: number) {
     if (runId !== stimulusRunIdRef.current || !isMediaFailure(status)) return;
     stimulusRunIdRef.current += 1;
@@ -934,8 +924,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
 
   async function stopIfMediaTerminated(runId: number): Promise<boolean> {
     if (runId !== stimulusRunIdRef.current) return true;
-    const status = mediaReadinessRef.current.status;
-    if (!isMediaFailure(status)) return false;
+    const status = mediaController().blockingFailure();
+    if (!status) return false;
     await holdForMedia(status, runId);
     return true;
   }
@@ -1727,6 +1717,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const runPhases = retryPhaseIds.length
       ? orderedPhases.filter((phase) => retryPhaseIds.includes(phase.id))
       : orderedPhases;
+    const includesGeopref = runPhases.some((phase) => phase.id === GEOPREF_PHASE_ID);
     const preservedPoints = retryPhaseIds.length ? points.filter((point) => !retryPhaseIds.includes(point.phase ?? "")) : [];
     setBusy(true);
     setStimulusPaused(false);
@@ -1738,8 +1729,8 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     const capturedStageAspect = window.innerWidth / Math.max(window.innerHeight, 1);
     setStageAspect(capturedStageAspect);
     recordAudit(retryPhaseIds.length ? "stimulus.partial_retry_started" : "stimulus.started", { version: STIMULUS_VERSION, phases: runPhases.map((phase) => phase.id), retry: retryPhaseIds.length > 0, stageAspect: Number(capturedStageAspect.toFixed(4)) });
-    const preloaded = await waitForMedia(["ready", "playing"], runId);
-    if (isMediaFailure(preloaded.status)) {
+    const preloaded = await mediaController().prepareRun(includesGeopref, ["ready", "playing"]);
+    if (preloaded && isMediaFailure(preloaded.status)) {
       await holdForMedia(preloaded.status, runId);
       return;
     }
@@ -1784,7 +1775,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       const media = geoprefVideoRef.current;
       return Boolean(media && mediaController().canAdvance(mode, media));
     };
-    const includesGeopref = runPhases.some((phase) => phase.id === GEOPREF_PHASE_ID);
     if (includesGeopref && !await ensureGeoprefPlaying()) return;
     if (includesGeopref && runPhases[0]?.id !== GEOPREF_PHASE_ID) {
       const media = geoprefVideoRef.current;
