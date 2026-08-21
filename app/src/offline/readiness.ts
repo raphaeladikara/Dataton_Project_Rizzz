@@ -233,7 +233,15 @@ export function monitorOfflineReadiness(options: {
 
   const failInstallation = () => {
     clearInstallationWatch();
-    update({ registration: "failed", controlled: false, verification: "incomplete" });
+    if (serviceWorker?.controller && snapshot.verification === "verified") {
+      update({ registration: "registered", controlled: true });
+      return;
+    }
+    update({
+      registration: "failed",
+      controlled: Boolean(serviceWorker?.controller),
+      verification: "incomplete",
+    });
   };
 
   const watchInstallation = (registration: OfflineRegistration) => {
@@ -301,7 +309,6 @@ export function monitorOfflineReadiness(options: {
         update({ registration: "registered" });
         if (registration.installing || registration.waiting) {
           watchInstallation(registration);
-          return;
         }
         await verifyController();
       } catch {
