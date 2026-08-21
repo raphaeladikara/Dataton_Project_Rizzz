@@ -231,3 +231,28 @@ Three rules that matter while editing anything public-facing:
   cutoff on it is therefore identical to "GeoPref deviant" — a one-signal rule, which
   `referralRecommendation.ts` and PRODUCT.md both forbid by name. The posterior stays a
   reason; the counting rule stays the decision; the invented number stays labelled.
+
+## Evidence framing added 2026-08-21 (fourth pass)
+
+- **The 25 Gate A adults and 12 positive-control adults were participants, not operators.**
+  The logs name `Operator-01/02/03` and the `site` field records lighting and eyewear, not
+  a Posyandu. Never let "kader sudah menguji" reach a slide or a script: the first question
+  is how many kader and from which Posyandu, and the answer is zero. The readiness matrix
+  now carries `operator_flow` as a separate row from `kader_usability` for exactly this
+  reason — collapsing them turns real evidence into a claim that falls over.
+- **What *is* claimable, and was not being claimed at all:** 123 end-to-end sessions, 37
+  consenting adults, 3 operators, 3 mid-range Android tablets (SM-X205, Lenovo TB-125FU,
+  23073RPBFG), 6 environmental conditions (three lighting levels × with and without
+  glasses). The environmental spread is the strongest part — it is the Posyandu robustness
+  question, and it was already answered.
+- **`REFERRAL_THRESHOLD_RATIONALE` derives the threshold of two.** Because the rule fires
+  only when every assessable signal deviates, its false-positive rate is P(A and B) ≤
+  min(P(A), P(B)) ≤ 0.02, so composite specificity is at least 98% — a bound that needs no
+  independence assumption, which matters because the signals are not independent. At a
+  threshold of one the inequality inverts. Two is the only value that cannot degrade the
+  published operating point. `thresholdStatus` deliberately stays
+  `design_choice_not_validated_cutoff`: derived is not the same as validated on toddlers.
+- **`deck/foto/`** holds the fieldwork photographs and is optional — `build-deck.js` renders
+  placeholders when the folder is empty so the deck builds anywhere. Its README carries the
+  consent rule: consenting to a recorded session is not consenting to appear in a
+  competition deck, and no photograph of a child may ever appear.

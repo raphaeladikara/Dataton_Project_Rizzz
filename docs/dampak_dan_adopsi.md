@@ -144,7 +144,9 @@ Tiga hal yang harus jujur disebut tentang tabel ini:
 - **Baris keempat belum dikerjakan.** Tidak ada satu baris kode pun di repositori ini
   yang berbicara dengan SATUSEHAT. Itu target, bukan fitur, dan menyebutnya sebagai
   fitur akan langsung ketahuan.
-- **Baris pertama belum diuji dengan kader sungguhan.** Belum ada kader yang menyentuh
+- **Baris pertama belum diuji dengan kader sungguhan.** Alurnya sudah dijalankan 123 kali
+  oleh tiga operator pada 37 dewasa, di tiga tablet dan enam kondisi lingkungan — tetapi
+  operatornya tim proyek dan lokasinya bukan Posyandu. Belum ada kader yang menyentuh
   aplikasi ini. Itu pengujian termurah yang tersisa dan belum dilakukan.
 - **Laporan tidak pernah menjadi keputusan rujukan.** Yang merujuk tetap tenaga
   kesehatan. Alat ini memberi arahan dan bahan, bukan surat rujukan.

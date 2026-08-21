@@ -23,9 +23,38 @@ tetap menghapus satu-satunya angka karangan di sistem.
 `buildReferralRecommendation` mencacah: berapa sinyal berstatus `menyimpang`, apakah
 mencapai dua. Tiga hal salah dengannya, dan tidak satu pun soal implementasi.
 
-**Angka dua tidak punya artefak.** Setiap bilangan lain di sistem ini bisa ditelusuri
-ke berkas. Yang ini tidak, dan tipenya sendiri mengakuinya:
-`design_choice_not_validated_cutoff`.
+**Angka dua tidak punya artefak terbit** — tetapi ia punya turunan, dan turunan itu
+sebelumnya tidak pernah dituliskan.
+
+Aturan hanya menyala kalau seluruh sinyal yang dapat dinilai menyimpang, jadi laju positif
+palsunya adalah P(A dan B). Untuk dua kejadian apa pun berlaku
+
+```
+P(A dan B) ≤ min(P(A), P(B))
+```
+
+dan preferensi geometrik membawa laju positif palsu terbit 0,02 (spesifisitas 98%, Wen
+dkk.). **Spesifisitas lajur komposit karena itu sekurang-kurangnya 98% — batas, bukan
+estimasi, dan berlaku tanpa mengandaikan kedua sinyal saling bebas.** Itu penting justru
+di sini, karena keduanya diukur pada anak yang sama dan jelas tidak bebas.
+
+Menurunkan ambang ke satu membalik pertidaksamaannya:
+
+```
+P(A atau B) ≥ maks(P(A), P(B)) ≥ 0,02
+```
+
+sehingga spesifisitasnya paling banter 98% dan bisa jauh lebih buruk, bergantung penuh
+pada laju positif palsu mengikuti isyarat yang belum ada yang menerbitkannya.
+
+Konsekuensi kedua: pada ambang dua, aturan tidak dapat menyala tanpa GeoPref menyimpang.
+Rujukan lajur komposit karena itu **himpunan bagian** dari lajur GeoPref, dan bebannya
+tidak dapat melebihi 2,2% yang sudah tersirat di titik operasi terbit.
+
+Jadi dua bukan angka yang dikarang. Dua adalah **satu-satunya nilai yang tidak dapat
+memperburuk titik operasi yang divalidasi orang lain.** Yang tetap benar: ia bukan cutoff
+tervalidasi pada balita, dan tipenya tetap `design_choice_not_validated_cutoff` karena
+alasan itu. Turunannya ada di `REFERRAL_THRESHOLD_RATIONALE`.
 
 **Ketiga sinyal dihitung sama berat.** Preferensi geometrik membawa spesifisitas 98%.
 Respons nama tidak membawa apa pun sekuat itu. Menjumlahkannya satu-satu menyatakan

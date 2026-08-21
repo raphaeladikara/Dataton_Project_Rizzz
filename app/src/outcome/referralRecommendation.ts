@@ -67,12 +67,66 @@ export const QUARANTINED_SIGNALS: readonly { id: string; label: string; reason: 
 /**
  * How many assessable signals must deviate before the rule fires.
  *
- * This is the one number in the rule that nobody published. It is a design
- * choice, justified the same way the GeoPref operating point was: by what the
- * resulting referral rate does to a real Posyandu queue. It is never presented
- * as a validated cutoff.
+ * Nobody published this number, and it is never presented as a validated
+ * cutoff. What it is not is arbitrary: with the two signals that ship, two is
+ * the only value that cannot make the composite lane worse than the published
+ * operating point it is built on. The derivation is in
+ * REFERRAL_THRESHOLD_RATIONALE and needs no new data.
  */
 export const REFERRAL_DEVIANT_THRESHOLD = 2;
+
+/** Wen et al. 2022: specificity 0.98, so at most 2 in 100 non-ASD children clear it. */
+const GEOPREF_FALSE_POSITIVE_RATE = 0.02;
+
+/**
+ * Why two, derived rather than chosen.
+ *
+ * The composite fires only when every assessable signal deviates, so its
+ * false-positive rate is P(A and B). For any two events,
+ *
+ *     P(A and B) <= min(P(A), P(B))
+ *
+ * and geometric preference carries a published false-positive rate of 0.02.
+ * The composite lane therefore has specificity of at least 98% — a bound, not
+ * an estimate, and one that holds whether or not the signals are independent.
+ * That matters here, because they are measured on the same child within one
+ * session and are certainly not independent.
+ *
+ * Dropping the threshold to one inverts the inequality:
+ *
+ *     P(A or B) >= max(P(A), P(B)) >= 0.02
+ *
+ * so specificity becomes at most 98% and can be far worse, depending entirely
+ * on a cue-following false-positive rate nobody has published.
+ *
+ * There is a second consequence worth stating separately. At a threshold of two
+ * the rule cannot fire unless geometric preference deviates, so every referral
+ * the composite lane produces is one the published GeoPref lane would also
+ * produce. The composite is a strict subset, and its referral load can never
+ * exceed the 2.2% that operating point already implies — which is the constraint
+ * a practitioner described as the binding one.
+ *
+ * None of this makes two a validated cutoff. It makes two the only value that
+ * cannot degrade a cutoff somebody else validated.
+ */
+export const REFERRAL_THRESHOLD_RATIONALE = {
+  threshold: REFERRAL_DEVIANT_THRESHOLD,
+  /** Holds without assuming the signals are conditionally independent. */
+  assumesIndependence: false,
+  specificityFloor: 1 - GEOPREF_FALSE_POSITIVE_RATE,
+  thresholdOneSpecificityCeiling: 1 - GEOPREF_FALSE_POSITIVE_RATE,
+  bound: "Spesifisitas lajur komposit sekurang-kurangnya 98%, karena P(A dan B) ≤ min(P(A), P(B)) dan preferensi geometrik membawa laju positif palsu terbit 0,02.",
+  subsetOfPublishedLane: true,
+  derivation: [
+    "Aturan hanya menyala kalau seluruh sinyal yang dapat dinilai menyimpang, jadi laju positif palsunya adalah P(A dan B).",
+    "Untuk dua kejadian apa pun, P(A dan B) ≤ min(P(A), P(B)); dengan spesifisitas GeoPref terbit 0,98, batas atas laju positif palsu komposit adalah 0,02.",
+    "Menurunkan ambang ke satu membalik pertidaksamaannya menjadi P(A atau B) ≥ maks(P(A), P(B)) ≥ 0,02, sehingga spesifisitasnya paling banter 98% dan bisa jauh lebih buruk.",
+    "Pada ambang dua, aturan tidak dapat menyala tanpa GeoPref menyimpang, jadi rujukan lajur ini himpunan bagian dari lajur GeoPref dan bebannya tidak melebihi 2,2%.",
+  ],
+  stillNotValidated:
+    "Ini menjadikan dua sebagai satu-satunya nilai yang tidak dapat memperburuk titik operasi terbit. Ia tidak menjadikannya cutoff yang tervalidasi pada balita; itu tetap Gate C.",
+  source: "Wen dkk. 2022, Scientific Reports 12:4253 (spesifisitas 0,98) · docs/model_rujukan.md",
+} as const;
 
 export type SignalStatus = "menyimpang" | "normal" | "tidak_dapat_dinilai";
 

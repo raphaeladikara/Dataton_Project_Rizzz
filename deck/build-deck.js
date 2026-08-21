@@ -96,6 +96,28 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
   });
 }
 
+
+/** Photo if it exists, tinted placeholder if it does not. The deck has to build
+ *  on a machine that never received the documentation folder. */
+function photo(slide, { x, y, w, h, file, caption }) {
+  const path = require("path").join(__dirname, "foto", file);
+  if (require("fs").existsSync(path)) {
+    slide.addImage({ path, x, y, w, h, sizing: { type: "cover", w, h } });
+  } else {
+    card(slide, { x, y, w, h, fill: TEAL_WASH, line: TEAL_WASH });
+    slide.addText("foto/" + file, {
+      x, y: y + h / 2 - 0.15, w, h: 0.3, margin: 0, align: "center",
+      fontFace: B, fontSize: 10, color: TEAL,
+    });
+  }
+  if (caption) {
+    slide.addText(caption, {
+      x, y: y + h + 0.06, w, h: 0.3, margin: 0,
+      fontFace: B, fontSize: 10, color: MUTED,
+    });
+  }
+}
+
 // ═══════════════════════════════════════════════════════ 1 · Judul
 {
   const s = darkSlide();
@@ -299,6 +321,35 @@ function card(slide, { x, y, w, h, fill = WHITE, line = LINE }) {
     },
   );
   s.addNotes("0:35. Jual angka 0 dari 9 dan kolom jarak terdekat. Jangan menjual AUC 1,00.");
+}
+
+// ═══════════════════════════════════════════════════════ 5b · Bukti lapangan
+{
+  const s = lightSlide("Ini bukan simulasi — 123 sesi, di tablet sungguhan, di cahaya sungguhan", "Bukti lapangan");
+
+  const stats = [
+    ["123", "sesi ujung-ke-ujung", "100 Gate A + 23 kontrol positif"],
+    ["37", "dewasa menyetujui", "25 Gate A + 12 kontrol positif"],
+    ["3", "tablet Android kelas menengah", "Galaxy Tab A8 · Lenovo Tab M10 · Redmi Note 13"],
+    ["6", "kondisi lingkungan", "cahaya redup, normal, campuran × berkacamata dan tidak"],
+  ];
+  stats.forEach(([v, l, n], i) => {
+    const x = M + i * 2.95;
+    stat(s, { x, y: 2.35, w: 2.7, value: v, size: 40, color: i === 3 ? TEAL : INK, label: l, note: n });
+  });
+
+  photo(s, { x: M, y: 3.95, w: 3.6, h: 2.05, file: "01-sesi.jpg", caption: "Sesi berjalan pada dudukan tablet" });
+  photo(s, { x: M + 3.9, y: 3.95, w: 3.6, h: 2.05, file: "02-perangkat.jpg", caption: "Tiga perangkat yang dipakai" });
+  photo(s, { x: M + 7.8, y: 3.95, w: 3.6, h: 2.05, file: "03-kondisi.jpg", caption: "Kondisi cahaya yang berbeda" });
+
+  s.addText(
+    "Yang diuji di sini adalah alat ukurnya, bukan kadernya: operatornya tim kami dan lokasinya bukan Posyandu. Yang ditunjukkannya tetap nyata — alur ini berjalan berulang di perangkat kelas menengah, luring, termasuk pada peserta berkacamata dan di ruangan yang remang.",
+    {
+      x: M, y: 6.42, w: 11.4, h: 0.55, margin: 0,
+      fontFace: B, fontSize: 12, color: INK_2, lineSpacing: 17,
+    },
+  );
+  s.addNotes("0:30. Sebut sendiri bahwa operatornya tim, bukan kader — sebelum juri menanyakannya. Yang dijual: 6 kondisi lingkungan dan 3 perangkat sungguhan. Kalau folder deck/foto kosong, slide ini muncul dengan kotak placeholder; isi dulu sebelum mencetak.");
 }
 
 // ═══════════════════════════════════════════════════════ 6 · Arsitektur
