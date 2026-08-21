@@ -71,6 +71,10 @@ import {
   type SessionValidityResult,
 } from "../src/quality/sessionValidity";
 import { assessFeatureOod, type OodAssessment, type OodReference } from "../src/quality/ood";
+import {
+  deriveOfflineReadiness,
+  monitorOfflineReadiness,
+} from "../src/offline/readiness";
 import type { GateBStudyMeta } from "../src/gateb/studyMeta";
 import {
   MAX_POSITIVE_CONTROL_ATTEMPTS,
@@ -682,7 +686,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
   const [stimulusCueActive, setStimulusCueActive] = useState(false);
   const [stimulusOstensiveActive, setStimulusOstensiveActive] = useState(false);
   const [auditLog, setAuditLog] = useState<SessionAuditLog | null>(null);
-  const [online, setOnline] = useState(true);
+  const [offlineReadiness, setOfflineReadiness] = useState(() =>
+    deriveOfflineReadiness({
+      online: true,
+      serviceWorkerSupported: false,
+      registration: "idle",
+      controlled: false,
+      verification: "idle",
+    }),
+  );
   const [busy, setBusy] = useState(false);
   const [stimulusPaused, setStimulusPaused] = useState(false);
   const [mediaReadiness, setMediaReadiness] = useState<MediaReadiness>(() => initialMediaReadiness());
@@ -757,13 +769,18 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("Referensi partisipan tidak tersedia")))
       .then((candidate: unknown) => validateParticipantReference(candidate))
       .catch(() => undefined);
-    const updateOnline = () => setOnline(navigator.onLine);
-    updateOnline();
-    window.addEventListener("online", updateOnline);
-    window.addEventListener("offline", updateOnline);
+    let stopOfflineMonitor: () => void = () => undefined;
     if ("serviceWorker" in navigator) {
       if (process.env.NODE_ENV === "production") {
-        navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+        stopOfflineMonitor = monitorOfflineReadiness({
+          serviceWorker: navigator.serviceWorker,
+          network: {
+            get online() { return navigator.onLine; },
+            addEventListener: (name, listener) => window.addEventListener(name, listener),
+            removeEventListener: (name, listener) => window.removeEventListener(name, listener),
+          },
+          onChange: setOfflineReadiness,
+        });
       } else {
         navigator.serviceWorker.getRegistrations().then((registrations) =>
           registrations.forEach((registration) => registration.unregister()),
@@ -772,11 +789,20 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           Promise.all(keys.filter((key) => key.startsWith("neurogaze-")).map((key) => caches.delete(key))),
         );
       }
+    } else if (process.env.NODE_ENV === "production") {
+      stopOfflineMonitor = monitorOfflineReadiness({
+        serviceWorker: null,
+        network: {
+          get online() { return navigator.onLine; },
+          addEventListener: (name, listener) => window.addEventListener(name, listener),
+          removeEventListener: (name, listener) => window.removeEventListener(name, listener),
+        },
+        onChange: setOfflineReadiness,
+      });
     }
     return () => {
       console.error = originalConsoleError;
-      window.removeEventListener("online", updateOnline);
-      window.removeEventListener("offline", updateOnline);
+      stopOfflineMonitor();
       stimulusRunIdRef.current += 1;
       // The current node is intentionally read at unmount rather than captured
       // on the home-screen mount, when the stimulus video does not exist yet.
@@ -2328,9 +2354,15 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           }}>Bukti & privasi</button>
         </nav>
         <div className="statusCluster">
-          <span className={`offlineBadge ${online ? "" : "offline"}`}>
-            {online ? <b aria-hidden="true" /> : <IconOffline size={13} />}
-            {online ? "Siap luring" : "Luring aktif"}
+          <span
+            className={`offlineBadge ${offlineReadiness.status === "incomplete" ? "offline" : offlineReadiness.status}`}
+            title={offlineReadiness.detail}
+            aria-label={`${offlineReadiness.label}. ${offlineReadiness.detail}`}
+          >
+            {offlineReadiness.status === "incomplete"
+              ? <IconOffline size={13} />
+              : <b aria-hidden="true" />}
+            {offlineReadiness.label}
           </span>
           <span className="version">app {APP_VERSION}</span>
         </div>
