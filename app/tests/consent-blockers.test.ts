@@ -6,6 +6,8 @@ const child: ConsentInput = {
   purpose: "target_population_research",
   childId: "NG-0001",
   ageMonths: "24",
+  site: "Posyandu Melati 3",
+  operator: "Kader-07",
   consented: true,
   researchConsent: false,
   bridge: null,
@@ -17,7 +19,14 @@ test("a complete child form has nothing blocking it", () => {
 
 test("each missing child field names itself", () => {
   assert.deepEqual(consentBlockers({ ...child, childId: "   " }), ["ID anak pseudonim belum diisi"]);
+  assert.deepEqual(consentBlockers({ ...child, site: "   " }), ["Lokasi layanan belum diisi"]);
+  assert.deepEqual(consentBlockers({ ...child, operator: "   " }), ["ID operator belum diisi"]);
   assert.deepEqual(consentBlockers({ ...child, consented: false }), ["Persetujuan layanan belum dicentang"]);
+});
+
+test("field continuation does not require research-log permission", () => {
+  assert.equal(child.researchConsent, false);
+  assert.deepEqual(consentBlockers(child), []);
 });
 
 test("age outside the studied band is reported with the band", () => {
@@ -29,11 +38,20 @@ test("age outside the studied band is reported with the band", () => {
 });
 
 test("several missing fields are all listed, not just the first", () => {
-  const blockers = consentBlockers({ ...child, childId: "", consented: false, ageMonths: "40" });
-  assert.equal(blockers.length, 3);
+  const blockers = consentBlockers({
+    ...child,
+    childId: "",
+    ageMonths: "40",
+    site: "",
+    operator: "",
+    consented: false,
+  });
+  assert.equal(blockers.length, 5);
   assert.ok(blockers.some((item) => item.includes("ID anak")));
   assert.ok(blockers.some((item) => item.includes("Persetujuan")));
   assert.ok(blockers.some((item) => item.includes("Usia")));
+  assert.ok(blockers.some((item) => item.includes("Lokasi")));
+  assert.ok(blockers.some((item) => item.includes("operator")));
 });
 
 test("an engineering session has no age band and uses participant wording", () => {

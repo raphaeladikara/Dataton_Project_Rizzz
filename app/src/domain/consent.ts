@@ -19,6 +19,8 @@ export type ConsentInput = {
   purpose: SessionPurpose;
   childId: string;
   ageMonths: string;
+  site: string;
+  operator: string;
   consented: boolean;
   researchConsent: boolean;
   bridge: BridgeConsentInput | null;
@@ -43,6 +45,8 @@ export function consentBlockers(input: ConsentInput): string[] {
   if (!input.childId.trim()) {
     blockers.push(isAdultParticipant ? "ID peserta pseudonim belum diisi" : "ID anak pseudonim belum diisi");
   }
+  if (!input.site.trim()) blockers.push("Lokasi layanan belum diisi");
+  if (!input.operator.trim()) blockers.push("ID operator belum diisi");
   if (!input.consented) blockers.push("Persetujuan layanan belum dicentang");
 
   if (!isAdultParticipant) {
