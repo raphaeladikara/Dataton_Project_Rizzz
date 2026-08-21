@@ -40,6 +40,13 @@
   line-height: 1.45;
 }
 
+@media (max-width: 520px) {
+  .presentationStrip > span,
+  .presentationStrip small {
+    font-size: 14px;
+  }
+}
+
 /* Floating pill: the bar rides over the hero atmosphere instead of cutting
    it with a full-width band, so the gradient reads as one continuous field. */
 .topbar {
@@ -149,6 +156,11 @@
 .topnav button:focus-visible {
   outline: 3px solid var(--teal-300);
   outline-offset: 3px;
+}
+
+:is(#home-heading, #guide-heading, #evidence, #privacy):focus-visible {
+  outline: 3px solid var(--teal-300);
+  outline-offset: 6px;
 }
 
 /* Stays at the 44px touch target the tablet QA enforces. */
