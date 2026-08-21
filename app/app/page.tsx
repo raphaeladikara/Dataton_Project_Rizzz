@@ -185,16 +185,16 @@ const APP_VERSION = "3.0.0-child-flow";
 /**
  * Where a session's identity fields start, per purpose.
  *
- * Extracted because two callers need it now: start(), and the consent-screen
- * checkbox that turns a field session into a demonstration after start() has
- * already run. Age is empty on every adult purpose on purpose — the field is
- * hidden there, and a stale "24" left behind would ride into the audit log.
+ * Field sessions start blank so an example can never be mistaken for the child
+ * in front of the operator. Adult/demo purposes keep explicit fixture-like
+ * defaults because they are controlled technical lanes, not service records.
  */
 function defaultProfile(purpose: SessionPurpose) {
   const today = new Date().toISOString().slice(0, 10).replaceAll("-", "");
   if (purpose === "gate_a_adult") return { childId: `GA-${today}-01`, age: "", site: "Pilot perangkat", operator: "Operator-01" };
   if (purpose === "gate_b_bridge") return { childId: `GB-${today}-P01`, age: "", site: "Lab validasi", operator: "Peneliti-01" };
   if (purpose === "stage_demo") return { childId: `PERAGA-${today}-01`, age: "", site: "Peragaan panggung", operator: "Penyaji-01" };
+  if (purpose === "target_population_research") return { childId: "", age: "", site: "", operator: "" };
   return { childId: "NG-0042", age: "24", site: "Posyandu Melati 3", operator: "Kader-07" };
 }
 const pause = (milliseconds: number) =>
@@ -854,38 +854,24 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     setStage(isEngineeringStudy ? "device" : "preparation");
   }
 
-  /**
-   * The demonstration is declared on the consent screen, not chosen at a button.
-   *
-   * There is one "Mulai observasi kamera" and it always opens a field session.
-   * Ticking this turns the session being set up into a stage demonstration: the
-   * participant becomes a consenting adult, the age field disappears instead of
-   * inviting an invented number, and the 69% threshold is applied so the shape
-   * of a referral report is visible. The purpose moves with it, so
-   * consentBlockers, the audit log, and every line of copy that already reads
-   * `stage_demo` follow along without a second flag to keep in step.
-   */
-  function setDemonstration(on: boolean) {
-    const purpose: SessionPurpose = on ? "stage_demo" : "target_population_research";
-    const leaving = defaultProfile(on ? "target_population_research" : "stage_demo");
-    const arriving = defaultProfile(purpose);
-    setSessionPurpose(purpose);
-    setDemonstrationMode(on);
-    // Untouched defaults are swapped; anything the operator typed is kept. Age
-    // is the exception — it is hidden in one mode, so a leftover value there
-    // would be a number nobody entered for this session.
-    setProfile((current) => ({
-      childId: current.childId === leaving.childId ? arriving.childId : current.childId,
-      site: current.site === leaving.site ? arriving.site : current.site,
-      operator: current.operator === leaving.operator ? arriving.operator : current.operator,
-      age: arriving.age,
-    }));
-  }
-
   function downloadCurrentAudit() {
     if (!auditRef.current) return;
     recordAudit("audit.downloaded");
     downloadAuditLog(auditRef.current);
+  }
+
+  function setResearchLogPermission(on: boolean) {
+    setResearchConsent(on);
+    const current = auditRef.current;
+    if (!current || current.purpose !== "target_population_research") return;
+    const updated = {
+      ...current,
+      privacy: { ...current.privacy, researchConsent: on },
+    };
+    commitAudit(appendAuditEvent(updated, "privacy.research_consent", {
+      enabled: on,
+      declaredAt: "laporan_sebelum_ekspor",
+    }));
   }
 
   function deleteCurrentAudit() {
@@ -954,10 +940,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
     purpose: sessionPurpose,
     childId: profile.childId,
     ageMonths: profile.age,
+    site: profile.site,
+    operator: profile.operator,
     consented,
     researchConsent,
     bridge: sessionPurpose === "gate_b_bridge" ? bridgeMeta : null,
-  }), [sessionPurpose, profile.childId, profile.age, consented, researchConsent, bridgeMeta]);
+  }), [sessionPurpose, profile.childId, profile.age, profile.site, profile.operator, consented, researchConsent, bridgeMeta]);
   const consentIssues = useMemo(
     () => [
       ...consentBaseIssues,
@@ -2412,7 +2400,7 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           </div>
           <div className="formCard">
             <div className="formGrid">
-              <label><span><IconChild size={14} />{isAdultParticipant ? "ID peserta pseudonim" : "ID anak pseudonim"}</span><input value={profile.childId} onChange={(event) => setProfile({ ...profile, childId: event.target.value })} /></label>
+              <label><span><IconChild size={14} />{isAdultParticipant ? "ID peserta pseudonim" : "ID anak pseudonim"}</span><input value={profile.childId} placeholder={isAdultParticipant ? undefined : "Contoh: NG-0042"} onChange={(event) => setProfile({ ...profile, childId: event.target.value })} /></label>
               {isGateB
                 ? <label><span><IconResearch size={14} />Jenis sesi</span><input value="Gate B · WebGazer agreement" disabled /></label>
                 : isGateA
@@ -2427,12 +2415,12 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                       <option value="kp-produksi">Kontrol positif · kondisi 2 pola diproduksi</option>
                     </select></label>
                   : isStageDemo ? null
-                  : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
+                  : <label><span><IconTimer size={14} />Usia (bulan)</span><input type="number" min="16" max="30" value={profile.age} placeholder="Contoh: 24" onChange={(event) => setProfile({ ...profile, age: event.target.value })} /></label>}
               {positiveControl && <label><span><IconResearch size={14} />Percobaan ke-</span><input type="number" min="1" max={MAX_POSITIVE_CONTROL_ATTEMPTS} value={positiveControl.attempt} onChange={(event) => setPositiveControl({ ...positiveControl, attempt: Number(event.target.value) })} /><small>Maksimal {MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi. Sesudah itu peserta dicatat tidak dapat dinilai.</small></label>}
               {positiveControl && <label className="checkField"><span><IconResearch size={14} />Pakai speaker di belakang peserta</span><input type="checkbox" checked={Boolean(positiveControl.speakerBehind)} onChange={(event) => { const on = event.target.checked; if (!on) { callNameRef.current = ""; setCallNamePresent(false); setCallNameEnabled(false); } setPositiveControl({ ...positiveControl, speakerBehind: on }); }} /><small>Tanpa ini panggilan nama tidak dibunyikan sama sekali dan indeksnya dicatat tidak terukur. Sinyalnya dikarantina dari aturan komposit di kedua mode.</small></label>}
               {positiveControl && <label><span><IconTimer size={14} />Jarak mata–layar (mm)</span><input type="number" min="200" max="1200" value={viewingDistanceMm} onChange={(event) => setViewingDistanceMm(Number(event.target.value))} /><small>Diukur sekali dengan meteran, bukan ditaksir.</small></label>}
-              <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
-              <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
+              <label><span><IconLocation size={14} />Lokasi layanan</span><input value={profile.site} placeholder={isAdultParticipant ? undefined : "Contoh: Posyandu Melati 3"} onChange={(event) => setProfile({ ...profile, site: event.target.value })} /></label>
+              <label><span><IconShieldCheck size={14} />ID operator</span><input value={profile.operator} placeholder={isAdultParticipant ? undefined : "Contoh: Kader-07"} onChange={(event) => setProfile({ ...profile, operator: event.target.value })} /></label>
               {/* Response to name is quarantined out of the rule, but the index
                   is still reported, so a positive control may still supply a
                   name. Transient either way: it never reaches profile, the log,
@@ -2453,16 +2441,6 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 <label><span>Jarak mata–layar (mm)</span><input type="number" min="200" value={bridgeMeta.viewingDistanceMm} onChange={(event) => setBridgeMeta({ ...bridgeMeta, viewingDistanceMm: Number(event.target.value) })} /></label>
               </div>
             </div>}
-            {/* Declared, never inferred.
-                The one control that changes what this session is, sitting on
-                the screen where a session's terms are already agreed to rather
-                than on a button somewhere upstream. Offered only on the child
-                flow: Gate A and Gate B are already adult purposes and have no
-                threshold to apply. */}
-            {(sessionPurpose === "target_population_research" || isStageDemo) && <label className="demonstrationField checkRow optional" data-on={String(demonstrationMode)}>
-              <input type="checkbox" checked={demonstrationMode} onChange={(event) => setDemonstration(event.target.checked)} />
-              <span><strong>Peragaan demo.</strong> Sesi dijalankan pada peserta dewasa yang menyetujui untuk dirinya sendiri, dan ambang GeoPref 69% diterapkan supaya bentuk laporan rujukan terlihat. Kolom usia hilang karena pesertanya bukan balita. Sesinya tetap tidak mengeluarkan rujukan dan laporannya membawa banner mode demonstrasi. Biarkan mati untuk sesi Posyandu yang sebenarnya.</span>
-            </label>}
             {(!isEngineeringStudy || positiveControl?.speakerBehind) && <div className="nameCallField">
               <label className="checkRow optional">
                 <input type="checkbox" checked={callNameEnabled} onChange={(event) => { const on = event.target.checked; setCallNameEnabled(on); if (!on) { callNameRef.current = ""; setCallNamePresent(false); } }} />
@@ -2478,10 +2456,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
               <input type="checkbox" checked={consented} onChange={(event) => setConsented(event.target.checked)} />
               <span><strong>{isAdultParticipant ? "Persetujuan peserta diberikan." : "Persetujuan layanan diberikan."}</strong> {isGateB ? "Peserta menyetujui perekaman dua aliran gaze browser dan dapat menghentikan studi kapan saja." : isGateA ? "Peserta memahami bahwa sesi hanya mengaudit perangkat dan dapat dihentikan kapan saja." : isStageDemo ? "Peserta dewasa menyetujui untuk dirinya sendiri, memahami bahwa ini peragaan dan bukan penilaian atas dirinya, dan dapat berhenti kapan saja." : "Pengasuh memahami bahwa Neurogaze bukan diagnosis dan persetujuan dapat ditarik."}</span>
             </label>
-            <label className="checkRow optional">
+            {isEngineeringStudy && <label className="checkRow optional">
               <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchConsent(event.target.checked)} />
               <span><strong>{isGateB ? "Wajib untuk Gate B:" : "Opsional:"}</strong> {isGateB ? "izinkan ekspor koordinat gaze bersih bertimestamp. Video dan landmark wajah tetap tidak disimpan." : "tandai log teknis pseudonim sebagai layak dipakai untuk riset. Log hanya berada di memori sampai operator mengunduhnya."}</span>
-            </label>
+            </label>}
             {consentIssues.length > 0 && (
               <p className="formBlockers" id="consent-blockers" role="status">
                 <IconInfo size={15} aria-hidden="true" />
@@ -3055,6 +3033,10 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
             </ul>
             <p className="printFooter">Tanda tangan operator: ____________________  ·  Diterima oleh: ____________________</p>
           </section>
+          {sessionPurpose === "target_population_research" && auditLog && <label className="checkRow optional">
+            <input type="checkbox" checked={researchConsent} onChange={(event) => setResearchLogPermission(event.target.checked)} />
+            <span><strong>Izinkan log teknis pseudonim dipakai untuk riset.</strong> Pilihan ini tidak memengaruhi laporan layanan. Berikan izin hanya sebelum log diekspor untuk analisis; video dan titik wajah tetap tidak disimpan.</span>
+          </label>}
           <div className="cardActions">
             <button className="secondary" onClick={() => { if (isAdminCapture) window.location.href = "/admin"; else goHome(); }}><IconCheck size={15} /> {isAdminCapture ? "Kembali ke konsol admin" : "Selesai"}</button>
             {auditLog && <button className="secondary" onClick={downloadCurrentAudit}><IconDownload size={15} /> Unduh log audit JSON</button>}

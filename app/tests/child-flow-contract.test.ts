@@ -368,10 +368,7 @@ test("demonstration mode never reaches the child path and never emits a referral
   // `target_population_research` — the one purpose that means a child is in
   // front of the tablet.
   assert.match(page, /modeChoice === "replay" \|\| purpose === "stage_demo"/);
-  // Aimed at the call sites rather than at any line mentioning both, because
-  // the consent screen legitimately names the child purpose next to the word
-  // "demonstration": that is the condition deciding whether to offer the box,
-  // not a path that ticks it.
+  // Aimed at the call sites rather than at comments or explanatory copy.
   assert.ok(
     !/start\([^)]*"target_population_research"[^)]*demonstration/i.test(page),
     "the child purpose must never be started with demonstration mode on",
@@ -380,17 +377,10 @@ test("demonstration mode never reaches the child path and never emits a referral
   // Live stage demonstration runs under its own purpose, from the guide control
   // that names it out loud.
   assert.match(page, /start\("live", scenario, "stage_demo", \{ demonstration: true \}\)/);
-  // The consent-screen checkbox is the other way in, and it is why the
-  // invariant above still holds: it moves the purpose and the flag inside one
-  // function, so a ticked box can never leave a child purpose behind it.
-  const toggle = /function setDemonstration\(on: boolean\) \{[\s\S]*?\n  \}/.exec(page);
-  assert.ok(toggle, "the consent-screen demonstration toggle should exist");
-  assert.match(toggle![0], /setSessionPurpose\(purpose\)/);
-  assert.match(toggle![0], /setDemonstrationMode\(on\)/);
-  assert.match(toggle![0], /on \? "stage_demo" : "target_population_research"/);
-  // start() and that toggle are the only two writers. A third would be a place
-  // the flag and the purpose could drift apart.
-  assert.equal((page.match(/setDemonstrationMode\(/g) ?? []).length, 2);
+  // start() is the only writer. A consent-screen toggle would create a third
+  // demo lane and let an ordinary field setup silently change purpose.
+  assert.doesNotMatch(page, /function setDemonstration\(/);
+  assert.equal((page.match(/setDemonstrationMode\(/g) ?? []).length, 1);
   // The operator-facing banner has to say the threshold was applied on purpose
   // and that the session produces no referral.
   assert.match(page, /MODE DEMONSTRASI/);
@@ -415,6 +405,23 @@ test("demonstration mode never reaches the child path and never emits a referral
   // file rather than only from whoever was in the room.
   assert.match(page, /quality: nextQuality, gaze, assessment, decision/);
   assert.match(page, /const decision = \{[\s\S]{0,600}?demonstrationMode,/);
+});
+
+test("ordinary field setup is blank and contains no demo or research-log opt-in", () => {
+  assert.match(
+    page,
+    /if \(purpose === "target_population_research"\) return \{ childId: "", age: "", site: "", operator: "" \}/,
+  );
+  for (const example of ["Contoh: NG-0042", "Contoh: 24", "Contoh: Posyandu Melati 3", "Contoh: Kader-07"])
+    assert.ok(page.includes(example), `field example must be a placeholder: ${example}`);
+
+  const consentSection = page.match(/\{stage === "consent"[\s\S]*?\{stage === "preparation"/)?.[0] ?? "";
+  assert.doesNotMatch(consentSection, /demonstrationField|Peragaan demo|setDemonstration/);
+  assert.match(consentSection, /\{isEngineeringStudy && <label className="checkRow optional">[\s\S]*?researchConsent/);
+
+  const reportSection = page.match(/\{stage === "report"[\s\S]*?\{stage === "stimulus"/)?.[0] ?? "";
+  assert.match(reportSection, /sessionPurpose === "target_population_research"[\s\S]*?researchConsent/);
+  assert.match(reportSection, /Izinkan log teknis pseudonim dipakai untuk riset/);
 });
 
 test("the child calibration target is a face that stays visible while active", () => {
