@@ -203,6 +203,7 @@ export function monitorOfflineReadiness(options: {
   let installingWorker: OfflineInstallingWorker | null | undefined;
   let installationListener: (() => void) | undefined;
   let installationErrorListener: (() => void) | undefined;
+  let activeControllerVerification: Promise<void> | undefined;
   let snapshot: OfflineReadinessSnapshot = {
     online: network.online,
     serviceWorkerSupported: serviceWorker !== null,
@@ -231,8 +232,7 @@ export function monitorOfflineReadiness(options: {
     installationErrorListener = undefined;
   };
 
-  const failInstallation = () => {
-    clearInstallationWatch();
+  const publishInstallationFailure = () => {
     if (serviceWorker?.controller && snapshot.verification === "verified") {
       update({ registration: "registered", controlled: true });
       return;
@@ -242,6 +242,16 @@ export function monitorOfflineReadiness(options: {
       controlled: Boolean(serviceWorker?.controller),
       verification: "incomplete",
     });
+  };
+
+  const failInstallation = () => {
+    clearInstallationWatch();
+    const verification = activeControllerVerification;
+    if (verification) {
+      void verification.then(publishInstallationFailure);
+      return;
+    }
+    publishInstallationFailure();
   };
 
   const watchInstallation = (registration: OfflineRegistration) => {
@@ -307,10 +317,15 @@ export function monitorOfflineReadiness(options: {
         const registration = await serviceWorker.register("/sw.js");
         if (stopped || attempt !== registrationAttempt) return;
         update({ registration: "registered" });
+        const verification = verifyController();
+        activeControllerVerification = verification;
         if (registration.installing || registration.waiting) {
           watchInstallation(registration);
         }
-        await verifyController();
+        await verification;
+        if (activeControllerVerification === verification) {
+          activeControllerVerification = undefined;
+        }
       } catch {
         if (stopped || attempt !== registrationAttempt) return;
         update({ registration: "failed", verification: "incomplete" });
