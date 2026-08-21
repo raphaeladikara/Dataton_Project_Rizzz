@@ -275,6 +275,143 @@ test("an old verified controller cannot become ready when its update fails", asy
   stop();
 });
 
+test("a current active controller remains ready while a background update is waiting", async () => {
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: {
+        postMessage(message, transfer) {
+          const request = message as { requestId: string };
+          (transfer[0] as MessagePort).postMessage({
+            type: "NEUROGAZE_OFFLINE_STATUS",
+            requestId: request.requestId,
+            cacheVersion: OFFLINE_CACHE_VERSION,
+            complete: true,
+            missing: [],
+          });
+        },
+      },
+      register: async () => ({
+        waiting: {
+          state: "installed",
+          addEventListener() {},
+          removeEventListener() {},
+        },
+      }),
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+    timeoutMs: 100,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(states.at(-1), "ready");
+  stop();
+});
+
+test("a failed background update does not invalidate a current active controller", async () => {
+  for (const failure of ["redundant", "error"] as const) {
+    const listeners = new Map<string, Set<() => void>>();
+    const updateWorker = {
+      state: "installing",
+      addEventListener(name: "statechange" | "error", listener: () => void) {
+        const handlers = listeners.get(name) ?? new Set<() => void>();
+        handlers.add(listener);
+        listeners.set(name, handlers);
+      },
+      removeEventListener(name: "statechange" | "error", listener: () => void) {
+        listeners.get(name)?.delete(listener);
+      },
+    };
+    const states: string[] = [];
+    const stop = monitorOfflineReadiness({
+      serviceWorker: {
+        controller: {
+          postMessage(message, transfer) {
+            const request = message as { requestId: string };
+            (transfer[0] as MessagePort).postMessage({
+              type: "NEUROGAZE_OFFLINE_STATUS",
+              requestId: request.requestId,
+              cacheVersion: OFFLINE_CACHE_VERSION,
+              complete: true,
+              missing: [],
+            });
+          },
+        },
+        register: async () => ({ installing: updateWorker }),
+        addEventListener() {},
+        removeEventListener() {},
+      },
+      network: {
+        online: true,
+        addEventListener() {},
+        removeEventListener() {},
+      },
+      onChange: (state) => states.push(state.status),
+      timeoutMs: 100,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(states.at(-1), "ready", `${failure}: before update failure`);
+    if (failure === "redundant") {
+      updateWorker.state = "redundant";
+      listeners.get("statechange")?.forEach((listener) => listener());
+    } else {
+      listeners.get("error")?.forEach((listener) => listener());
+    }
+    assert.equal(states.at(-1), "ready", `${failure}: after update failure`);
+    stop();
+  }
+});
+
+test("a failed background update leaves an old active controller incomplete", async () => {
+  const listeners = new Set<() => void>();
+  const updateWorker = {
+    state: "installing",
+    addEventListener: (_name: "statechange" | "error", listener: () => void) => listeners.add(listener),
+    removeEventListener: (_name: "statechange" | "error", listener: () => void) => listeners.delete(listener),
+  };
+  const states: string[] = [];
+  const stop = monitorOfflineReadiness({
+    serviceWorker: {
+      controller: {
+        postMessage(message, transfer) {
+          const request = message as { requestId: string };
+          (transfer[0] as MessagePort).postMessage({
+            type: "NEUROGAZE_OFFLINE_STATUS",
+            requestId: request.requestId,
+            cacheVersion: "neurogaze-shell-v19-model-operating-points",
+            complete: true,
+            missing: [],
+          });
+        },
+      },
+      register: async () => ({ installing: updateWorker }),
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    network: {
+      online: true,
+      addEventListener() {},
+      removeEventListener() {},
+    },
+    onChange: (state) => states.push(state.status),
+    timeoutMs: 100,
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  updateWorker.state = "redundant";
+  listeners.forEach((listener) => listener());
+  assert.equal(states.at(-1), "incomplete");
+  stop();
+});
+
 test("a failed first install becomes incomplete when the installing worker is redundant", async () => {
   const workerListeners = new Set<() => void>();
   const installing = {
