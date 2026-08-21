@@ -110,7 +110,11 @@ export type MediaReadinessController = {
   generation(): number;
   event(event: MediaReadinessEvent, generation?: number): MediaReadiness;
   waitUntil(accepted: readonly MediaReadinessStatus[]): Promise<MediaReadiness>;
-  prepareRun(required: boolean, accepted: readonly MediaReadinessStatus[]): Promise<MediaReadiness | null>;
+  prepareRun(
+    required: boolean,
+    accepted: readonly MediaReadinessStatus[],
+    visibility?: MediaVisibilitySource | null,
+  ): Promise<MediaReadiness | null>;
   requestPlaying(startPlayback: () => Promise<void>, generation?: number): Promise<MediaReadiness>;
   canAdvance(mode: MediaPlaybackMode, playback: MediaPlaybackSnapshot): boolean;
   blockingFailure(): MediaFailureStatus | null;
@@ -140,6 +144,7 @@ export function createMediaReadinessController(options: {
   const timeoutMs = options.timeoutMs ?? MEDIA_READY_TIMEOUT_MS;
   const waiters = new Set<MediaWaiter>();
   const visibilityCleanups = new Set<() => void>();
+  const visibilitySources = new Set<MediaVisibilitySource>();
   let readiness = initialMediaReadiness();
   let generation = 0;
   let runActive = false;
@@ -217,9 +222,20 @@ export function createMediaReadinessController(options: {
         }, timeoutMs);
       });
     },
-    prepareRun(required, accepted) {
+    prepareRun(required, accepted, visibility) {
+      if (disposed) return Promise.resolve({ status: "interrupted" });
       runActive = true;
       mediaRequired = required;
+      // `connectVisibility` is a stimulus-stage effect, so it has not attached
+      // when a run is prepared, and a tab hidden beforehand raises no
+      // `visibilitychange` for the gate to catch. Read the current state
+      // instead of spending the load deadline on a screen nobody is watching,
+      // which would end up blaming the clip for an absent operator.
+      const hidden = visibility?.hidden || [...visibilitySources].some((source) => source.hidden);
+      if (hidden) {
+        controller.event("interrupt", generation);
+        return Promise.resolve(readiness);
+      }
       if (!required) {
         return Promise.resolve(null);
       }
@@ -268,9 +284,11 @@ export function createMediaReadinessController(options: {
         connected = false;
         source.removeEventListener("visibilitychange", interruptWhenHidden);
         visibilityCleanups.delete(disconnect);
+        visibilitySources.delete(source);
       };
       source.addEventListener("visibilitychange", interruptWhenHidden);
       visibilityCleanups.add(disconnect);
+      visibilitySources.add(source);
       // The document may have become hidden before React attached this
       // listener. Inspect current state so that race cannot escape the gate.
       interruptWhenHidden();

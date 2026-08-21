@@ -23,6 +23,7 @@ cd app
 npm test
 npm run lint
 npm audit
+npm audit --omit=dev
 npx tsc --noEmit
 npm run replay:check
 ```
@@ -33,6 +34,14 @@ menuntut menyunting `package.json`. Cakupannya kontrak produk, parity, kalibrasi
 gaze, privasi, replay, fenotipe, hasil sesi, dan bukti publik Gate B.
 
 `npx tsc --noEmit` harus bersih tanpa satu galat pun.
+
+Header respons dibangun `app/src/security/responseHeaders.ts`, bukan ditulis langsung di
+`next.config.ts`. Hanya `script-src` yang berbeda antar mode: build yang dirilis tidak
+pernah memuat `'unsafe-eval'`, sedangkan `next dev` memuatnya karena React versi
+pengembangan memakai `eval()` untuk menyusun ulang callstack. HSTS juga hanya dikirim pada
+mode produksi; mengirimnya dari `http://localhost` akan memaksa seluruh port lokal lain di
+mesin operator pindah ke HTTPS. Setelah menyentuh berkas itu, buka `next dev` dan pastikan
+konsol peramban bersih — galat CSP hanya muncul di peramban, bukan di test.
 
 `npm run replay:check` membaca ulang setiap rekaman yang terdaftar di
 `app/public/replay/index.json`. Manifest kosong bukan kegagalan; ia berarti Demo cepat akan
