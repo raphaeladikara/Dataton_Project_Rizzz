@@ -11,14 +11,16 @@ function presentation(input: {
   qualityPassed: boolean;
   demonstrationMode: boolean;
 }) {
-  return buildReportPresentation({
+  const presentationInput = {
     ...input,
     recommendsFollowUp: input.demonstrationMode,
     emitsReferral: false,
+    fieldTitle: "Tidak ada tanda yang perlu ditindaklanjuti dari sesi ini",
     sessionHeadline: "Pola perhatian berhasil diukur.",
     sessionSummary: "Sesi menghasilkan pengukuran deskriptif.",
     validityMessage: input.qualityPassed ? undefined : "Wajah terlalu sering keluar dari bingkai.",
-  });
+  };
+  return buildReportPresentation(presentationInput);
 }
 
 const metadata = [
@@ -52,6 +54,49 @@ test("caregiver markup renders the same four-part order for field, demo, withhel
     }
   }
 });
+
+test("screen markup carries the actionable field verdict, not only the print summary", () => {
+  const report = buildReportPresentation({
+    qualityPassed: true,
+    sourceKind: "live",
+    demonstrationMode: false,
+    recommendsFollowUp: true,
+    emitsReferral: true,
+    fieldTitle: "Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit",
+    sessionHeadline: "Lajur komposit menyala · 2 dari 2 sinyal menyimpang",
+    sessionSummary: "Dua sinyal memenuhi aturan.",
+  });
+  const markup = renderToStaticMarkup(createElement(CaregiverReport, {
+    sections: report.sections,
+    surface: "screen",
+  }));
+
+  assert.match(markup, /Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit/);
+  assert.match(markup, /2 dari 2 sinyal menyimpang/);
+});
+
+for (const scenario of [
+  { sourceKind: "recorded_replay", demonstrationMode: true },
+  { sourceKind: "synthetic_preview", demonstrationMode: false },
+] as const) {
+  test(`${scenario.sourceKind} keeps its safe specialized title`, () => {
+    const report = buildReportPresentation({
+      qualityPassed: true,
+      ...scenario,
+      recommendsFollowUp: true,
+      emitsReferral: false,
+      fieldTitle: "Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit",
+      sessionHeadline: "Lajur komposit menyala · 2 dari 2 sinyal menyimpang",
+      sessionSummary: "Dua sinyal memenuhi aturan.",
+    });
+    const markup = renderToStaticMarkup(createElement(CaregiverReport, {
+      sections: report.sections,
+      surface: "screen",
+    }));
+
+    assert.doesNotMatch(markup, /Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit/);
+  });
+}
 
 test("print order starts with identity, then caregiver sections, disclaimer, and eligible technical summary", () => {
   const report = presentation({ sourceKind: "live", qualityPassed: true, demonstrationMode: false });

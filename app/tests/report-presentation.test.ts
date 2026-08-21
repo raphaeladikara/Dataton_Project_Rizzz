@@ -9,6 +9,7 @@ const base = {
   demonstrationMode: false,
   recommendsFollowUp: false,
   emitsReferral: false,
+  fieldTitle: "Tidak ada tanda yang perlu ditindaklanjuti dari sesi ini",
   sessionHeadline: "Pola perhatian berhasil diukur.",
   sessionSummary: "Sesi menghasilkan pengukuran deskriptif.",
 };
@@ -28,6 +29,22 @@ test("caregiver report has one stable four-part reading order", () => {
   assert.notEqual(report.pageTitle, report.sections[0].title);
   assert.match(report.sections[3].body, /bukan diagnosis/i);
   assert.match(report.sections[3].body, /bukan tanda aman/i);
+});
+
+test("a usable field report keeps its actionable verdict and count in the first section", () => {
+  const report = buildReportPresentation({
+    ...base,
+    recommendsFollowUp: true,
+    emitsReferral: true,
+    fieldTitle: "Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit",
+    sessionHeadline: "Lajur komposit menyala · 2 dari 2 sinyal menyimpang",
+  });
+
+  assert.equal(
+    report.sections[0].title,
+    "Sebaiknya diperiksa lebih lanjut di Puskesmas atau rumah sakit",
+  );
+  assert.match(report.sections[0].body, /2 dari 2 sinyal menyimpang/);
 });
 
 test("a withheld session says the recording cannot be used", () => {

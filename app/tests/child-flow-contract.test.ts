@@ -45,6 +45,8 @@ test("compact primary navigation keeps guide, evidence, and privacy reachable", 
   assert.match(page, /pointerdown/);
   assert.match(page, /focusNavigationDestination\(document, destinationId\)/);
   assert.match(page, /compactNavigationTransition/);
+  assert.match(page, /addEventListener\("change"/);
+  assert.match(page, /removeEventListener\("change"/);
   for (const destination of ["home-heading", "guide-heading", "evidence", "privacy"])
     assert.match(page, new RegExp(`id="${destination}"`));
   assert.match(chromeCss, /:is\(#home-heading, #guide-heading, #evidence, #privacy\):focus-visible\s*\{[^}]*outline:/);
@@ -167,6 +169,7 @@ test("reports use safe language and hide technical detail by default", () => {
   assert.equal((reportSection.match(/<details/g) ?? []).length, 1);
   assert.match(reportSection, /<details className="reportPractitioner">/);
   assert.doesNotMatch(reportSection, /<details className="reportPractitioner" open/);
+  assert.match(page, /fieldTitle:\s*verdict\?\.headline\s*\?\?\s*sessionOutcome\.headline/);
   for (const technicalDetail of ["95% CI", "p =", "Model Carette", "Coverage/OOD", "ID sesi"])
     assert.ok(reportSection.indexOf(technicalDetail) > reportSection.indexOf('<details className="reportPractitioner">'));
   assert.match(page, /Rekaman valid, tetapi estimasi tidak dapat dihitung/);

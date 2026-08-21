@@ -17,6 +17,7 @@ export type ReportPresentationInput = {
   demonstrationMode: boolean;
   recommendsFollowUp: boolean;
   emitsReferral: boolean;
+  fieldTitle: string;
   sessionHeadline: string;
   sessionSummary: string;
   validityMessage?: string;
@@ -45,6 +46,9 @@ const DEMONSTRATION_BANNER =
  */
 export function buildReportPresentation(input: ReportPresentationInput): ReportPresentation {
   const followUpShown = input.emitsReferral || input.recommendsFollowUp;
+  const fieldSummary = input.sessionHeadline === input.fieldTitle
+    ? input.sessionSummary
+    : `${input.sessionHeadline}. ${input.sessionSummary}`;
   const whatHappened = !input.qualityPassed
     ? {
         title: input.sourceKind === "synthetic_preview"
@@ -59,7 +63,12 @@ export function buildReportPresentation(input: ReportPresentationInput): ReportP
           ? "Sistem memperagakan jalur pemeriksaan lanjutan ketika kedua sinyal yang dapat dinilai bergerak ke arah yang ditentukan aturan."
           : "Sistem memperagakan jalur tanpa arahan pemeriksaan ketika aturan tidak terpenuhi.",
         }
-      : { title: input.sessionHeadline, body: input.sessionSummary };
+      : input.sourceKind === "synthetic_preview"
+        ? {
+            title: "Pratinjau sintetis selesai.",
+            body: "Alur laporan selesai tanpa video, wajah, atau rekaman peserta.",
+          }
+        : { title: input.fieldTitle, body: fieldSummary };
 
   const recordingStatus = input.sourceKind === "synthetic_preview"
     ? input.qualityPassed
