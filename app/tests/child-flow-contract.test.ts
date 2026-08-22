@@ -34,9 +34,16 @@ function cssDeclarationsForSelector(source: string, selector: string) {
   return declarations.join("\n");
 }
 
-test("admin is reachable from a separate footer control", () => {
+/* The panel used to be footer-only, on the reasoning that a kader has no
+   business in it. The footer control stays, but "Bukti" in the primary nav now
+   points at the same panel: it is the full version of the evidence the home
+   page summarises in three cards, and an auditor was having to hunt for it. */
+test("admin is reachable from the primary nav and the footer", () => {
   assert.match(page, /className="adminAccess" href="\/admin"/);
-  assert.doesNotMatch(page.match(/<nav className="topnav"[\s\S]*?<\/nav>/)?.[0] ?? "", /\/admin/);
+  assert.match(
+    page.match(/<nav className="topnav"[\s\S]*?<\/nav>/)?.[0] ?? "",
+    /<Link className="navLink" href="\/admin"[\s\S]*?>Bukti<\/Link>/,
+  );
 });
 
 test("compact primary navigation keeps guide, evidence, and privacy reachable", () => {
@@ -451,7 +458,7 @@ test("operational report and controls use restrained product styling", () => {
     ".sessionShell summary:focus-visible",
     ".reportPage summary:focus-visible",
   ]) assert.match(cssDeclarationsForSelector(sessionCss, selector), /outline:\s*3px solid var\(--teal-(?:600|700)\)/);
-  for (const selector of [".navMenuButton:focus-visible", ".topnav button:focus-visible"])
+  for (const selector of [".navMenuButton:focus-visible", ".topnav button:focus-visible", ".topnav a:focus-visible"])
     assert.match(cssDeclarationsForSelector(chromeCss, selector), /outline:\s*3px solid var\(--teal-(?:600|700)\)/);
   assert.match(cssRule(sessionCss, ".reportPractitioner > summary"), /position:\s*relative/);
   assert.match(sessionCss, /\.reportPractitioner\s*>\s*summary::after\s*\{[^}]*content:/);
