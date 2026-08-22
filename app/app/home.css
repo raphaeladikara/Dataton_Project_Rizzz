@@ -494,27 +494,35 @@
 .evidenceIcon {
   display: grid;
   place-items: center;
-  width: 56px;
   height: 56px;
   margin-bottom: 20px;
   border-radius: var(--r-md);
 }
 
 .evidenceIcon {
+  width: 56px;
   color: var(--teal-600);
   background: linear-gradient(150deg, var(--teal-100), var(--teal-50));
   box-shadow: inset 0 0 0 1px rgba(9, 106, 92, 0.1);
 }
 
+/* A ratio is not a fixed-width glyph: "0/9 · 4/6" is nearly twice the width of
+   "15/23". Squaring this off to match the icon wrapped the text out of the box
+   and over the heading below it, so the badge sizes to its own content and the
+   56px only sets the height the three cards share. */
 .evidenceNumber {
+  width: max-content;
+  max-width: 100%;
+  padding-inline: 15px;
   color: var(--amber-700);
   background: linear-gradient(150deg, var(--amber-100), var(--amber-50));
   box-shadow: inset 0 0 0 1px rgba(207, 149, 29, 0.18);
   font-family: var(--font-mono-stack);
   font-variant-numeric: tabular-nums;
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 .evidenceCard strong {
@@ -1210,48 +1218,117 @@
    attached, not a fourth report state. */
 
 .demoAside {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px 26px;
   margin-top: 16px;
-  padding: 18px 20px;
+  padding: 18px 20px 20px;
   border: 1px dashed var(--slate-200);
   border-radius: var(--r-lg);
   background: var(--slate-50);
 }
 
-.demoAside strong {
-  display: block;
+/* Question on the left, the caveat that answers it on the right. Stacked, the
+   caveat ran four lines down one half of an otherwise empty row. */
+.demoAsideHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr);
+  align-items: baseline;
+  gap: 6px 28px;
+}
+
+.demoAsideHead strong {
   font-size: 14.5px;
   letter-spacing: -0.015em;
   color: var(--ink-800);
+  text-wrap: balance;
+}
+
+.demoAsideHead p {
+  margin: 0;
+  max-width: 70ch;
+}
+
+@media (max-width: 779px) {
+  .demoAsideHead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .demoAsideHead p {
+    margin-top: 6px;
+  }
 }
 
 .demoAside p {
-  max-width: 68ch;
+  max-width: 62ch;
   margin: 6px 0 0;
   font-size: 12.8px;
   line-height: 1.6;
   color: var(--ink-500);
+  text-wrap: pretty;
 }
 
-.demoAside .secondary {
-  white-space: nowrap;
-}
-
-/* One button per registered recording. Stacked rather than side by side: the
-   labels are condition names of unequal length, and a row of them wraps into
-   something that reads as one control with a stray word under it. */
-.demoAsideActions {
+/* Two choices, not one list of buttons. A hairline between them keeps them
+   apart without boxing a card inside a card. */
+.demoAsideOptions {
   display: grid;
+  gap: 20px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--slate-200);
+}
+
+.demoAsideOption {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (min-width: 780px) {
+  .demoAsideOptions {
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .demoAsideOption:first-child {
+    padding-right: 28px;
+  }
+  .demoAsideOption + .demoAsideOption {
+    padding-left: 28px;
+    border-left: 1px solid var(--slate-200);
+  }
+}
+
+@media (max-width: 779px) {
+  .demoAsideOption + .demoAsideOption {
+    padding-top: 20px;
+    border-top: 1px solid var(--slate-200);
+  }
+}
+
+.demoAsideOption h3 {
+  margin: 0;
+  color: var(--ink-800);
+  font-family: var(--font-sans-stack);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+/* Buttons sit at the bottom of whichever column is taller, so the two calls to
+   action line up instead of floating at two different heights. */
+.demoAsideActions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  justify-items: stretch;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+/* Sized to their labels. Stretching a lone button to the full column made the
+   live-camera control read as a banner rather than a thing you press. */
+.demoAsideActions .secondary {
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .demoReplayError {
-  max-width: 34ch;
-  margin: 2px 0 0;
+  margin: 10px 0 0;
   color: var(--coral-700);
   font-size: 12.8px;
   line-height: 1.5;

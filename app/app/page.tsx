@@ -2528,7 +2528,11 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <nav className="topnav" id="primary-navigation" aria-label="Navigasi utama" data-open={String(mobileNavOpen)}>
             <button className={stage === "home" ? "active" : ""} onClick={() => selectPrimaryNavigation("home-heading", goHome)}>Beranda</button>
             <button onClick={() => selectPrimaryNavigation("guide-heading", () => setStage("guide"))}>Panduan & demo</button>
-            <button onClick={() => openHomeSection("evidence")}>Bukti</button>
+            {/* The technical panel is the full evidence surface; the home page
+                keeps a three-card summary of the same numbers. Primary nav
+                points at the panel, so an auditor never has to hunt the footer
+                for it. */}
+            <Link className="navLink" href="/admin" onClick={() => setMobileNavOpen(false)}>Bukti</Link>
             <button onClick={() => openHomeSection("privacy")}>Privasi</button>
           </nav>
         </div>
@@ -2761,12 +2765,14 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
           <div className="cardActions guideActions">
             <button className="primary primaryArrow" onClick={() => start("live", scenario, "target_population_research")}><IconCamera size={16} /> Mulai observasi kamera</button>
           </div>
-          <p className="guideFootnote"><IconInfo size={15} /> Satu alur, dan itu sesi sungguhan. Demo di bawah memakai kode yang sama; bedanya hanya dari mana pandangannya datang.</p>
+          {/* The "same code, different source of gaze" framing used to appear
+              twice in a row — once as a footnote here and again in the section
+              lead below. It reads once, in the lead. */}
           <section className="guideDemoSection" aria-labelledby="replay-heading">
             <div className="sectionHead">
               <span className="sectionPill" data-tone="amber"><IconPlay size={11} /> Demo tanpa kamera</span>
               <h2 id="replay-heading">Pratinjau tiga keadaan laporan.</h2>
-              <p>Simulasi dengan hasil tetap untuk menguji alur, bahasa rekomendasi, dan keputusan yang ditahan. Ketiganya dijalani langkah demi langkah dari layar persetujuan, seperti sesi sungguhan.</p>
+              <p>Simulasi dengan hasil tetap untuk menguji alur, bahasa rekomendasi, dan keputusan yang ditahan. Ketiganya memakai kode yang sama dengan sesi sungguhan dan dijalani langkah demi langkah dari layar persetujuan; yang berbeda hanya dari mana pandangannya datang.</p>
             </div>
             <div className="scenarioGrid">
               {SCENARIOS.map((item, index) => {
@@ -2791,35 +2797,46 @@ export default function Home({ initialPurpose }: { initialPurpose?: SessionPurpo
                 never appears there. This is the one control that applies it, and
                 it has to say why before anyone clicks it. */}
             <div className="demoAside">
-              <div>
+              <div className="demoAsideHead">
                 <strong>Perlu melihat bentuk laporan rujukan?</strong>
-                <p>Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang GeoPref 69% ditahan di ketiga demo di atas. Peragaan menerapkannya sekali supaya tata letak laporan rujukan terlihat. Sesinya tetap tidak mengeluarkan rujukan, dan laporannya membawa banner mode demonstrasi.</p>
-                {recordingEntries.length > 1 && (
-                  <p>Pilih rekaman yang diputar. Keduanya sesi kamera sungguhan dari kontrol positif, dan laporannya menyebut yang mana.</p>
-                )}
-                {/* The control a presenter actually needs, and the one that got
-                    skipped because the copy never said what only it can do. */}
-                <p>Peragaan kamera langsung menjalankan sesi sungguhan untuk peserta dewasa: kamera, kalibrasi, dan gerbang mutu yang sama, dengan ambang yang sama diterapkan. Hanya lewat jalur ini “Disarankan pemeriksaan lanjutan” bisa muncul di depan penonton — dan hanya lewat jalur ini pula kebalikannya bisa ditunjukkan, karena peserta yang menonton adegan sosial dan mengikuti isyarat arah keluar tanpa rekomendasi. Jalankan dua orang berturut-turut kalau yang perlu terlihat adalah bahwa alat ini membedakan, bukan merujuk semua orang. Ia tidak tersedia pada jalur anak.</p>
+                <p>Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang GeoPref 69% ditahan di ketiga demo di atas. Dua jalur berikut menerapkannya sekali supaya tata letak laporan rujukan terlihat — sesinya tetap tidak mengeluarkan rujukan, dan laporannya membawa banner mode demonstrasi.</p>
               </div>
-              {/* Each registered recording has its own button. The presenter must
-                  name the condition, so an ordinary-viewing session cannot be
-                  narrated as the produced-pattern condition. */}
-              <div className="demoAsideActions">
-                {recordingEntries.map((entry) => (
-                  <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
-                    <IconResearch size={15} /> Peragakan · {entry.label}
-                  </button>
-                ))}
+              {/* Two different things used to sit in one stack of look-alike
+                  buttons, under a single block of prose that explained both.
+                  They are separate choices, so each one now carries only the
+                  sentence a presenter needs before pressing it. */}
+              <div className="demoAsideOptions">
+                {/* Each registered recording has its own button. The presenter
+                    must name the condition, so an ordinary-viewing session
+                    cannot be narrated as the produced-pattern condition. */}
+                <article className="demoAsideOption">
+                  <h3>Putar rekaman</h3>
+                  <p>Sesi kamera sungguhan dari kontrol positif. Laporannya menyebut kondisi mana yang diputar.</p>
+                  <div className="demoAsideActions">
+                    {recordingEntries.map((entry) => (
+                      <button key={entry.file} className="secondary" onClick={() => void startQuickDemo({ demonstration: true, entry })}>
+                        <IconResearch size={15} /> Putar · {entry.label}
+                      </button>
+                    ))}
+                  </div>
+                  {demoReplayError && <p className="demoReplayError" role="alert">{demoReplayError}</p>}
+                </article>
                 {/* Live camera, adult purpose, threshold applied under the same
                     banner. This explicit guide control is the only live entry
                     point for a stage demonstration. */}
-                <button
-                  className="secondary"
-                  onClick={() => start("live", scenario, "stage_demo", { demonstration: true })}
-                >
-                  <IconCamera size={15} /> Peragakan · kamera langsung
-                </button>
-                {demoReplayError && <p className="demoReplayError" role="alert">{demoReplayError}</p>}
+                <article className="demoAsideOption">
+                  <h3>Kamera langsung</h3>
+                  <p>Sesi sungguhan untuk peserta dewasa, dengan kamera, kalibrasi, dan gerbang mutu yang sama. Hanya di sini “Disarankan pemeriksaan lanjutan” bisa muncul di depan penonton — dan hanya di sini pula kebalikannya, karena orang dewasa yang mengikuti adegan sosial dan isyarat arah keluar tanpa rekomendasi.</p>
+                  <p>Jalankan dua orang berturut-turut supaya terlihat alat ini membedakan, bukan merujuk semua orang. Tidak tersedia pada jalur anak.</p>
+                  <div className="demoAsideActions">
+                    <button
+                      className="secondary"
+                      onClick={() => start("live", scenario, "stage_demo", { demonstration: true })}
+                    >
+                      <IconCamera size={15} /> Mulai peragaan kamera
+                    </button>
+                  </div>
+                </article>
               </div>
             </div>
           </section>
