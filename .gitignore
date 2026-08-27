@@ -40,8 +40,11 @@ data/
 # Berkas kunci Office — muncul saat .pptx/.docx sedang dibuka
 ~$*
 
-# Izin Claude Code per-mesin; isinya path lokal, bukan setelan proyek
-.claude/settings.local.json
+# Konfigurasi Claude Code per-mesin. settings.local.json memuat path lokal, dan
+# launch.json hanya memberi tahu tooling preview cara menjalankan npm run dev di
+# app/ — keduanya kenyamanan pengembang, bukan bagian produk. Cara menjalankan
+# aplikasi ada di README dan start.bat.
+.claude/
 
 # Dependensi build deck — dipasang sementara untuk pptxgenjs, bukan bagian proyek
 deck/node_modules/
