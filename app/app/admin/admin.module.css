@@ -58,18 +58,30 @@
 
 .sidebarTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
+/* One wordmark across the product. This rail used to set "Neurogaze" in the UI
+   sans beside a ◉ typed as text; the top bar sets it in Fraunces beside the
+   real mark. Two logos is one too many, and the typed glyph was never the
+   logo — it was a stand-in nobody replaced. Matches .logo in chrome.css. */
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--ink-800);
-  font-size: var(--t-h4);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  gap: 9px;
+  color: var(--ink-900);
+  font-family: var(--font-display-stack);
+  font-variation-settings: "SOFT" 30, "WONK" 1;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   text-decoration: none;
 }
-.brand span { color: var(--teal-500); }
-.brand:hover { color: var(--teal-600); }
+.brandMark {
+  --mark-pupil: var(--teal-600);
+  --mark-trail: var(--coral-500);
+  flex: 0 0 auto;
+  color: var(--teal-600);
+  overflow: visible;
+}
+.brand:hover { color: var(--teal-700); }
 
 .navToggle { display: none; }
 

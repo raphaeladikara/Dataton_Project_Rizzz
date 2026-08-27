@@ -1,7 +1,7 @@
 import Link from "next/link";
 import evidenceJson from "../../public/validation/gate-b-public.json";
 import type { GateBPublicEvidence } from "../../src/gateb/publicEvidence";
-import { IconAlert, IconArrowLeft, IconCheck, IconShieldCheck } from "../../src/ui/icons";
+import { IconAlert, IconArrowLeft, IconCheck, IconShieldCheck, LogoMark } from "../../src/ui/icons";
 import styles from "./validation.module.css";
 
 const evidence = evidenceJson as GateBPublicEvidence;
@@ -12,7 +12,7 @@ export default function ValidationPage() {
   const { headline, positiveControl, gateAAccuracy, agreement, featureAgreement, readiness } = evidence;
   return <main className={styles.page}>
     <header className={styles.topbar}>
-      <Link href="/" className={styles.brand}><span>◉</span> Neurogaze</Link>
+      <Link href="/" className={styles.brand}><LogoMark size={24} className={styles.brandMark} /> Neurogaze</Link>
       <span>Bukti validasi publik</span>
     </header>
 

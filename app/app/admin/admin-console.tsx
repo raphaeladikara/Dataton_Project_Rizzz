@@ -9,6 +9,7 @@ import {
   IconInfo,
   IconResearch,
   IconShieldCheck,
+  LogoMark,
 } from "../../src/ui/icons";
 import styles from "./admin.module.css";
 import { GATE_EVIDENCE_STATUS } from "../../src/validation/evidenceStatus";
@@ -412,7 +413,7 @@ export function AdminConsole() {
       <aside className={styles.sidebar} data-open={navOpen}>
         <div className={styles.sidebarTop}>
           <Link href="/" className={styles.brand}>
-            <span aria-hidden="true">◉</span> Neurogaze
+            <LogoMark size={24} className={styles.brandMark} /> Neurogaze
           </Link>
           <button
             type="button"

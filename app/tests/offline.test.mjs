@@ -199,7 +199,7 @@ test("offline core assets are local and precached", async () => {
 });
 
 test("offline cache has a bumped version and verifies its canonical critical list", async () => {
-  assert.match(workerSource, /neurogaze-shell-v20/);
+  assert.match(workerSource, /neurogaze-shell-v21/);
   assert.match(workerSource, /NEUROGAZE_VERIFY_OFFLINE/);
   assert.match(workerSource, /NEUROGAZE_OFFLINE_STATUS/);
   assert.match(workerSource, /caches\.open\(CACHE\)/);

@@ -1,4 +1,4 @@
-export const OFFLINE_CACHE_VERSION = "neurogaze-shell-v20-offline-readiness";
+export const OFFLINE_CACHE_VERSION = "neurogaze-shell-v21-brand-mark";
 
 export type OfflineReadinessStatus = "online" | "preparing" | "ready" | "incomplete";
 

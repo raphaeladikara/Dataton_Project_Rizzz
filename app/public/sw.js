@@ -1,7 +1,7 @@
 // Bump this whenever a precached file's CONTENT changes, not only when the file
 // list does. Skipping that bump on d3f3aad left browsers pinned to a model.json
 // with no operating points, and the only trace was an error nobody logged.
-const CACHE = "neurogaze-shell-v20-offline-readiness";
+const CACHE = "neurogaze-shell-v21-brand-mark";
 
 /**
  * Paths whose correctness outweighs their size, served network-first with the

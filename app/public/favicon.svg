@@ -1,6 +1,28 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M22 19.2727C22 20.779 20.779 22 19.2727 22H14.7273C13.221 22 12 20.779 12 19.2727V12H19.2727C20.779 12 22 13.221 22 14.7273V19.2727Z" fill="#68C4FF"/>
-<path d="M20 2C21.1046 2 22 2.89543 22 4V7C22 8.10457 21.1046 9 20 9H17C15.8954 9 15 8.10457 15 7V4C15 2.89543 15.8954 2 17 2H20Z" fill="#0C79D8"/>
-<path d="M7 15C8.10457 15 9 15.8954 9 17V20C9 21.1046 8.10457 22 7 22H4C2.89543 22 2 21.1046 2 20V17C2 15.8954 2.89543 15 4 15H7Z" fill="#0C79D8"/>
-<path d="M12 12H4.72727C3.22104 12 2 10.779 2 9.27273V4.72727C2 3.22104 3.22104 2 4.72727 2H9.27273C10.779 2 12 3.22104 12 4.72727V12Z" fill="#2E9EFF"/>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Neurogaze">
+  <!--
+    Neurogaze mark, reduced for icon sizes. Same silhouette as LogoMark in
+    app/src/ui/icons.tsx — eye, gaze node, scanpath — drawn for 16 px.
+
+    Three deliberate reductions, each because the detail does not survive the
+    downscale. The glint is a 1.4 unit circle and the scanpath is dashed at
+    0.1/3.4, so both land inside one pixel: the glint is dropped and the
+    scanpath is stated as the single node it leaves the eye from. And the eye is
+    filled rather than stroked — an outline eye puts a 1 px teal gap between a
+    white rim and a white pupil, and at 16 px that gap antialiases away and
+    leaves a blob. Rasterised at 16 px this version holds 30 fully-light pixels
+    against the outline version's 6.
+
+    Full-bleed teal because the manifest declares this "any maskable": Android
+    crops it to a circle, so the artwork reaches the edges while the mark stays
+    inside the central 80% safe zone. At scale 0.80 the eye reaches 10.7 units
+    from centre and the node 12.3, against a 12.8 unit safe radius.
+  -->
+  <rect width="32" height="32" rx="7" fill="#096a5c"/>
+  <g transform="translate(3.2 2.88) scale(0.8)">
+    <path
+      d="M2.6 16.4c3.3-5.6 7.8-8.4 13.4-8.4s10.1 2.8 13.4 8.4c-3.3 5.6-7.8 8.4-13.4 8.4S5.9 22 2.6 16.4Z"
+      fill="#fffdf8"/>
+    <circle cx="16" cy="16.4" r="4.6" fill="#096a5c"/>
+    <circle cx="25.8" cy="8.6" r="2.8" fill="#d1573b"/>
+  </g>
 </svg>

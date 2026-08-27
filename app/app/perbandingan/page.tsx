@@ -2,7 +2,7 @@ import Link from "next/link";
 import evidenceJson from "../../public/validation/gate-b-public.json";
 import { buildComparisonView } from "../../src/outcome/comparisonView";
 import type { GateBPublicEvidence } from "../../src/gateb/publicEvidence";
-import { IconAlert, IconArrowLeft } from "../../src/ui/icons";
+import { IconAlert, IconArrowLeft, LogoMark } from "../../src/ui/icons";
 import styles from "./perbandingan.module.css";
 
 export const metadata = {
@@ -24,7 +24,7 @@ export default function ComparisonPage() {
 
   return <main className={styles.page}>
     <header className={styles.topbar}>
-      <Link href="/" className={styles.brand}><span>◉</span> Neurogaze</Link>
+      <Link href="/" className={styles.brand}><LogoMark size={24} className={styles.brandMark} /> Neurogaze</Link>
       <span>Respons instrumen · kontrol positif dewasa</span>
     </header>
 

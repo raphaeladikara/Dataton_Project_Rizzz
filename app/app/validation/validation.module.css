@@ -103,3 +103,24 @@
   }
   .card { overflow-x: auto; }
 }
+
+/* Brand lock-up — overrides the minified .brand rule at the top of this sheet.
+   The page used to set "Neurogaze" beside a ◉ typed as text; that glyph was a
+   stand-in, never the logo. One wordmark across the product, matching .logo in
+   app/chrome.css: Fraunces on its SOFT/WONK axes beside the real mark. */
+.brand {
+  color: var(--ink-900);
+  font-family: var(--font-display-stack);
+  font-variation-settings: "SOFT" 30, "WONK" 1;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.brandMark {
+  --mark-pupil: var(--teal-600);
+  --mark-trail: var(--coral-500);
+  flex: 0 0 auto;
+  color: var(--teal-600);
+  overflow: visible;
+}

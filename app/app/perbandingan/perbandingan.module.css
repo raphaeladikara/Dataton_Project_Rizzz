@@ -31,18 +31,28 @@
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+/* Same wordmark as the top bar and every other secondary page: Fraunces on the
+   SOFT/WONK axes beside the real mark, not a ◉ typed as text. */
 .brand {
   display: inline-flex;
   align-items: center;
   gap: 9px;
   min-height: 44px;
-  color: #17302c;
-  font-family: var(--font-display), serif;
+  color: var(--ink-900);
+  font-family: var(--font-display-stack);
+  font-variation-settings: "SOFT" 30, "WONK" 1;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   text-decoration: none;
 }
-.brand span { color: #0d665d; }
+.brandMark {
+  --mark-pupil: var(--teal-600);
+  --mark-trail: var(--coral-500);
+  flex: 0 0 auto;
+  color: var(--teal-600);
+  overflow: visible;
+}
 
 .scope {
   display: flex;
