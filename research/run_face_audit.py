@@ -222,7 +222,7 @@ def main() -> None:
     }
     frame.drop(columns=["phash"]).to_csv(
         RESULTS / "audit_wajah_inventory.csv", index=False
-    )
+    , lineterminator="\n")
     save_json(RESULTS / "audit_wajah.json", audit)
     print(audit["inventory"])
     print(audit["duplicates"])

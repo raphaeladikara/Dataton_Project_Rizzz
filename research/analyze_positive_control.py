@@ -63,7 +63,7 @@ DIRECTIONAL_PHASES = (
     "gaze_left_repeat", "gaze_right_repeat", "pointing_left_repeat", "pointing_right_repeat",
 )
 
-# Quality criteria from docs/kontrol_positif.md, plus the saturation limit the
+# Quality criteria from research/hasil/kontrol_positif/README.md, plus the saturation limit the
 # recordings themselves made the case for.
 LIMITS = {
     "calibration_error_deg": 3.0,
@@ -313,7 +313,7 @@ def signal_statuses(session: Session) -> dict[str, str]:
 
 
 def composite_table(sessions: list[Session]) -> dict:
-    """The table docs/kontrol_positif.md says has to exist, whatever it says."""
+    """The table research/hasil/kontrol_positif/README.md says has to exist, whatever it says."""
     counts = {
         condition: {"menyala": 0, "tidak": 0, "sesi": []}
         for condition in ("biasa", "produksi")
@@ -371,7 +371,7 @@ def separation(name: str, produced: list[float], ordinary: list[float], higher_i
 
 def sensitivity_model(sessions: list[Session]) -> dict:
     """
-    The sensitivity analysis docs/kontrol_positif.md permits above eight
+    The sensitivity analysis research/hasil/kontrol_positif/README.md permits above eight
     participants, and nothing more than that.
 
     It is not the decision path and must never become one. The transparent rule
@@ -570,7 +570,8 @@ def main() -> None:
 
     RESULTS.mkdir(parents=True, exist_ok=True)
     (RESULTS / "ringkasan.json").write_text(
-        json.dumps(summary, indent=2, ensure_ascii=False, default=float) + "\n", encoding="utf-8"
+        json.dumps(summary, indent=2, ensure_ascii=False, default=float) + "\n",
+        encoding="utf-8", newline="\n"
     )
 
     header = (
@@ -598,7 +599,7 @@ def main() -> None:
             "ya" if session.usable else "tidak",
             "; ".join(session.withheld_reasons),
         ]))
-    (RESULTS / "lembar_sesi.csv").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    (RESULTS / "lembar_sesi.csv").write_text("\n".join(rows) + "\n", encoding="utf-8", newline="\n")
 
     print(f"{len(sessions)} rekaman, {len(usable)} lolos mutu")
     for condition, counts in attrition.items():

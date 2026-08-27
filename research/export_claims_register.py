@@ -15,14 +15,22 @@ this repository, and saying so is the point of the column.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import sys
 from typing import Any
+
+# Same reason as export_readiness_matrix.py: direct execution needs the
+# repository root on sys.path before the package import resolves.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from research.readme_blocks import block_is_current, write_block  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASIL = os.path.join(ROOT, "research", "hasil")
 JSON_OUT = os.path.join(HASIL, "daftar_klaim.json")
-MD_OUT = os.path.join(ROOT, "docs", "daftar_klaim.md")
+README_BLOCK = "claims-register"
 
 OURS = "milik sendiri"
 CITED = "dikutip"
@@ -169,6 +177,11 @@ EXPECTED_TEXT: dict[str, str] = {
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true",
+                        help="fail if the JSON or the README block is stale")
+    args = parser.parse_args()
+
     payloads: dict[str, Any] = {}
     rows, mismatches = [], []
 
@@ -220,18 +233,9 @@ def main() -> None:
         },
         "claims": rows,
     }
-    with open(JSON_OUT, "w", encoding="utf-8") as fh:
-        json.dump(register, fh, ensure_ascii=False, indent=2)
+    rendered_json = json.dumps(register, ensure_ascii=False, indent=2)
 
     lines = [
-        "# Daftar klaim",
-        "",
-        "Setiap angka yang diucapkan di panggung, sumbernya, dan apakah ia milik proyek ini.",
-        "",
-        "> Dihasilkan oleh `research/export_claims_register.py`, bukan ditulis tangan. Skripnya",
-        "> membaca nilai kanonis dari berkas bukti dan berhenti dengan galat kalau ada yang",
-        "> tidak cocok, jadi tabel ini tidak dapat melenceng dari buktinya diam-diam.",
-        "",
         f"**{register['counts'][OURS]} klaim milik sendiri · "
         f"{register['counts'][CITED]} dikutip · "
         f"{register['counts'][ASSUMPTION]} asumsi dinyatakan.**",
@@ -245,24 +249,38 @@ def main() -> None:
             f"| {row['claim']} | {row['shown']} | {row['ownership']} | {row['source']} | {evidence} |")
     lines += [
         "",
-        "## Cara membaca kolom \"Milik\"",
+        "### Cara membaca kolom \"Milik\"",
         "",
         f"- **{OURS}** — {register['ownership_legend'][OURS]}",
         f"- **{CITED}** — {register['ownership_legend'][CITED]}",
         f"- **{ASSUMPTION}** — {register['ownership_legend'][ASSUMPTION]}",
         "",
-        "## Yang tidak ada di tabel ini, dan tidak akan ada",
+        "### Yang tidak ada di tabel ini, dan tidak akan ada",
         "",
         "Sensitivitas, spesifisitas, atau akurasi milik NeuroGaze. Ketiganya menuntut balita",
         "berlabel dengan acuan klinis independen, dan itu Gate C.",
         "",
     ]
-    with open(MD_OUT, "w", encoding="utf-8") as fh:
-        fh.write("\n".join(lines))
+    rendered_markdown = "\n".join(lines)
+
+    if args.check:
+        stale = []
+        if not os.path.exists(JSON_OUT) or open(JSON_OUT, encoding="utf-8").read() != rendered_json:
+            stale.append("research/hasil/daftar_klaim.json")
+        if not block_is_current(README_BLOCK, rendered_markdown):
+            stale.append(f"README.md ({README_BLOCK})")
+        if stale:
+            raise SystemExit("Daftar klaim sudah basi: " + ", ".join(stale))
+        print("Daftar klaim sudah mutakhir.")
+        return
+
+    with open(JSON_OUT, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(rendered_json)
+    write_block(README_BLOCK, rendered_markdown)
 
     print(f"{len(rows)} klaim · {register['counts'][OURS]} milik sendiri, "
           f"{register['counts'][CITED]} dikutip, {register['counts'][ASSUMPTION]} asumsi")
-    print(MD_OUT)
+    print(f"research/hasil/daftar_klaim.json + README.md ({README_BLOCK})")
 
 
 if __name__ == "__main__":

@@ -207,7 +207,7 @@ def composite_rule_break_even(
             "Keduanya belum diukur pada balita, dan mengarangnya akan mengulang persis kesalahan "
             "yang dihindari lengan-lengan lain. Yang dihitung adalah syarat yang harus dipenuhi."
         ),
-        "unlocks": "docs/jalur_rujukan.md, langkah 3",
+        "unlocks": "README.md, bagian \"Kenapa belum ada rujukan yang keluar\", kunci 1",
     }
 
 
@@ -218,7 +218,7 @@ def referral_load_multiples(arms: list[dict[str, Any]]) -> dict[str, Any]:
     now has one field observation beside it: a practitioner asked whether the
     service could absorb three times the current referrals answered that it
     probably could not, because families already wait weeks to months for some
-    services (docs/wawancara_praktisi_hasil.md, blok C).
+    services (README.md, "Batas yang berlaku hari ini", blok C).
 
     That is one person's judgement about their own district and it is not a
     capacity measurement. What it does is fix the unit. Expressing every arm as a
@@ -240,7 +240,7 @@ def referral_load_multiples(arms: list[dict[str, Any]]) -> dict[str, Any]:
             for arm in arms
         },
         "field_anchor": {
-            "source": "docs/wawancara_praktisi_hasil.md, blok C",
+            "source": "README.md, bagian \"Batas yang berlaku hari ini\"",
             "n": 1,
             "asked": "Kalau anak yang disarankan diperiksa lanjut menjadi tiga kali lebih banyak, sanggup?",
             "answered": "Sepertinya akan sulit; tenaga dan jadwal yang tersedia mungkin kewalahan.",

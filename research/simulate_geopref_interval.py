@@ -1,6 +1,6 @@
 """Operating characteristic of the interval rule against the point rule.
 
-Reproduces the table in docs/ambang_selang_kepercayaan.md. Answers one question:
+Reproduces the table in README.md, "Ambang dibandingkan terhadap selang, bukan terhadap satu angka". Answers one question:
 for a participant whose true geometric preference is p, how often does each rule
 call the signal deviant?
 

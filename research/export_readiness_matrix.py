@@ -1,7 +1,8 @@
 """Generate the canonical competition-readiness matrix.
 
-The JSON is the machine-readable source consumed by public evidence. The Markdown
-is the judge-readable view. Both are rendered from the same five capability rows.
+The JSON is the machine-readable source consumed by public evidence. The table
+in README.md is the judge-readable view. Both are rendered from the same
+capability rows, so the table cannot drift away from the evidence behind it.
 
 Usage:
   python research/export_readiness_matrix.py [--check]
@@ -11,13 +12,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+# Running this file directly puts research/ on sys.path, not the repository
+# root, so the package import below needs the root added by hand. Under
+# pytest the root is already there and this is a no-op.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from research.readme_blocks import README, block_is_current, write_block  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parent.parent
 JSON_TARGET = ROOT / "research" / "hasil" / "readiness_matrix.json"
-MARKDOWN_TARGET = ROOT / "docs" / "readiness_matrix.md"
+README_BLOCK = "readiness-matrix"
 
 
 def build() -> dict[str, Any]:
@@ -103,20 +112,13 @@ def render_markdown(matrix: dict[str, Any]) -> str:
         f"| {item['capability']} | {item['statusLabel']} | {item['evidence']} | {item['boundary']} |"
         for item in matrix["capabilities"]
     )
-    return f"""# Matriks kesiapan NeuroGaze
-
-Status per {matrix['asOf']}. Berkas ini dan
-`research/hasil/readiness_matrix.json` dibuat dari
-`research/export_readiness_matrix.py`; ubah generatornya, lalu ekspor ulang.
+    # The surrounding prose lives in README.md. This renders the table only,
+    # so the generator owns the rows and nothing else.
+    return f"""Status per {matrix['asOf']}.
 
 | Kapabilitas | Status | Bukti hari ini | Batas klaim |
 |---|---|---|---|
-{rows}
-
-NeuroGaze saat ini membuktikan rantai pengukuran, mekanisme penolakan, pelaporan,
-dan respons instrumen terhadap manipulasi perilaku pada orang dewasa. Proyek ini
-belum membuktikan skrining klinis balita Indonesia.
-"""
+{rows}"""
 
 
 def main() -> None:
@@ -130,18 +132,18 @@ def main() -> None:
     if args.check:
         stale = []
         if not JSON_TARGET.exists() or JSON_TARGET.read_text(encoding="utf-8") != rendered_json:
-            stale.append(JSON_TARGET.relative_to(ROOT))
-        if not MARKDOWN_TARGET.exists() or MARKDOWN_TARGET.read_text(encoding="utf-8") != rendered_markdown:
-            stale.append(MARKDOWN_TARGET.relative_to(ROOT))
+            stale.append(str(JSON_TARGET.relative_to(ROOT)))
+        if not block_is_current(README_BLOCK, rendered_markdown):
+            stale.append(f"README.md ({README_BLOCK})")
         if stale:
-            raise SystemExit("Readiness artifacts are stale: " + ", ".join(map(str, stale)))
+            raise SystemExit("Readiness artifacts are stale: " + ", ".join(stale))
         print("Readiness artifacts are current.")
         return
 
-    JSON_TARGET.write_text(rendered_json, encoding="utf-8")
-    MARKDOWN_TARGET.write_text(rendered_markdown, encoding="utf-8")
+    JSON_TARGET.write_text(rendered_json, encoding="utf-8", newline="\n")
+    write_block(README_BLOCK, rendered_markdown)
     print(JSON_TARGET.relative_to(ROOT))
-    print(MARKDOWN_TARGET.relative_to(ROOT))
+    print(f"{README.relative_to(ROOT)} ({README_BLOCK})")
 
 
 if __name__ == "__main__":

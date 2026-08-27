@@ -69,7 +69,7 @@ def main() -> None:
     }
     target = ROOT / "app" / "tests" / "fixtures" / "parity.json"
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+    target.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(target)
 
 

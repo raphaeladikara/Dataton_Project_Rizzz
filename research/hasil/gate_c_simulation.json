@@ -134,7 +134,7 @@
     "circularity_warning": "Kapasitas 0,20 dipilih menyamai laju rujukan lengan target Gate C (0,199), jadi kemiripan syarat ini dengan spesifisitas Perochon 0,808 adalah akibat konstruksi, bukan temuan. Jangan sajikan sebagai kebetulan yang mengesankan.",
     "what_this_actually_shows": "Pada prevalensi 1%, suku sensitivitas tidak pernah melebihi 0,01 sehingga laju rujukan hampir seluruhnya ditentukan spesifisitas. Konsekuensinya: menaikkan sensitivitas aturan komposit nyaris tidak membebani antrean, sedangkan kehilangan beberapa poin spesifisitas membebaninya secara langsung. Itu yang menentukan ke mana Gate C harus diarahkan.",
     "note": "Blok ini sengaja tidak mengasumsikan sensitivitas dan spesifisitas aturan komposit. Keduanya belum diukur pada balita, dan mengarangnya akan mengulang persis kesalahan yang dihindari lengan-lengan lain. Yang dihitung adalah syarat yang harus dipenuhi.",
-    "unlocks": "docs/jalur_rujukan.md, langkah 3"
+    "unlocks": "README.md, bagian \"Kenapa belum ada rujukan yang keluar\", kunci 1"
   },
   "referral_load": {
     "id": "referral_load_multiples",
@@ -148,7 +148,7 @@
       "gate_c_target": 9.2
     },
     "field_anchor": {
-      "source": "docs/wawancara_praktisi_hasil.md, blok C",
+      "source": "README.md, bagian \"Batas yang berlaku hari ini\"",
       "n": 1,
       "asked": "Kalau anak yang disarankan diperiksa lanjut menjadi tiga kali lebih banyak, sanggup?",
       "answered": "Sepertinya akan sulit; tenaga dan jadwal yang tersedia mungkin kewalahan.",

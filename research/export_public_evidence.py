@@ -217,7 +217,7 @@ def main() -> None:
             raise SystemExit(f"{TARGET.relative_to(ROOT)} is stale; rerun without --check.")
         print("Public evidence is current.")
         return
-    TARGET.write_text(rendered, encoding="utf-8")
+    TARGET.write_text(rendered, encoding="utf-8", newline="\n")
     print(TARGET.relative_to(ROOT))
 
 

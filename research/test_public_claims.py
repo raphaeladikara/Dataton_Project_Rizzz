@@ -10,24 +10,19 @@ ROOT = Path(__file__).resolve().parent.parent
 POSITIVE_CONTROL = ROOT / "research" / "hasil" / "kontrol_positif" / "ringkasan.json"
 PUBLIC_EVIDENCE = ROOT / "app" / "public" / "validation" / "gate-b-public.json"
 
+# The repository keeps one README. Every claim that used to be spread across
+# nine documents under docs/ now lives there, so that is the prose surface these
+# checks guard — together with the two surfaces the app itself ships.
 PUBLIC_SURFACES = (
     ROOT / "README.md",
-    ROOT / "docs" / "README.md",
-    ROOT / "docs" / "arah_pitch.md",
-    ROOT / "docs" / "pitch_10_menit.md",
-    ROOT / "docs" / "pitch_7_menit.md",
-    ROOT / "docs" / "skenario_panggung.md",
-    ROOT / "docs" / "dampak_dan_adopsi.md",
-    ROOT / "docs" / "bingkai_ai.md",
-    ROOT / "docs" / "keputusan_ilmiah.md",
-    ROOT / "paper" / "sumber" / "paper_final.tex",
-    ROOT / "app" / "app" / "validation" / "page.tsx",
+    ROOT / "app" / "app" / "validation" / "evidence-view.tsx",
+    ROOT / "app" / "src" / "i18n" / "dictionary" / "validation.ts",
     ROOT / "app" / "public" / "validation" / "gate-b-public.json",
 )
 
 
 class ReadinessMatrixTest(unittest.TestCase):
-    def test_matrix_locks_the_five_competition_readiness_states(self) -> None:
+    def test_matrix_locks_the_competition_readiness_states(self) -> None:
         matrix = build_readiness_matrix()
         states = {item["id"]: item["status"] for item in matrix["capabilities"]}
         self.assertEqual(matrix["schema"], "neurogaze-readiness-matrix-v1")
@@ -35,6 +30,11 @@ class ReadinessMatrixTest(unittest.TestCase):
             "on_device_measurement_chain": "ready_for_engineering_demo",
             "adult_responsivity": "demonstrated",
             "automatic_toddler_referral": "withheld",
+            # Split from kader usability on purpose: the operator flow has been
+            # run hundreds of times, but never by a Posyandu kader. Merging the
+            # two rows would turn real evidence into a claim that collapses the
+            # moment somebody asks which kader, from which Posyandu.
+            "operator_flow": "exercised",
             "kader_usability": "not_tested",
             "indonesian_toddler_validity": "not_tested",
         })
@@ -115,10 +115,12 @@ class ProhibitedClaimTest(unittest.TestCase):
 
     def test_core_surfaces_state_the_current_readiness_boundary(self) -> None:
         required = {
-            ROOT / "README.md": ("23 sesi", "15 lulus mutu", "rujukan otomatis balita ditahan"),
-            ROOT / "docs" / "pitch_10_menit.md": ("9 dari 11", "6 dari 12", "acuan klinis buta"),
-            ROOT / "paper" / "sumber" / "paper_final.tex": ("23 sesi direkam", "15 lulus mutu", "Rujukan otomatis balita ditahan"),
-            ROOT / "app" / "app" / "validation" / "page.tsx": ("positiveControl.sessions.recorded", "Rujukan otomatis balita masih ditahan"),
+            ROOT / "README.md": (
+                "23 sesi", "15 lulus mutu", "rujukan otomatis balita ditahan",
+                "9/11", "6/12", "acuan klinis buta",
+            ),
+            ROOT / "app" / "app" / "validation" / "evidence-view.tsx": ("positiveControl.sessions.recorded",),
+            ROOT / "app" / "src" / "i18n" / "dictionary" / "validation.ts": ("Rujukan otomatis balita masih ditahan",),
         }
         missing = []
         for path, phrases in required.items():

@@ -24,7 +24,7 @@ class ResearchConsentFilterTest(unittest.TestCase):
                     "type": "audit.downloaded",
                     "data": {"purpose": "operator_audit"},
                 }],
-            }), encoding="utf-8")
+            }), encoding="utf-8", newline="\n")
             logs, rejected = load_logs([path])
 
         self.assertEqual(logs, [])
@@ -40,7 +40,7 @@ class ResearchConsentFilterTest(unittest.TestCase):
                 "purpose": "gate_a_adult",
                 "privacy": {"researchConsent": False},
                 "events": [],
-            }), encoding="utf-8")
+            }), encoding="utf-8", newline="\n")
             logs, rejected = load_logs([path])
 
         self.assertEqual(len(logs), 1)

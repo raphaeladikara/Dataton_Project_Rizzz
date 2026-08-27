@@ -218,7 +218,7 @@ def main() -> None:
             "Desimasi menjaga sampel yang benar-benar terekam; kamera yang lebih lambat juga mengubah blur dan waktu pajan, yang tidak dimodelkan di sini.",
         ],
     }
-    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
     print(f"{len(series)} sesi, laju dasar {baseline_rate:.1f} Hz\n")
     print(f"{'faktor':>6} {'Hz':>7} | {'geometri drift':>15} {'rho':>6} | {'kinematik drift':>16} {'rho':>6}")

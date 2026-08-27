@@ -2,7 +2,7 @@
 
 Why this exists
 ---------------
-Layer 2 of docs/model_rujukan.md needs *relative weights between indices*, fitted
+Layer 2 of README.md, "Bobot dari data anak terbit, dan audit yang menolaknya" needs *relative weights between indices*, fitted
 on labelled children. We have none of our own and will not record any before
 ethics review. Cilia et al. published theirs under CC BY 4.0, so the weights can
 be fitted there.
@@ -32,7 +32,7 @@ Response to name has no analogue: the Cilia protocol never calls the child's
 name. That is recorded, not patched.
 
 Nothing here is a NeuroGaze operating point. Only relative weights transfer, and
-the scope statement in docs/model_rujukan.md travels with them.
+the scope statement in README.md, "Bobot dari data anak terbit, dan audit yang menolaknya" travels with them.
 """
 
 from __future__ import annotations
@@ -145,7 +145,7 @@ def load_samples(decimate: int = 1) -> pd.DataFrame:
     """One tidy frame of fixation samples for every participant.
 
     ``decimate`` keeps every nth sample. 2 halves the 60 Hz recording to the
-    ~30 Hz a tablet camera delivers, which is audit 1 in docs/model_rujukan.md.
+    ~30 Hz a tablet camera delivers, which is audit 1 in README.md, "Bobot dari data anak terbit, dan audit yang menolaknya".
     """
     files = sorted(glob.glob(os.path.join(DATA, "Eye-tracking Output", "*.csv")))
     rows = []
@@ -252,7 +252,7 @@ def main() -> None:
         table.to_csv(os.path.join(OUT, name), index=False)
         print(f"{name}: {len(table)} participants, {table['label'].sum()} ASD")
         print(table[["cue_lateral_gain", "centre_hold_spread", "social_dwell_frac", "eye_mouth_ratio"]].notna().sum().to_dict())
-    with open(os.path.join(OUT, "sumber.json"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(OUT, "sumber.json"), "w", encoding="utf-8", newline="\n") as fh:
         json.dump({
             "dataset": "Cilia, Carette, Elbattah, Guérin, Dequen (2022)",
             "doi": "10.6084/m9.figshare.20113592.v1",

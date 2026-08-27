@@ -1,0 +1,17 @@
+# Pohon bukti disimpan apa adanya, tanpa konversi akhir baris.
+#
+# research/hasil dijaga manifest SHA-256 (evidence_manifest.json, 130 berkas) dan
+# dibangun ulang oleh research/rebuild_evidence.py, yang gagal kalau ada satu berkas
+# bergeser satu byte. Git dengan core.autocrlf=true — bawaan Git for Windows — mengubah
+# LF menjadi CRLF saat checkout. Berkasnya tersimpan LF di dalam Git, jadi konversi itu
+# tidak pernah terlihat di mesin yang berkasnya ditulis skrip Python; ia baru muncul di
+# clone orang lain, dan di sana setiap hash tidak cocok.
+#
+# Terukur sebelum baris ini ada: satu berkas pasangan Gate B tumbuh dari 523.204 menjadi
+# 543.981 byte setelah clone di Windows — persis 20.777 baris yang dikonversi — dan
+# SHA-256-nya ikut berubah. Verifikasi integritas yang hanya lulus di laptop penulisnya
+# bukan verifikasi.
+#
+# Pasangannya di sisi kode: setiap penulis di research/ membuka berkas dengan
+# newline="\n", jadi rebuild menghasilkan byte yang sama di sistem operasi mana pun.
+research/hasil/** -text

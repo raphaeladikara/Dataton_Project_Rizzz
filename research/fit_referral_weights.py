@@ -1,6 +1,6 @@
 """Layer 2 of the referral model: fit relative index weights on published child data.
 
-Runs the four audits docs/model_rujukan.md makes mandatory and applies its
+Runs the four audits README.md, "Bobot dari data anak terbit, dan audit yang menolaknya" makes mandatory and applies its
 rejection criteria. Promoting the weights is the outcome only if all four pass;
 otherwise the rejection is the published result and Layer 1 ships alone.
 
@@ -276,7 +276,7 @@ def main() -> None:
         "bootstrap_replications": int(len(boot)),
     }
 
-    with open(OUT, "w", encoding="utf-8") as fh:
+    with open(OUT, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(result, fh, ensure_ascii=False, indent=2)
 
     print(f"index model OOF AUC : {auc_index:.4f}")

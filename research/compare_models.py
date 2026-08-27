@@ -130,7 +130,7 @@ def main() -> None:
             "Uji ini membandingkan dua model pada data yang sama, bukan mengukur kegunaan klinis keduanya.",
         ],
     }
-    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(payload, indent=2, ensure_ascii=False))
 
 

@@ -69,7 +69,7 @@ def build_reference() -> dict:
 def main() -> None:
     payload = build_reference()
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    OUTPUT_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(
         json.dumps(
             {

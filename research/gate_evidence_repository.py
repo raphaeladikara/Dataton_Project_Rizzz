@@ -62,7 +62,7 @@ def build_manifest(destination_root: Path) -> dict[str, Any]:
     }
     (destination_root / "evidence_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
+        encoding="utf-8", newline="\n",
     )
     return manifest
 
@@ -117,7 +117,7 @@ def migrate_evidence(source_root: Path, destination_root: Path) -> dict[str, Any
         "files": entries,
     }
     manifest_path = destination_root / "evidence_manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
     # Summaries are always regenerated from the canonical raw records.
     for name in ("gate_a/gate_a_summary.json", "gate_b/gate_b_public_evidence.json"):
@@ -289,10 +289,12 @@ def write_summaries(destination_root: Path) -> None:
     gate_a_paths = sorted((destination_root / "gate_a" / "sesi").glob("*.json"))
     gate_b_paths = sorted((destination_root / "gate_b" / "pasangan").glob("*.json"))
     (destination_root / "gate_a" / "gate_a_summary.json").write_text(
-        json.dumps(gate_a_summary(gate_a_paths), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(gate_a_summary(gate_a_paths), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8", newline="\n"
     )
     (destination_root / "gate_b" / "gate_b_summary.json").write_text(
-        json.dumps(gate_b_summary(gate_b_paths), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(gate_b_summary(gate_b_paths), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8", newline="\n"
     )
 
 

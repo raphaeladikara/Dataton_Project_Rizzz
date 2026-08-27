@@ -197,9 +197,9 @@ def main() -> None:
     logs, rejected = load_logs(args.paths)
     report = analyze_logs(logs, rejected)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     markdown_path = args.out.with_suffix(".md")
-    markdown_path.write_text(render_markdown(report), encoding="utf-8")
+    markdown_path.write_text(render_markdown(report), encoding="utf-8", newline="\n")
     print(f"Analyzed {len(logs)} sessions -> {args.out} and {markdown_path}")
 
 

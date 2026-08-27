@@ -213,7 +213,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     text = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
-        with open(args.out, "w", encoding="utf-8") as fh:
+        with open(args.out, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(text + "\n")
         print(f"{report['verdict']} · {args.out}")
     else:

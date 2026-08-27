@@ -184,7 +184,7 @@ def main() -> None:
         "sessions": sessions,
     }
 
-    with open(OUT, "w", encoding="utf-8") as fh:
+    with open(OUT, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(result, fh, ensure_ascii=False, indent=2)
 
     acc = result["accepts_on_source_domain"]

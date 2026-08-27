@@ -164,7 +164,7 @@ def audit(frame: pd.DataFrame, scope: str) -> dict:
 
 def main() -> None:
     frame = load()
-    frame.to_csv(CSV_OUT, index=False)
+    frame.to_csv(CSV_OUT, index=False, lineterminator="\n")
     results = {
         "all_filed": audit(frame, "seluruh sesi terfilekan, termasuk yang ditahan gerbang mutu"),
         "usable_only": audit(frame[frame["usable"]],
@@ -207,7 +207,7 @@ def main() -> None:
         ],
     }
 
-    with open(OUT, "w", encoding="utf-8") as fh:
+    with open(OUT, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(payload, fh, ensure_ascii=False, indent=2)
 
     for key, value in results.items():
