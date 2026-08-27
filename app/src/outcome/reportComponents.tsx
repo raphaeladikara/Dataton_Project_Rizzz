@@ -1,4 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
+
+import { useT } from "../i18n/useT";
 
 import type { ReportPresentationSection } from "./reportPresentation";
 
@@ -14,11 +18,12 @@ export function CaregiverReport({
   sections: readonly ReportPresentationSection[];
   surface: "screen" | "print";
 }) {
+  const { t } = useT();
   return (
     <section
       className="caregiverReport"
       data-surface={surface}
-      aria-label="Ringkasan untuk orang tua dan pendamping"
+      aria-label={t("print.caregiverAria")}
     >
       {sections.map((section, index) => (
         <article key={section.id} data-section={section.id}>
@@ -53,6 +58,7 @@ export function PrintableReport({
   validityCanScore: boolean;
   technicalSummary: ReactNode;
 }) {
+  const { t } = useT();
   const technicalEligible = qualityPassed && validityCanScore;
 
   return (
@@ -69,8 +75,8 @@ export function PrintableReport({
       <p className="printDisclaimer" data-print-section="disclaimer">{disclaimer}</p>
       {demonstrationBanner && (
         <p className="printDemonstration">
-          <strong>MODE DEMONSTRASI — bukan hasil sesi lapangan.</strong>{" "}
-          {demonstrationBanner} Ambang 69% sengaja diterapkan untuk memperlihatkan respons arsitektur; angkanya tidak sah untuk keputusan apa pun.
+          <strong>{t("print.demoLead")}</strong>{" "}
+          {demonstrationBanner} {t("print.demoThreshold")}
         </p>
       )}
       {technicalEligible && <div className="printTechnical" data-print-section="technical">{technicalSummary}</div>}

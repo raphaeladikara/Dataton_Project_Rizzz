@@ -545,3 +545,55 @@
     top: 50%;
   }
 }
+
+/* ---- Language toggle -------------------------------------------------- */
+/* Sits beside the offline badge and the version stamp, and borrows their
+   proportions: same pill radius, same hairline, same 11.5px type. It is a
+   preference, not a status, so it stays the quietest thing in the cluster
+   until the pointer arrives. */
+.languageToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: rgba(255, 253, 248, 0.8);
+}
+
+.languageToggle button {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  background: transparent;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ink-400);
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.languageToggle button:hover {
+  color: var(--ink-700);
+}
+
+/* The pressed segment carries the fill. Contrast is what marks the current
+   language — not weight alone, which reads as emphasis rather than state. */
+.languageToggle button.active {
+  background: var(--teal-500);
+  color: #fffdf8;
+}
+
+.languageToggle button:focus-visible {
+  outline: 2px solid var(--teal-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .languageToggle button {
+    transition: none;
+  }
+}

@@ -5,7 +5,7 @@ import test from "node:test";
 const evidence = JSON.parse(readFileSync(new URL("../public/validation/gate-b-public.json", import.meta.url), "utf8"));
 const summary = JSON.parse(readFileSync(new URL("../../research/hasil/gate_b/gate_b_summary.json", import.meta.url), "utf8"));
 const gateA = JSON.parse(readFileSync(new URL("../../research/hasil/gate_a/gate_a_summary.json", import.meta.url), "utf8"));
-const page = readFileSync(new URL("../app/validation/page.tsx", import.meta.url), "utf8");
+const page = readFileSync(new URL("../app/validation/evidence-view.tsx", import.meta.url), "utf8");
 
 test("published Gate B snapshot matches the canonical WebGazer cohort", () => {
   assert.equal(evidence.schema, "neurogaze-gate-b-public-evidence-v3");

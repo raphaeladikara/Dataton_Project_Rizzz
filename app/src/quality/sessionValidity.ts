@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
+
 export type ValidityOutcome = "VALID" | "RETRY_STAGE" | "RESTART_SESSION" | "HELD";
 export type HeldKind = "HELD_MEASUREMENT" | "HELD_SYSTEM" | null;
 export type PhaseValidity = "valid" | "degraded" | "invalid";
@@ -80,7 +82,7 @@ type ReasonCopy = {
   kind: Exclude<HeldKind, null>;
 };
 
-export const REASON_COPY: Record<ValidityReasonCode, ReasonCopy> = {
+const REASON_COPY_ID: Record<ValidityReasonCode, ReasonCopy> = {
   GAZE_FROZEN: { message: "Hasil pandangan tidak berubah saat gambar berpindah.", action: "Ulangi kalibrasi.", stage: "pengukuran pandangan", kind: "HELD_MEASUREMENT" },
   GAZE_RANDOM_JUMPS: { message: "Pembacaan pandangan masih terlalu berubah-ubah.", action: "Perbaiki posisi dan ulangi kalibrasi.", stage: "pengukuran pandangan", kind: "HELD_MEASUREMENT" },
   DIRECTION_REVERSED: { message: "Pengaturan kamera perlu diperiksa.", action: "Kembali ke pemeriksaan posisi lalu ulangi kalibrasi.", stage: "pengecekan arah pandangan", kind: "HELD_SYSTEM" },
@@ -96,21 +98,79 @@ export const REASON_COPY: Record<ValidityReasonCode, ReasonCopy> = {
   SESSION_INCOMPLETE: { message: "Tes sempat terhenti dan perlu diulang.", action: "Mulai sesi baru saat anak siap.", stage: "sesi", kind: "HELD_SYSTEM" },
 };
 
-function held(code: ValidityReasonCode, evidence: Record<string, unknown>, invalidStages?: string[]): SessionValidityResult {
-  const copy = REASON_COPY[code];
+const REASON_COPY_EN: Record<ValidityReasonCode, ReasonCopy> = {
+  GAZE_FROZEN: { message: "The gaze reading did not change as the picture moved.", action: "Repeat calibration.", stage: "gaze measurement", kind: "HELD_MEASUREMENT" },
+  GAZE_RANDOM_JUMPS: { message: "The gaze reading is still too erratic.", action: "Correct the framing and repeat calibration.", stage: "gaze measurement", kind: "HELD_MEASUREMENT" },
+  DIRECTION_REVERSED: { message: "The camera setup needs checking.", action: "Go back to the framing check, then repeat calibration.", stage: "gaze direction check", kind: "HELD_SYSTEM" },
+  CENTER_LOCK: { message: "Gaze direction cannot yet be distinguished.", action: "Repeat calibration with the face kept towards the screen.", stage: "gaze direction check", kind: "HELD_MEASUREMENT" },
+  OFF_SCREEN_DOMINANT: { message: "Gaze position does not line up with the screen.", action: "Go back to the framing check and repeat calibration.", stage: "stimulus", kind: "HELD_MEASUREMENT" },
+  PHASE_DESYNC: { message: "The session was interrupted, so the result cannot be computed.", action: "Repeat the stimulus.", stage: "stimulus", kind: "HELD_SYSTEM" },
+  INSUFFICIENT_VALID_PHASES: { message: "Not enough of the test sections were recorded successfully.", action: "Repeat the test once the child is ready.", stage: "stimulus", kind: "HELD_MEASUREMENT" },
+  FACE_POSE_UNSTABLE: { message: "The child's position changed too much during the test.", action: "Help the child sit more comfortably and repeat this section.", stage: "recording", kind: "HELD_MEASUREMENT" },
+  CAMERA_STREAM_INTERRUPTED: { message: "The camera stopped.", action: "Allow the camera again, then start a new session from the framing check.", stage: "camera", kind: "HELD_SYSTEM" },
+  FEATURE_CONTRACT_MISMATCH: { message: "Something went wrong in the application. No result is produced, so that nothing misleading is reported.", action: "Restart the application.", stage: "system check", kind: "HELD_SYSTEM" },
+  CALIBRATION_INVALID: { message: "The camera can see the eyes, but gaze direction is not readable.", action: "Repeat calibration.", stage: "calibration", kind: "HELD_MEASUREMENT" },
+  GAZE_UNAVAILABLE: { message: "The eyes are not reading clearly.", action: "Check framing, lighting, and reflections on any glasses.", stage: "recording", kind: "HELD_MEASUREMENT" },
+  SESSION_INCOMPLETE: { message: "The test was interrupted and needs repeating.", action: "Start a new session when the child is ready.", stage: "session", kind: "HELD_SYSTEM" },
+};
+
+/**
+ * Kept exported under its original name so existing callers and the contract
+ * tests keep reading the Indonesian table without a change.
+ */
+export const REASON_COPY = REASON_COPY_ID;
+
+const REASON_COPY_BY_LOCALE: Record<Locale, Record<ValidityReasonCode, ReasonCopy>> = {
+  id: REASON_COPY_ID,
+  en: REASON_COPY_EN,
+};
+
+const OUTCOME_COPY: Record<Locale, {
+  notRisk: string;
+  retryMessage: string;
+  retryAction: (phaseId: string) => string;
+  validMessage: string;
+  validAction: string;
+}> = {
+  id: {
+    notRisk: "Ini bukan hasil risiko anak.",
+    retryMessage: "Satu bagian tes perlu direkam ulang. Ini bukan hasil risiko anak.",
+    retryAction: (phaseId) => `Ulangi bagian ${phaseId}.`,
+    validMessage: "Rekaman cukup baik untuk dianalisis.",
+    validAction: "Lanjutkan ke laporan.",
+  },
+  en: {
+    notRisk: "This is not a risk finding about the child.",
+    retryMessage: "One section of the test needs recording again. This is not a risk finding about the child.",
+    retryAction: (phaseId) => `Repeat section ${phaseId}.`,
+    validMessage: "The recording is good enough to analyse.",
+    validAction: "Continue to the report.",
+  },
+};
+
+function held(
+  code: ValidityReasonCode,
+  evidence: Record<string, unknown>,
+  invalidStages: string[] | undefined,
+  locale: Locale,
+): SessionValidityResult {
+  const copy = REASON_COPY_BY_LOCALE[locale][code];
   return {
     canScore: false,
     outcome: "HELD",
     heldKind: copy.kind,
     primaryReasonCode: code,
-    userMessage: `${copy.message} Ini bukan hasil risiko anak.`,
+    userMessage: `${copy.message} ${OUTCOME_COPY[locale].notRisk}`,
     operatorAction: copy.action,
     invalidStages: invalidStages?.length ? invalidStages : [copy.stage],
     debugEvidence: evidence,
   };
 }
 
-export function evaluateSessionValidity(input: SessionValidityInput): SessionValidityResult {
+export function evaluateSessionValidity(
+  input: SessionValidityInput,
+  locale: Locale = DEFAULT_LOCALE,
+): SessionValidityResult {
   const evidence = {
     sessionComplete: input.sessionComplete,
     faceRate: input.faceRate,
@@ -130,33 +190,33 @@ export function evaluateSessionValidity(input: SessionValidityInput): SessionVal
   // score, which the engineering lanes never wanted and the child report
   // already has its own "estimate unavailable" state for.
   if (input.scoringModelAvailable !== false && (!input.featureContractMatches || (input.missingFeatures?.length ?? 0) > 0))
-    return held("FEATURE_CONTRACT_MISMATCH", evidence, ["pemeriksaan sistem"]);
-  if (input.cameraInterrupted) return held("CAMERA_STREAM_INTERRUPTED", evidence);
-  if (!input.sessionComplete) return held("SESSION_INCOMPLETE", evidence);
-  if (input.orientationChanged) return held("OFF_SCREEN_DOMINANT", evidence, ["pemeriksaan posisi", "kalibrasi"]);
-  if (!input.calibrationPassed) return held("CALIBRATION_INVALID", evidence);
+    return held("FEATURE_CONTRACT_MISMATCH", evidence, ["pemeriksaan sistem"], locale);
+  if (input.cameraInterrupted) return held("CAMERA_STREAM_INTERRUPTED", evidence, undefined, locale);
+  if (!input.sessionComplete) return held("SESSION_INCOMPLETE", evidence, undefined, locale);
+  if (input.orientationChanged) return held("OFF_SCREEN_DOMINANT", evidence, ["pemeriksaan posisi", "kalibrasi"], locale);
+  if (!input.calibrationPassed) return held("CALIBRATION_INVALID", evidence, undefined, locale);
   // Ahead of the phase-level checks, because a mapping that put most of the
   // session past the edge of the screen is what starves those phases of
   // samples in the first place. Ranked below them it lost every time: the
   // operator was told the session had been interrupted and to repeat the
   // stimulus, so the calibration at fault was carried into the retry
   // unchanged and the next recording failed the same way.
-  if (input.offScreenRate > 0.5) return held("OFF_SCREEN_DOMINANT", evidence, ["kalibrasi"]);
+  if (input.offScreenRate > 0.5) return held("OFF_SCREEN_DOMINANT", evidence, ["kalibrasi"], locale);
   if (!input.timestampsSynchronized || input.phases.some((phase) => !phase.timestampsComplete || !phase.synchronized))
-    return held("PHASE_DESYNC", evidence);
+    return held("PHASE_DESYNC", evidence, undefined, locale);
 
   if (input.sanity) {
     const { leftMedianX: left, centerMedianX: center, rightMedianX: right, stable } = input.sanity;
-    if (!input.sanity.completed || !stable) return held("CALIBRATION_INVALID", evidence, ["pengecekan arah pandangan"]);
-    if (left > right + 0.08) return held("DIRECTION_REVERSED", evidence, ["pengecekan arah pandangan"]);
+    if (!input.sanity.completed || !stable) return held("CALIBRATION_INVALID", evidence, ["pengecekan arah pandangan"], locale);
+    if (left > right + 0.08) return held("DIRECTION_REVERSED", evidence, ["pengecekan arah pandangan"], locale);
     if (Math.max(Math.abs(left - center), Math.abs(right - center), Math.abs(right - left)) < 0.08)
-      return held("CENTER_LOCK", evidence, ["pengecekan arah pandangan"]);
+      return held("CENTER_LOCK", evidence, ["pengecekan arah pandangan"], locale);
   }
 
-  if (input.rawIrisMovement >= 0.02 && input.gazeMovement < 0.015) return held("GAZE_FROZEN", evidence);
-  if (input.stationaryJumpRate > 0.18) return held("GAZE_RANDOM_JUMPS", evidence);
-  if (input.poseRejectedRate > 0.25) return held("FACE_POSE_UNSTABLE", evidence);
-  if (input.faceRate < 0.85 || input.gazeDropout > 0.2) return held("GAZE_UNAVAILABLE", evidence);
+  if (input.rawIrisMovement >= 0.02 && input.gazeMovement < 0.015) return held("GAZE_FROZEN", evidence, undefined, locale);
+  if (input.stationaryJumpRate > 0.18) return held("GAZE_RANDOM_JUMPS", evidence, undefined, locale);
+  if (input.poseRejectedRate > 0.25) return held("FACE_POSE_UNSTABLE", evidence, undefined, locale);
+  if (input.faceRate < 0.85 || input.gazeDropout > 0.2) return held("GAZE_UNAVAILABLE", evidence, undefined, locale);
 
   const invalid = input.phases.filter((phase) => phase.status === "invalid");
   const valid = input.phases.filter((phase) => phase.status === "valid");
@@ -166,22 +226,22 @@ export function evaluateSessionValidity(input: SessionValidityInput): SessionVal
       outcome: "RETRY_STAGE",
       heldKind: null,
       primaryReasonCode: "INSUFFICIENT_VALID_PHASES",
-      userMessage: "Satu bagian tes perlu direkam ulang. Ini bukan hasil risiko anak.",
-      operatorAction: `Ulangi bagian ${invalid[0].id}.`,
+      userMessage: OUTCOME_COPY[locale].retryMessage,
+      operatorAction: OUTCOME_COPY[locale].retryAction(invalid[0].id),
       invalidStages: invalid.map((phase) => phase.id),
       debugEvidence: evidence,
     };
   }
   if (valid.length < Math.ceil(input.phases.length * 0.75))
-    return held("INSUFFICIENT_VALID_PHASES", evidence, invalid.map((phase) => phase.id));
+    return held("INSUFFICIENT_VALID_PHASES", evidence, invalid.map((phase) => phase.id), locale);
 
   return {
     canScore: true,
     outcome: "VALID",
     heldKind: null,
     primaryReasonCode: null,
-    userMessage: "Rekaman cukup baik untuk dianalisis.",
-    operatorAction: "Lanjutkan ke laporan.",
+    userMessage: OUTCOME_COPY[locale].validMessage,
+    operatorAction: OUTCOME_COPY[locale].validAction,
     invalidStages: [],
     debugEvidence: evidence,
   };

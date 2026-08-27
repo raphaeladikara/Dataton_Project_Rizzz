@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 import type { FrameSample } from "../capture/frameTrace";
 import type { Point } from "../domain/types";
 
@@ -234,16 +235,22 @@ export type RegisteredReplayOrchestration =
  * replay pipeline where null deliberately means "use synthetic points" for the
  * three ordinary preview scenarios.
  */
+const LOAD_FAILED: Record<Locale, (label: string) => string> = {
+  id: (label) => `Rekaman terdaftar “${label}” tidak dapat dimuat. Periksa berkas replay lalu coba lagi.`,
+  en: (label) => `The registered recording “${label}” could not be loaded. Check the replay file, then try again.`,
+};
+
 export async function orchestrateRegisteredReplay(
   entry: RecordingEntry,
   initialize: (recording: RecordedSession) => void,
   fetcher: typeof fetch = fetch,
+  locale: Locale = DEFAULT_LOCALE,
 ): Promise<RegisteredReplayOrchestration> {
   const recording = await loadRecording(entry.file, fetcher);
   if (!recording) {
     return {
       ok: false,
-      message: `Rekaman terdaftar “${entry.label}” tidak dapat dimuat. Periksa berkas replay lalu coba lagi.`,
+      message: LOAD_FAILED[locale](entry.label),
     };
   }
   initialize(recording);

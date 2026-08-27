@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { LocaleHtmlLang } from "../src/i18n/LocaleHtmlLang";
 
 // Self-hosted by next/font at build time, so the PWA keeps working offline.
 const display = Fraunces({
@@ -60,7 +61,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <LocaleHtmlLang />
+        {children}
+      </body>
     </html>
   );
 }

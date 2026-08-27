@@ -2,7 +2,62 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const page = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+import { dictionary } from "../src/i18n/dictionary";
+
+const pageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+/**
+ * The copy these contracts guard moved into the message dictionary when the app
+ * gained a second language. The guarantees are unchanged — the app still says
+ * these sentences — so, as when the report's notice copy moved into a pure
+ * module, the assertions follow the copy.
+ *
+ * Rather than weaken every regex to look for a key, this resolves the source
+ * back into what a reader sees: each `t("some.key")` becomes its Indonesian
+ * value. A key that does not exist resolves to nothing and leaves the call
+ * untouched, so a typo still fails the contract instead of quietly passing.
+ */
+function renderIndonesian(source: string): string {
+  const resolve = (key: string): string | undefined =>
+    (dictionary.id as Record<string, string>)[key];
+
+  // The variables a call interpolates are kept alongside the resolved sentence,
+  // because several contracts here exist precisely to check that a number is
+  // derived rather than retyped — deleting the expression would delete the
+  // thing being guarded.
+  const single = (whole: string, key: string, vars: string | undefined) => {
+    const value = resolve(key);
+    return value === undefined ? whole : vars ? `${value} ${vars}` : value;
+  };
+  // A conditional key — `t(cond ? "a" : "b")` — renders both sides, since
+  // either can reach the screen.
+  const either = (whole: string, a: string, b: string) => {
+    const first = resolve(a);
+    const second = resolve(b);
+    return first !== undefined && second !== undefined ? `${first} ${second}` : whole;
+  };
+
+  const rendered = source
+    // The JSX-interpolated forms first, so the surrounding braces go with them
+    // and `>{t("nav.evidence")}<` becomes `>Bukti<` rather than `>{Bukti}<`.
+    .replace(/\{t\(\s*"([^"]+)"\s*(?:,\s*(\{[^{}]*\}))?\s*\)\}/g, single)
+    .replace(/\{t\(\s*[^(){}"]*\?\s*"([^"]+)"\s*:\s*"([^"]+)"\s*\)\}/g, either)
+    // Then the bare forms, in attributes and expressions.
+    .replace(/t\(\s*"([^"]+)"\s*(?:,\s*(\{[^{}]*\}))?\s*\)/g, single)
+    .replace(/t\(\s*[^(){}"]*\?\s*"([^"]+)"\s*:\s*"([^"]+)"\s*\)/g, either);
+
+  // Tables that hold keys and resolve them at render — the session rail, the
+  // admin evidence rows, the design-choice cards — never spell the sentence at
+  // the call site. Their keys still appear as literals here, so every key the
+  // file mentions contributes its sentence.
+  const mentioned = [...source.matchAll(/"([a-z][A-Za-z]*(?:\.[A-Za-z][A-Za-z0-9]*)+)"/g)]
+    .map((match) => resolve(match[1]))
+    .filter((value): value is string => value !== undefined);
+
+  return mentioned.length ? `${rendered}\n${mentioned.join("\n")}` : rendered;
+}
+
+const page = renderIndonesian(pageSource);
 const stimulusProtocol = readFileSync(new URL("../src/stimulus/protocol.ts", import.meta.url), "utf8");
 const sessionCss = readFileSync(new URL("../app/session.css", import.meta.url), "utf8");
 // The report's notice copy moved into a pure module when the three stacked
@@ -14,8 +69,11 @@ const chromeCss = readFileSync(new URL("../app/chrome.css", import.meta.url), "u
 const validationCss = readFileSync(new URL("../app/validation/validation.module.css", import.meta.url), "utf8");
 const adminCss = readFileSync(new URL("../app/admin/admin.module.css", import.meta.url), "utf8");
 const sw = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
-const adminConsole = readFileSync(new URL("../app/admin/admin-console.tsx", import.meta.url), "utf8");
-const heroDevice = readFileSync(new URL("../src/ui/hero-device.tsx", import.meta.url), "utf8");
+const adminConsole = renderIndonesian(
+  readFileSync(new URL("../app/admin/admin-console.tsx", import.meta.url), "utf8"),
+);
+const heroDeviceSource = readFileSync(new URL("../src/ui/hero-device.tsx", import.meta.url), "utf8");
+const heroDevice = renderIndonesian(heroDeviceSource);
 const gateBPublic = readFileSync(new URL("../public/validation/gate-b-public.json", import.meta.url), "utf8");
 
 function cssRule(source: string, selector: string) {
@@ -88,7 +146,8 @@ test("hero animation mirrors the complete child-first session flow", () => {
   // drawing the four-corner square while the square was the reason live
   // sessions were coming back unscorable.
   assert.match(heroDevice, /CALIBRATION_TARGETS = CHILD_TARGETS\.map/);
-  assert.match(heroDevice, /Adegan \{stimulusScene\} dari 10/);
+  assert.match(dictionary.id["hero.stimulus.scene"], /Adegan \{index\} dari 10/);
+  assert.match(heroDeviceSource, /"hero\.stimulus\.scene", \{ index: stimulusScene \}/);
   assert.doesNotMatch(heroDevice, /SCANPATH|heroBoardPath/);
 });
 
@@ -266,8 +325,10 @@ test("the only automatic referral trigger is the published GeoPref threshold", (
   // ordinary session. The property that has to survive the move: the field
   // referral label is reachable from `emitsReferral` and from nothing else.
   const badge = readFileSync(new URL("../src/outcome/reportBadge.ts", import.meta.url), "utf8");
-  assert.match(badge, /if \(input\.outcome\.emitsReferral\) return \{ tone: "refer", label: "PERIKSA LANJUT" \}/);
-  assert.equal((badge.match(/label: "PERIKSA LANJUT"/g) ?? []).length, 1);
+  assert.match(badge, /if \(input\.outcome\.emitsReferral\) return \{ tone: "refer", label: copy\.refer \}/);
+  assert.equal((badge.match(/label: copy\.refer/g) ?? []).length, 1);
+  assert.equal((badge.match(/"PERIKSA LANJUT"/g) ?? []).length, 1);
+  assert.match(badge, /refer: "PERIKSA LANJUT"/);
   assert.match(page, /className=\{`decisionBadge \$\{badge\.tone\}`\}/);
   const outcome = readFileSync(new URL("../src/outcome/sessionOutcome.ts", import.meta.url), "utf8");
   assert.match(outcome, /emitsReferral: true/);
@@ -325,7 +386,9 @@ test("stated session duration is derived from the protocol, never retyped", asyn
   assert.match(adminConsole, /STIMULUS_TOTAL_SECONDS/);
   assert.match(page, /stimulusSeconds\(sessionStimulusPhases\(/);
   assert.doesNotMatch(page, /STIMULUS_TOTAL_SECONDS/);
-  assert.match(page, /baterai pengukuran \{sessionSeconds\} detik/i);
+  assert.match(dictionary.id["stimulus.noteChild"], /baterai pengukuran berlangsung \{seconds\} detik/i);
+  assert.match(dictionary.id["stimulus.noteAdult"], /baterai pengukuran berlangsung \{seconds\} detik/i);
+  assert.match(pageSource, /"stimulus\.note(?:Adult|Child)", \{ seconds: sessionSeconds \}/);
   assert.match(page, /Total waktu kunjungan juga mencakup persetujuan, penyiapan, dan kalibrasi/);
 });
 
@@ -416,7 +479,8 @@ test("the report can be handed over on paper, not only as audit.json", () => {
   assert.match(page, /validityCanScore=\{Boolean\(validity\?\.canScore\)\}/);
   assert.match(page, /<p className="printVerdict"[^>]*>\{verdict\.headline\}<\/p>/);
   assert.match(page, /verdict\.reasons\.filter\(\(reason\) => reason\.id === "posterior_odds"\)/);
-  assert.match(page, /verdict\.demonstration \? "Respons arsitektur peragaan"/);
+  assert.match(pageSource, /verdict\.demonstration \? t\("report\.verdictDemo"\)/);
+  assert.equal(dictionary.id["report.verdictDemo"], "Respons arsitektur peragaan");
 });
 
 test("deleting the in-memory audit log requires confirmation", () => {
@@ -581,7 +645,7 @@ test("a second failed field calibration offers only a non-research diagnostic ex
   );
   assert.match(
     calibrationSection,
-    /calibrationAttempts >= 2 \? \(sessionPurpose === "target_population_research"[\s\S]*?"Hentikan pengulangan\. Unduh log diagnostik lalu akhiri tes\."/,
+    /calibrationAttempts >= 2 \? t\(sessionPurpose === "target_population_research" \? "calib\.stopResearch"/,
   );
   assert.doesNotMatch(calibrationSection, /downloadCurrentAudit\("research_analysis"\)/);
 });

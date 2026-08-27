@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 /**
  * The presenter-facing mirror, alive only during a stage demonstration.
  *
@@ -49,55 +50,119 @@ export type StageMirror = {
   notice: string;
 };
 
-const NOTICE = "Cermin panggung · tidak ada angka hasil di sini, dan layar peserta tidak menampilkannya.";
+const COPY: Record<Locale, {
+  notice: string;
+  cueActive: string;
+  cueOstensive: string;
+  cueNone: string;
+  paused: string;
+  faceLost: string;
+  recording: (phase: string) => string;
+  thisSection: string;
+  gazeUnclear: string;
+  labelPhase: string;
+  labelSignal: string;
+  labelCue: string;
+  labelElapsed: string;
+  phasePreparing: string;
+  signalLost: string;
+  signalRead: string;
+  signalUnread: string;
+  elapsed: (seconds: number, total: number) => string;
+}> = {
+  id: {
+    notice: "Cermin panggung · tidak ada angka hasil di sini, dan layar peserta tidak menampilkannya.",
+    cueActive: "isyarat arah aktif",
+    cueOstensive: "kontak mata pembuka",
+    cueNone: "belum ada isyarat",
+    paused: "Dijeda. Pengukuran berhenti; tidak ada sampel yang diambil selama jeda.",
+    faceLost: "Wajah sedang di luar bingkai. Sampel pada detik-detik ini tidak masuk hitungan.",
+    recording: (phase) => `Sedang merekam ${phase}. Arah pandangan terbaca dan tersimpan sebagai sampel.`,
+    thisSection: "bagian ini",
+    gazeUnclear: "Wajah terlihat, tetapi arah pandangan belum cukup jelas untuk dipakai. Sampelnya ditolak, bukan ditebak.",
+    labelPhase: "Bagian",
+    labelSignal: "Arah pandangan",
+    labelCue: "Isyarat",
+    labelElapsed: "Berjalan",
+    phasePreparing: "bersiap",
+    signalLost: "wajah di luar bingkai",
+    signalRead: "terbaca",
+    signalUnread: "belum terbaca",
+    elapsed: (seconds, total) => `${seconds} / ${total} detik`,
+  },
+  en: {
+    notice: "Stage mirror · no result figures here, and the participant's screen does not show them.",
+    cueActive: "directional cue active",
+    cueOstensive: "opening eye contact",
+    cueNone: "no cue yet",
+    paused: "Paused. Measurement has stopped; no samples are taken while paused.",
+    faceLost: "The face is out of frame. Samples during these seconds do not count.",
+    recording: (phase) => `Recording ${phase}. Gaze direction is reading and being stored as samples.`,
+    thisSection: "this section",
+    gazeUnclear: "The face is visible, but the gaze direction is not clear enough to use. Those samples are rejected, not guessed.",
+    labelPhase: "Section",
+    labelSignal: "Gaze direction",
+    labelCue: "Cue",
+    labelElapsed: "Elapsed",
+    phasePreparing: "getting ready",
+    signalLost: "face out of frame",
+    signalRead: "reading",
+    signalUnread: "not reading yet",
+    elapsed: (seconds, total) => `${seconds} / ${total} seconds`,
+  },
+};
 
 function elapsedSeconds(progress: number, totalSeconds: number): number {
   const clamped = Math.min(100, Math.max(0, progress));
   return Math.round((clamped / 100) * totalSeconds);
 }
 
-export function buildStageMirror(input: StageMirrorInput): StageMirror | null {
+export function buildStageMirror(
+  input: StageMirrorInput,
+  locale: Locale = DEFAULT_LOCALE,
+): StageMirror | null {
   if (!input.isStageDemo || !input.running) return null;
+  const copy = COPY[locale];
 
   const seconds = elapsedSeconds(input.progress, input.totalSeconds);
   const tracked = input.tracking?.accepted === true;
   const cue = input.cueActive
-    ? "isyarat arah aktif"
+    ? copy.cueActive
     : input.ostensiveActive
-      ? "kontak mata pembuka"
-      : "belum ada isyarat";
+      ? copy.cueOstensive
+      : copy.cueNone;
 
   const narration = input.paused
-    ? "Dijeda. Pengukuran berhenti; tidak ada sampel yang diambil selama jeda."
+    ? copy.paused
     : !input.tracking
-      ? "Wajah sedang di luar bingkai. Sampel pada detik-detik ini tidak masuk hitungan."
+      ? copy.faceLost
       : tracked
-        ? `Sedang merekam ${input.phaseLabel ?? "bagian ini"}. Arah pandangan terbaca dan tersimpan sebagai sampel.`
-        : "Wajah terlihat, tetapi arah pandangan belum cukup jelas untuk dipakai. Sampelnya ditolak, bukan ditebak.";
+        ? copy.recording(input.phaseLabel ?? copy.thisSection)
+        : copy.gazeUnclear;
 
   return {
     narration,
     rows: [
       {
         id: "phase",
-        label: "Bagian",
-        value: input.phaseLabel ?? "bersiap",
+        label: copy.labelPhase,
+        value: input.phaseLabel ?? copy.phasePreparing,
         tone: input.paused ? "waiting" : "live",
       },
       {
         id: "signal",
-        label: "Arah pandangan",
-        value: !input.tracking ? "wajah di luar bingkai" : tracked ? "terbaca" : "belum terbaca",
+        label: copy.labelSignal,
+        value: !input.tracking ? copy.signalLost : tracked ? copy.signalRead : copy.signalUnread,
         tone: !input.tracking ? "lost" : tracked ? "live" : "waiting",
       },
-      { id: "cue", label: "Isyarat", value: cue, tone: input.cueActive ? "live" : "waiting" },
+      { id: "cue", label: copy.labelCue, value: cue, tone: input.cueActive ? "live" : "waiting" },
       {
         id: "elapsed",
-        label: "Berjalan",
-        value: `${seconds} / ${input.totalSeconds} detik`,
+        label: copy.labelElapsed,
+        value: copy.elapsed(seconds, input.totalSeconds),
         tone: input.paused ? "waiting" : "live",
       },
     ],
-    notice: NOTICE,
+    notice: copy.notice,
   };
 }

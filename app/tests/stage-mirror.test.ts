@@ -72,8 +72,10 @@ test("the stimulus screen renders the mirror behind isStageDemo and nothing else
 
   assert.ok(usage, "the stimulus stage must render the mirror from a single guarded expression");
   // The gate belongs in the builder call, so there is exactly one place to
-  // check that a field session can never reach it.
-  const build = source.match(/buildStageMirror\(\{[\s\S]{0,400}?\}\)/);
+  // check that a field session can never reach it. The literal no longer has
+  // to be the call's last argument — the builder also takes a locale — so the
+  // match stops at the closing brace rather than at the closing paren.
+  const build = source.match(/buildStageMirror\(\{[\s\S]{0,700}?\n {2}\}/);
   assert.ok(build, "buildStageMirror must be called with an object literal that names its gate");
   assert.match(build[0], /isStageDemo/);
   assert.match(build[0], /running:\s*busy/);

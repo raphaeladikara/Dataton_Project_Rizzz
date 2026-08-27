@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 export const MEDIA_READINESS_STATES = [
   "loading",
   "ready",
@@ -76,26 +77,48 @@ export function isMediaFailure(status: MediaReadinessStatus): status is MediaFai
   return TERMINAL.has(status);
 }
 
-export function mediaFailure(status: MediaFailureStatus): MediaFailure {
-  if (status === "failed") {
-    return {
-      reason: "GEOPREF_MEDIA_FAILED",
+const FAILURE_COPY: Record<Locale, Record<MediaFailureStatus, { userMessage: string; operatorAction: string }>> = {
+  id: {
+    failed: {
       userMessage: "Video stimulus tidak dapat diputar. Hasil tidak dibuat agar tidak menyesatkan.",
       operatorAction: "Periksa aset video pada perangkat, lalu mulai sesi baru.",
-    };
-  }
-  if (status === "timed_out") {
-    return {
-      reason: "GEOPREF_MEDIA_TIMED_OUT",
+    },
+    timed_out: {
       userMessage: "Video stimulus terlalu lama dimuat. Hasil tidak dibuat agar tidak menyesatkan.",
       operatorAction: "Tutup aplikasi lain yang sedang memutar media, lalu mulai sesi baru.",
-    };
-  }
-  return {
-    reason: "GEOPREF_MEDIA_INTERRUPTED",
-    userMessage: "Layar sempat ditinggalkan saat stimulus berlangsung. Hasil tidak dibuat agar tidak menyesatkan.",
-    operatorAction: "Pastikan layar tetap terbuka selama tes, lalu mulai sesi baru.",
-  };
+    },
+    interrupted: {
+      userMessage: "Layar sempat ditinggalkan saat stimulus berlangsung. Hasil tidak dibuat agar tidak menyesatkan.",
+      operatorAction: "Pastikan layar tetap terbuka selama tes, lalu mulai sesi baru.",
+    },
+  },
+  en: {
+    failed: {
+      userMessage: "The stimulus video could not play. No result is produced, so that nothing misleading is reported.",
+      operatorAction: "Check the video assets on the device, then start a new session.",
+    },
+    timed_out: {
+      userMessage: "The stimulus video took too long to load. No result is produced, so that nothing misleading is reported.",
+      operatorAction: "Close other applications playing media, then start a new session.",
+    },
+    interrupted: {
+      userMessage: "The screen was left during the stimulus. No result is produced, so that nothing misleading is reported.",
+      operatorAction: "Keep the screen open throughout the test, then start a new session.",
+    },
+  },
+};
+
+const FAILURE_REASON: Record<MediaFailureStatus, MediaFailure["reason"]> = {
+  failed: "GEOPREF_MEDIA_FAILED",
+  timed_out: "GEOPREF_MEDIA_TIMED_OUT",
+  interrupted: "GEOPREF_MEDIA_INTERRUPTED",
+};
+
+export function mediaFailure(
+  status: MediaFailureStatus,
+  locale: Locale = DEFAULT_LOCALE,
+): MediaFailure {
+  return { reason: FAILURE_REASON[status], ...FAILURE_COPY[locale][status] };
 }
 
 type MediaWaiter = {

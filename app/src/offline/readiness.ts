@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 export const OFFLINE_CACHE_VERSION = "neurogaze-shell-v21-brand-mark";
 
 export type OfflineReadinessStatus = "online" | "preparing" | "ready" | "incomplete";
@@ -14,14 +15,104 @@ export type OfflineReadiness = {
   status: OfflineReadinessStatus;
   label: string;
   detail: string;
+  /**
+   * Why the badge says what it says, as a code rather than a sentence.
+   *
+   * The monitor that produces these runs inside an effect that is set up once,
+   * so a readiness computed at mount would keep its original language for the
+   * life of the page. `label` and `detail` stay on the object — the contract
+   * tests read them, and callers with no locale of their own still get a usable
+   * sentence — but the chrome renders from this code instead.
+   */
+  reason: OfflineReadinessReason;
 };
 
-export function deriveOfflineReadiness(snapshot: OfflineReadinessSnapshot): OfflineReadiness {
+export type OfflineReadinessReason =
+  | "ready"
+  | "unsupported_online"
+  | "unsupported_offline"
+  | "registration_failed"
+  | "verification_timeout"
+  | "assets_missing"
+  | "needs_connection"
+  | "preparing"
+  | "not_checked";
+
+/** Renders a reason code in the reader's language. */
+export function offlineReadinessCopy(
+  reason: OfflineReadinessReason,
+  locale: Locale,
+): { label: string; detail: string } {
+  const copy = COPY[locale];
+  switch (reason) {
+    case "ready": return { label: copy.ready, detail: copy.readyDetail };
+    case "unsupported_online": return { label: copy.online, detail: copy.unsupported };
+    case "unsupported_offline": return { label: copy.incomplete, detail: copy.unsupported };
+    case "registration_failed": return { label: copy.incomplete, detail: copy.registrationFailed };
+    case "verification_timeout": return { label: copy.incomplete, detail: copy.timeout };
+    case "assets_missing": return { label: copy.incomplete, detail: copy.assetsMissing };
+    case "needs_connection": return { label: copy.incomplete, detail: copy.needsConnection };
+    case "preparing": return { label: copy.preparing, detail: copy.preparingDetail };
+    case "not_checked": return { label: copy.online, detail: copy.notChecked };
+  }
+}
+
+
+const COPY: Record<Locale, {
+  ready: string;
+  readyDetail: string;
+  online: string;
+  incomplete: string;
+  unsupported: string;
+  registrationFailed: string;
+  timeout: string;
+  assetsMissing: string;
+  needsConnection: string;
+  preparing: string;
+  preparingDetail: string;
+  notChecked: string;
+}> = {
+  id: {
+    ready: "Siap luring",
+    readyDetail: "Semua aset penting sudah tersimpan di perangkat.",
+    online: "Online",
+    incomplete: "Aset luring belum lengkap",
+    unsupported: "Peramban ini tidak mendukung penyimpanan luring.",
+    registrationFailed: "Pendaftaran penyimpanan luring gagal. Coba muat ulang saat terhubung.",
+    timeout: "Pemeriksaan aset luring tidak merespons. Coba muat ulang.",
+    assetsMissing: "Satu atau lebih aset penting belum tersimpan.",
+    needsConnection: "Hubungkan perangkat untuk menyelesaikan unduhan aset luring.",
+    preparing: "Menyiapkan luring",
+    preparingDetail: "Mengunduh dan memeriksa aset penting di latar belakang.",
+    notChecked: "Kesiapan luring belum diperiksa.",
+  },
+  en: {
+    ready: "Offline-ready",
+    readyDetail: "Every critical asset is stored on the device.",
+    online: "Online",
+    incomplete: "Offline assets incomplete",
+    unsupported: "This browser does not support offline storage.",
+    registrationFailed: "Offline storage registration failed. Reload while connected.",
+    timeout: "The offline asset check did not respond. Try reloading.",
+    assetsMissing: "One or more critical assets are not stored yet.",
+    needsConnection: "Connect the device to finish downloading the offline assets.",
+    preparing: "Preparing offline",
+    preparingDetail: "Downloading and verifying critical assets in the background.",
+    notChecked: "Offline readiness has not been checked.",
+  },
+};
+
+export function deriveOfflineReadiness(
+  snapshot: OfflineReadinessSnapshot,
+  locale: Locale = DEFAULT_LOCALE,
+): OfflineReadiness {
+  const copy = COPY[locale];
   if (snapshot.controlled && snapshot.verification === "verified") {
     return {
       status: "ready",
-      label: "Siap luring",
-      detail: "Semua aset penting sudah tersimpan di perangkat.",
+      label: copy.ready,
+      detail: copy.readyDetail,
+      reason: "ready",
     };
   }
 
@@ -29,45 +120,51 @@ export function deriveOfflineReadiness(snapshot: OfflineReadinessSnapshot): Offl
     return snapshot.online
       ? {
           status: "online",
-          label: "Online",
-          detail: "Peramban ini tidak mendukung penyimpanan luring.",
+          label: copy.online,
+          detail: copy.unsupported,
+          reason: "unsupported_online",
         }
       : {
           status: "incomplete",
-          label: "Aset luring belum lengkap",
-          detail: "Peramban ini tidak mendukung penyimpanan luring.",
+          label: copy.incomplete,
+          detail: copy.unsupported,
+          reason: "unsupported_offline",
         };
   }
 
   if (snapshot.registration === "failed") {
     return {
       status: "incomplete",
-      label: "Aset luring belum lengkap",
-      detail: "Pendaftaran penyimpanan luring gagal. Coba muat ulang saat terhubung.",
+      label: copy.incomplete,
+      detail: copy.registrationFailed,
+      reason: "registration_failed",
     };
   }
 
   if (snapshot.verification === "timeout") {
     return {
       status: "incomplete",
-      label: "Aset luring belum lengkap",
-      detail: "Pemeriksaan aset luring tidak merespons. Coba muat ulang.",
+      label: copy.incomplete,
+      detail: copy.timeout,
+      reason: "verification_timeout",
     };
   }
 
   if (snapshot.verification === "incomplete") {
     return {
       status: "incomplete",
-      label: "Aset luring belum lengkap",
-      detail: "Satu atau lebih aset penting belum tersimpan.",
+      label: copy.incomplete,
+      detail: copy.assetsMissing,
+      reason: "assets_missing",
     };
   }
 
   if (!snapshot.online) {
     return {
       status: "incomplete",
-      label: "Aset luring belum lengkap",
-      detail: "Hubungkan perangkat untuk menyelesaikan unduhan aset luring.",
+      label: copy.incomplete,
+      detail: copy.needsConnection,
+      reason: "needs_connection",
     };
   }
 
@@ -78,15 +175,17 @@ export function deriveOfflineReadiness(snapshot: OfflineReadinessSnapshot): Offl
   ) {
     return {
       status: "preparing",
-      label: "Menyiapkan luring",
-      detail: "Mengunduh dan memeriksa aset penting di latar belakang.",
+      label: copy.preparing,
+      detail: copy.preparingDetail,
+      reason: "preparing",
     };
   }
 
   return {
     status: "online",
-    label: "Online",
-    detail: "Kesiapan luring belum diperiksa.",
+    label: copy.online,
+    detail: copy.notChecked,
+    reason: "not_checked",
   };
 }
 

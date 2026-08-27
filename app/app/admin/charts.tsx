@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import styles from "./charts.module.css";
+import { useT } from "../../src/i18n/useT";
+import { decimal } from "../../src/i18n/format";
 
 /**
  * Chart primitives for the technical panel.
@@ -51,13 +53,11 @@ export function useChartMotion() {
 // ── Formatting ──────────────────────────────────────────────────────────────
 
 /** Indonesian decimal comma. Every number rendered here goes through this. */
-export function num(value: number, digits = 1) {
-  return value.toFixed(digits).replace(".", ",");
-}
-
-export function pct(value: number, digits = 1) {
-  return `${num(value * 100, digits)}%`;
-}
+/**
+ * Formatters used to live here with a hard-coded comma separator. They now come
+ * from the i18n module, which picks the separator from the reader's locale
+ * instead of assuming one.
+ */
 
 // ── Frame ───────────────────────────────────────────────────────────────────
 
@@ -136,11 +136,12 @@ export function BarRows({
   /** "min" — bars must clear the rule. "max" — bars must stay under it. */
   thresholdSide?: "min" | "max";
 }) {
+  const { t, bcp47 } = useT();
   return (
     <div className={styles.bars}>
       {threshold !== undefined ? (
         <p className={styles.thresholdKey}>
-          <i /> {thresholdLabel ?? `Ambang ${num(threshold)}`}
+          <i /> {thresholdLabel ?? t("chart.threshold", { value: decimal(threshold, 1, bcp47) })}
         </p>
       ) : null}
       <div className={styles.barGrid}>
@@ -204,6 +205,7 @@ export function Donut({
   centreNote: string;
   size?: number;
 }) {
+  const { t, bcp47 } = useT();
   const stroke = 26;
   const radius = (size - stroke) / 2 - 1;
   const circumference = 2 * Math.PI * radius;
@@ -230,7 +232,11 @@ export function Donut({
         width={size}
         height={size}
         role="img"
-        aria-label={`Komposisi: ${slices.map((s) => `${s.label} ${num((s.value / total) * 100)}%`).join(", ")}`}
+        aria-label={t("chart.donutAria", {
+          parts: slices
+            .map((s) => t("chart.donutPart", { label: s.label, value: decimal((s.value / total) * 100, 1, bcp47) }))
+            .join(", "),
+        })}
       >
         <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
           {arcs.map((arc, index) => (
@@ -389,19 +395,20 @@ export function ConfusionMatrix({
   falsePositive: string;
   trueNegative: string;
 }) {
+  const { t } = useT();
   return (
     <div className={styles.matrixGrid}>
       <span className={styles.matrixCorner} />
-      <span className={styles.matrixHead}>Dirujuk</span>
-      <span className={styles.matrixHead}>Tidak dirujuk</span>
+      <span className={styles.matrixHead}>{t("chart.matrixReferred")}</span>
+      <span className={styles.matrixHead}>{t("chart.matrixNotReferred")}</span>
 
-      <span className={styles.matrixSide}>Sasaran</span>
-      <MatrixCell tone="good" value={truePositive} code="TP" label="terjaring" />
-      <MatrixCell tone="bad" value={falseNegative} code="FN" label="terlewat" />
+      <span className={styles.matrixSide}>{t("chart.matrixTarget")}</span>
+      <MatrixCell tone="good" value={truePositive} code="TP" label={t("chart.matrixCaught")} />
+      <MatrixCell tone="bad" value={falseNegative} code="FN" label={t("chart.matrixMissed")} />
 
-      <span className={styles.matrixSide}>Bukan sasaran</span>
-      <MatrixCell tone="warn" value={falsePositive} code="FP" label="rujukan keliru" />
-      <MatrixCell tone="calm" value={trueNegative} code="TN" label="tidak dirujuk" />
+      <span className={styles.matrixSide}>{t("chart.matrixNotTarget")}</span>
+      <MatrixCell tone="warn" value={falsePositive} code="FP" label={t("chart.matrixWrong")} />
+      <MatrixCell tone="calm" value={trueNegative} code="TN" label={t("chart.matrixCorrect")} />
     </div>
   );
 }
@@ -622,6 +629,9 @@ export function PpvCurve({
   specificity: number;
   prevalence: number;
 }) {
+  const { t, bcp47 } = useT();
+  /** Percentage with the reader's separator — used a dozen times in this one chart. */
+  const pctL = (value: number, digits = 1) => `${decimal(value * 100, digits, bcp47)}%`;
   const gradientId = useId();
   const svgRef = useRef<SVGSVGElement>(null);
   const [hover, setHover] = useState<{ x: number; p: number; ppv: number } | null>(null);
@@ -664,7 +674,12 @@ export function PpvCurve({
         className={styles.curve}
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={`Nilai prediktif positif turun dari ${pct(ppvAt(maxPrevalence))} pada prevalensi ${pct(maxPrevalence, 0)} ke ${pct(ppvAt(0.002))} pada prevalensi 0,2%.`}
+        aria-label={t("chart.ppvAria", {
+          high: pctL(ppvAt(maxPrevalence)),
+          highPrev: pctL(maxPrevalence, 0),
+          low: pctL(ppvAt(0.002)),
+          lowPrev: pctL(0.002, 1),
+        })}
         onPointerMove={track}
         onPointerLeave={() => setHover(null)}
       >
@@ -685,7 +700,7 @@ export function PpvCurve({
               y2={y(maxPpv * step)}
             />
             <text className={styles.tick} x={pad.left - 8} y={y(maxPpv * step) + 4} textAnchor="end">
-              {num(maxPpv * step * 100, 0)}%
+              {decimal(maxPpv * step * 100, 0, bcp47)}%
             </text>
           </g>
         ))}
@@ -698,15 +713,15 @@ export function PpvCurve({
 
         <text className={styles.tick} x={pad.left} y={height - 8}>0%</text>
         <text className={styles.tick} x={width - pad.right} y={height - 8} textAnchor="end">
-          {num(maxPrevalence * 100, 1)}%
+          {decimal(maxPrevalence * 100, 1, bcp47)}%
         </text>
         <text className={styles.axisTitle} x={width / 2} y={height - 8} textAnchor="middle">
-          prevalensi
+          {t("chart.ppvAxis")}
         </text>
       </svg>
       <p className={styles.curveRead}>
-        <b>{pct(active.ppv)}</b> PPV pada prevalensi {pct(active.p)}
-        <span>{hover ? "posisi kursor" : "skenario saat ini"}</span>
+        <b>{pctL(active.ppv)}</b> {t("chart.ppvRead", { prevalence: pctL(active.p) })}
+        <span>{t(hover ? "chart.ppvCursor" : "chart.ppvCurrent")}</span>
       </p>
     </div>
   );
@@ -727,6 +742,7 @@ export function FrameGeometry({
   panelLabelLeft: string;
   panelLabelRight: string;
 }) {
+  const { t, bcp47 } = useT();
   // Two panels, side by side, together covering panelShare of a 640x360 frame.
   const frameW = 640;
   const frameH = 360;
@@ -743,7 +759,7 @@ export function FrameGeometry({
       className={styles.frame}
       viewBox={`0 0 ${frameW} ${frameH}`}
       role="img"
-      aria-label={`Dua panel menempati ${num(panelShare * 100)}% luas bingkai 640 kali 360; sisanya kotak hitam.`}
+      aria-label={t("chart.frameAria", { share: decimal(panelShare * 100, 1, bcp47) })}
     >
       <rect x="0" y="0" width={frameW} height={frameH} rx="10" className={styles.frameBg} />
       <rect x={leftX} y={top} width={panelW} height={panelH} rx="4" className={styles.framePanel} data-side="left" />
@@ -755,7 +771,7 @@ export function FrameGeometry({
         {panelLabelRight}
       </text>
       <text className={styles.frameNote} x="16" y="28">
-        640 × 360 · {num(panelShare * 100)}% terpakai
+        {t("chart.frameUsed", { share: decimal(panelShare * 100, 1, bcp47) })}
       </text>
     </svg>
   );
@@ -769,6 +785,7 @@ export function SubtenseCompare({
   reference: { w: number; h: number; label: string };
   shipped: { w: number; h: number; label: string };
 }) {
+  const { t, bcp47 } = useT();
   const scale = 220 / reference.w;
   const width = 300;
   const height = reference.h * scale + 46;
@@ -782,7 +799,12 @@ export function SubtenseCompare({
       className={styles.subtense}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={`Panel yang dikirim menyubtensi ${num(shipped.w)} kali ${num(shipped.h)} derajat, dibandingkan ${num(reference.w)} kali ${num(reference.h)} derajat pada protokol terbit.`}
+      aria-label={t("chart.subtenseAria", {
+        shippedW: decimal(shipped.w, 1, bcp47),
+        shippedH: decimal(shipped.h, 1, bcp47),
+        refW: decimal(reference.w, 1, bcp47),
+        refH: decimal(reference.h, 1, bcp47),
+      })}
     >
       <rect x="10" y="10" width={refW} height={refH} rx="4" className={styles.subtenseRef} />
       <rect x="10" y={10 + refH - shipH} width={shipW} height={shipH} rx="4" className={styles.subtenseShipped} />
@@ -807,6 +829,7 @@ export function TrialStrip({
   bands: readonly { label: string; fromMs: number; toMs: number; tone: "rest" | "ostensive" | "response" }[];
   markers: readonly { label: string; atMs: number }[];
 }) {
+  const { t, bcp47 } = useT();
   return (
     <div className={styles.trial}>
       <div
@@ -821,7 +844,11 @@ export function TrialStrip({
               className={styles.trialBand}
               data-tone={band.tone}
               style={{ "--i": index } as React.CSSProperties}
-              title={`${band.label}: ${num(band.fromMs / 1000, 1)}–${num(band.toMs / 1000, 1)} dtk`}
+              title={t("chart.bandTitle", {
+                label: band.label,
+                from: decimal(band.fromMs / 1000, 1, bcp47),
+                to: decimal(band.toMs / 1000, 1, bcp47),
+              })}
             >
               {/* A band narrower than this cannot hold its name without clipping
                   it, so the name moves to the legend rather than losing letters. */}
@@ -837,7 +864,7 @@ export function TrialStrip({
             <small>{marker.label}</small>
           </span>
         ))}
-        <span className={styles.trialEnd}>{num(totalMs / 1000, 1)} dtk</span>
+        <span className={styles.trialEnd}>{t("chart.trialEnd", { value: decimal(totalMs / 1000, 1, bcp47) })}</span>
       </div>
     </div>
   );

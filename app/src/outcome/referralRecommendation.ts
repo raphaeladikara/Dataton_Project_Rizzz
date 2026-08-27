@@ -1,5 +1,6 @@
 import { isDemonstrationOutcome, type GeoprefOutcome } from "../geopref/score";
 import type { JointAttentionVerdict } from "../inference/jointAttention";
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 
 /**
  * The composite follow-up rule.
@@ -173,11 +174,128 @@ export type ReferralRecommendation = {
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
 
-const WEN = "Wen dkk. 2022, Scientific Reports, n=1.863, usia 12–48 bulan";
-const RJA = "Paradigma responding joint attention (Billeci dkk. 2019); uji tanda dalam-subjek";
+/**
+ * Everything this rule can say about a session, in both languages.
+ *
+ * `SignalStatus` itself stays Indonesian — "menyimpang", "normal",
+ * "tidak_dapat_dinilai" are codes the audit log and the contract tests match
+ * on, not text anybody reads. What gets translated is the sentence attached to
+ * each code.
+ */
+type ReferralCopy = {
+  wen: string;
+  rja: string;
+  geometricLabel: string;
+  cueLabel: string;
+  notMeasured: string;
+  geoMeasured: (value: string, spread: string) => string;
+  geoSpread: (low: string, high: string) => string;
+  geoNoDwell: string;
+  geoStraddles: (threshold: string) => string;
+  geoAbbreviated: string;
+  geoDemoCaveat: string;
+  geoDeviant: (threshold: string) => string;
+  geoNormal: (threshold: string) => string;
+  cueTrialsRead: (count: number) => string;
+  cueTooFew: string;
+  cueFollowed: (followed: number, scored: number) => string;
+  cueNormal: string;
+  cueIndistinguishable: string;
+  cueDeviant: string;
+  headlineRefer: (deviant: number, assessable: number) => string;
+  headlineNone: string;
+  headlinePartialDeviant: (deviant: number) => string;
+  headlinePartialClean: string;
+  headlineBelowThreshold: (deviant: number, assessable: number, threshold: number) => string;
+  headlineNoDeviation: (assessable: number) => string;
+};
 
-function geometricSignal(geopref: ReferralInput["geopref"]): ReferralSignal {
-  const base = { id: "geometric_preference" as const, label: "Preferensi geometrik", source: WEN };
+const COPY: Record<Locale, ReferralCopy> = {
+  id: {
+    wen: "Wen dkk. 2022, Scientific Reports, n=1.863, usia 12–48 bulan",
+    rja: "Paradigma responding joint attention (Billeci dkk. 2019); uji tanda dalam-subjek",
+    geometricLabel: "Preferensi geometrik",
+    cueLabel: "Mengikuti isyarat arah",
+    notMeasured: "tidak terukur",
+    geoMeasured: (value, spread) => `${value} waktu pada pola geometrik${spread}`,
+    geoSpread: (low, high) => ` (95% CI ${low}–${high})`,
+    geoNoDwell: "Waktu tatap pada kedua panel tidak cukup untuk dihitung.",
+    geoStraddles: (threshold) =>
+      `Selang kepercayaan sesi ini melintasi ambang ${threshold}, jadi angkanya tidak cukup pasti untuk diletakkan di salah satu sisi. Ini batas panjang pengukuran, bukan temuan tentang anak.`,
+    geoAbbreviated:
+      "Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang 69% tidak berlaku pada sesi ini.",
+    geoDemoCaveat:
+      " Ambang diterapkan dalam mode demonstrasi pada klip yang lebih pendek daripada protokol terbit, jadi angka ini tidak sah untuk keputusan apa pun.",
+    geoDeviant: (threshold) =>
+      `Seluruh selang kepercayaan berada di atas ambang terbit ${threshold}. Pola ini jarang muncul pada anak tanpa ASD (spesifisitas 98%).`,
+    geoNormal: (threshold) =>
+      `Seluruh selang kepercayaan berada di bawah ambang terbit ${threshold}. Ambang ini melewatkan sebagian besar anak ASD, jadi hasil ini bukan tanda aman.`,
+    cueTrialsRead: (count) => `${count} percobaan terbaca`,
+    cueTooFew: "Percobaan yang terbaca terlalu sedikit untuk diuji.",
+    cueFollowed: (followed, scored) => `${followed} dari ${scored} percobaan`,
+    cueNormal:
+      "Tatapan ke target sesudah isyarat melebihi pembanding pra-isyarat pada anak yang sama, lebih sering daripada kebetulan.",
+    cueIndistinguishable:
+      "Arah responsnya benar, tetapi delapan percobaan tidak cukup untuk membuktikannya di atas kebetulan. Ini batas sesi, bukan temuan tentang anak.",
+    cueDeviant:
+      "Tatapan sesudah isyarat tidak pernah melebihi pembanding pra-isyarat pada anak yang sama, dan target diikuti pada paling banyak separuh percobaan.",
+    headlineRefer: (deviant, assessable) =>
+      `Disarankan pemeriksaan lanjutan · ${deviant} dari ${assessable} sinyal menyimpang`,
+    headlineNone: "Belum ada sinyal yang dapat dinilai pada sesi ini",
+    headlinePartialDeviant: (deviant) =>
+      `${deviant} sinyal menyimpang, dan sinyal pembandingnya tidak dapat dinilai · belum cukup untuk menyarankan rujukan`,
+    headlinePartialClean:
+      "Sinyal yang dapat dinilai tidak menyimpang, dan sinyal pembandingnya tidak dapat dinilai",
+    headlineBelowThreshold: (deviant, assessable, threshold) =>
+      `${deviant} dari ${assessable} sinyal menyimpang · di bawah batas ${threshold} untuk menyarankan rujukan`,
+    headlineNoDeviation: (assessable) =>
+      `Tidak ada sinyal yang menyimpang · ${assessable} dari ${assessable} sinyal dinilai`,
+  },
+  en: {
+    wen: "Wen et al. 2022, Scientific Reports, n=1,863, ages 12–48 months",
+    rja: "Responding joint attention paradigm (Billeci et al. 2019); within-subject sign test",
+    geometricLabel: "Geometric preference",
+    cueLabel: "Following the directional cue",
+    notMeasured: "not measured",
+    geoMeasured: (value, spread) => `${value} of gaze time on the geometric pattern${spread}`,
+    geoSpread: (low, high) => ` (95% CI ${low}–${high})`,
+    geoNoDwell: "Gaze time across the two panels is insufficient to compute.",
+    geoStraddles: (threshold) =>
+      `This session's confidence interval crosses the ${threshold} threshold, so the figure is not certain enough to place on either side. That is a limit of the measurement's length, not a finding about the child.`,
+    geoAbbreviated:
+      "The available clip is shorter than the published protocol, so the 69% threshold does not apply to this session.",
+    geoDemoCaveat:
+      " The threshold was applied in demonstration mode on a clip shorter than the published protocol, so this figure is not valid for any decision.",
+    geoDeviant: (threshold) =>
+      `The entire confidence interval sits above the published ${threshold} threshold. This pattern is uncommon in children without ASD (specificity 98%).`,
+    geoNormal: (threshold) =>
+      `The entire confidence interval sits below the published ${threshold} threshold. This threshold misses most children with ASD, so this result is not an all-clear.`,
+    cueTrialsRead: (count) => `${count} trials read`,
+    cueTooFew: "Too few trials were readable to test.",
+    cueFollowed: (followed, scored) => `${followed} of ${scored} trials`,
+    cueNormal:
+      "Gaze to the target after the cue exceeded the same child's pre-cue baseline more often than chance.",
+    cueIndistinguishable:
+      "The response points the right way, but eight trials are not enough to establish it above chance. That is a limit of the session, not a finding about the child.",
+    cueDeviant:
+      "Gaze after the cue never exceeded the same child's pre-cue baseline, and the target was followed on at most half the trials.",
+    headlineRefer: (deviant, assessable) =>
+      `Follow-up examination recommended · ${deviant} of ${assessable} signals deviant`,
+    headlineNone: "No signal is assessable in this session yet",
+    headlinePartialDeviant: (deviant) =>
+      `${deviant} signal deviant, and its counterpart is not assessable · not enough to recommend a referral`,
+    headlinePartialClean:
+      "The assessable signal is not deviant, and its counterpart is not assessable",
+    headlineBelowThreshold: (deviant, assessable, threshold) =>
+      `${deviant} of ${assessable} signals deviant · below the ${threshold}-signal cutoff for recommending a referral`,
+    headlineNoDeviation: (assessable) =>
+      `No signal is deviant · ${assessable} of ${assessable} signals assessed`,
+  },
+};
+
+function geometricSignal(geopref: ReferralInput["geopref"], locale: Locale): ReferralSignal {
+  const copy = COPY[locale];
+  const base = { id: "geometric_preference" as const, label: copy.geometricLabel, source: copy.wen };
   // The 69% cutoff belongs to the published 60–90 s protocol. On a shortened
   // clip the comparison is not the one Wen et al. validated, so the signal is
   // unassessed. Calling it normal would be reading reassurance into a
@@ -194,13 +312,16 @@ function geometricSignal(geopref: ReferralInput["geopref"]): ReferralSignal {
       ...base,
       status: "tidak_dapat_dinilai",
       measured: geopref?.percentGeometric === null || !geopref
-        ? "tidak terukur"
-        : `${percent(geopref.percentGeometric)} waktu pada pola geometrik${interval ? ` (95% CI ${percent(interval[0])}–${percent(interval[1])})` : ""}`,
+        ? copy.notMeasured
+        : copy.geoMeasured(
+            percent(geopref.percentGeometric),
+            interval ? copy.geoSpread(percent(interval[0]), percent(interval[1])) : "",
+          ),
       reason: !geopref || geopref.percentGeometric === null
-        ? "Waktu tatap pada kedua panel tidak cukup untuk dihitung."
+        ? copy.geoNoDwell
         : geopref.outcome === "MEASURED_INTERVAL_STRADDLES_THRESHOLD"
-          ? `Selang kepercayaan sesi ini melintasi ambang ${percent(geopref.threshold)}, jadi angkanya tidak cukup pasti untuk diletakkan di salah satu sisi. Ini batas panjang pengukuran, bukan temuan tentang anak.`
-          : "Klip yang tersedia lebih pendek daripada protokol terbit, jadi ambang 69% tidak berlaku pada sesi ini.",
+          ? copy.geoStraddles(percent(geopref.threshold))
+          : copy.geoAbbreviated,
     };
   }
   const interval = geopref.percentGeometricCi ?? null;
@@ -209,37 +330,36 @@ function geometricSignal(geopref: ReferralInput["geopref"]): ReferralSignal {
   // from 62 to 79 asserts a difference the measurement cannot carry.
   const deviant = interval ? interval[0] >= geopref.threshold : geopref.percentGeometric >= geopref.threshold;
   const demonstration = isDemonstrationOutcome(geopref.outcome);
-  const caveat = demonstration
-    ? " Ambang diterapkan dalam mode demonstrasi pada klip yang lebih pendek daripada protokol terbit, jadi angka ini tidak sah untuk keputusan apa pun."
-    : "";
-  const spread = interval ? ` (95% CI ${percent(interval[0])}–${percent(interval[1])})` : "";
+  const caveat = demonstration ? copy.geoDemoCaveat : "";
+  const spread = interval ? copy.geoSpread(percent(interval[0]), percent(interval[1])) : "";
   return {
     ...base,
     status: deviant ? "menyimpang" : "normal",
-    measured: `${percent(geopref.percentGeometric)} waktu pada pola geometrik${spread}`,
+    measured: copy.geoMeasured(percent(geopref.percentGeometric), spread),
     reason: (deviant
-      ? `Seluruh selang kepercayaan berada di atas ambang terbit ${percent(geopref.threshold)}. Pola ini jarang muncul pada anak tanpa ASD (spesifisitas 98%).`
-      : `Seluruh selang kepercayaan berada di bawah ambang terbit ${percent(geopref.threshold)}. Ambang ini melewatkan sebagian besar anak ASD, jadi hasil ini bukan tanda aman.`) + caveat,
+      ? copy.geoDeviant(percent(geopref.threshold))
+      : copy.geoNormal(percent(geopref.threshold))) + caveat,
   };
 }
 
-function cueSignal(profile: ReferralInput["jointAttention"]): ReferralSignal {
-  const base = { id: "cue_following" as const, label: "Mengikuti isyarat arah", source: RJA };
+function cueSignal(profile: ReferralInput["jointAttention"], locale: Locale): ReferralSignal {
+  const copy = COPY[locale];
+  const base = { id: "cue_following" as const, label: copy.cueLabel, source: copy.rja };
   if (!profile || profile.verdict === "WITHHELD_TOO_FEW_TRIALS") {
     return {
       ...base,
       status: "tidak_dapat_dinilai",
-      measured: profile ? `${profile.trialsScored} percobaan terbaca` : "tidak terukur",
-      reason: "Percobaan yang terbaca terlalu sedikit untuk diuji.",
+      measured: profile ? copy.cueTrialsRead(profile.trialsScored) : copy.notMeasured,
+      reason: copy.cueTooFew,
     };
   }
-  const followed = `${profile.trialsFollowed} dari ${profile.trialsScored} percobaan`;
+  const followed = copy.cueFollowed(profile.trialsFollowed, profile.trialsScored);
   if (profile.verdict === "FOLLOWS_CUES") {
     return {
       ...base,
       status: "normal",
       measured: followed,
-      reason: "Tatapan ke target sesudah isyarat melebihi pembanding pra-isyarat pada anak yang sama, lebih sering daripada kebetulan.",
+      reason: copy.cueNormal,
     };
   }
   // Eight trials cannot reach p < 0,05 below seven successes. Counting that as a
@@ -250,14 +370,14 @@ function cueSignal(profile: ReferralInput["jointAttention"]): ReferralSignal {
       ...base,
       status: "tidak_dapat_dinilai",
       measured: followed,
-      reason: "Arah responsnya benar, tetapi delapan percobaan tidak cukup untuk membuktikannya di atas kebetulan. Ini batas sesi, bukan temuan tentang anak.",
+      reason: copy.cueIndistinguishable,
     };
   }
   return {
     ...base,
     status: "menyimpang",
     measured: followed,
-    reason: "Tatapan sesudah isyarat tidak pernah melebihi pembanding pra-isyarat pada anak yang sama, dan target diikuti pada paling banyak separuh percobaan.",
+    reason: copy.cueDeviant,
   };
 }
 
@@ -277,16 +397,18 @@ function referralHeadline(input: {
   recommendsFollowUp: boolean;
   assessableCount: number;
   deviantCount: number;
+  locale: Locale;
 }): string {
-  const { recommendsFollowUp, assessableCount, deviantCount } = input;
+  const { recommendsFollowUp, assessableCount, deviantCount, locale } = input;
+  const copy = COPY[locale];
   if (recommendsFollowUp) {
-    return `Disarankan pemeriksaan lanjutan · ${deviantCount} dari ${assessableCount} sinyal menyimpang`;
+    return copy.headlineRefer(deviantCount, assessableCount);
   }
-  if (assessableCount === 0) return "Belum ada sinyal yang dapat dinilai pada sesi ini";
+  if (assessableCount === 0) return copy.headlineNone;
   if (assessableCount < REFERRAL_DEVIANT_THRESHOLD) {
     return deviantCount > 0
-      ? `${deviantCount} sinyal menyimpang, dan sinyal pembandingnya tidak dapat dinilai · belum cukup untuk menyarankan rujukan`
-      : "Sinyal yang dapat dinilai tidak menyimpang, dan sinyal pembandingnya tidak dapat dinilai";
+      ? copy.headlinePartialDeviant(deviantCount)
+      : copy.headlinePartialClean;
   }
   // Every signal was assessable and the rule still did not fire. "Belum cukup
   // sinyal" is false here, because the session assessed all of them, and this
@@ -296,14 +418,17 @@ function referralHeadline(input: {
   // written for a session that could only assess one signal. Not deviating is
   // still not reassurance; referralLimit on the report carries that.
   return deviantCount > 0
-    ? `${deviantCount} dari ${assessableCount} sinyal menyimpang · di bawah batas ${REFERRAL_DEVIANT_THRESHOLD} untuk menyarankan rujukan`
-    : `Tidak ada sinyal yang menyimpang · ${assessableCount} dari ${assessableCount} sinyal dinilai`;
+    ? copy.headlineBelowThreshold(deviantCount, assessableCount, REFERRAL_DEVIANT_THRESHOLD)
+    : copy.headlineNoDeviation(assessableCount);
 }
 
-export function buildReferralRecommendation(input: ReferralInput): ReferralRecommendation {
+export function buildReferralRecommendation(
+  input: ReferralInput,
+  locale: Locale = DEFAULT_LOCALE,
+): ReferralRecommendation {
   const signals: ReferralSignal[] = [
-    geometricSignal(input.geopref),
-    cueSignal(input.jointAttention),
+    geometricSignal(input.geopref, locale),
+    cueSignal(input.jointAttention, locale),
   ];
   const assessableCount = signals.filter((item) => item.status !== "tidak_dapat_dinilai").length;
   const deviantCount = signals.filter((item) => item.status === "menyimpang").length;
@@ -316,7 +441,7 @@ export function buildReferralRecommendation(input: ReferralInput): ReferralRecom
     deviantCount,
     threshold: REFERRAL_DEVIANT_THRESHOLD,
     recommendsFollowUp,
-    headline: referralHeadline({ recommendsFollowUp, assessableCount, deviantCount }),
+    headline: referralHeadline({ recommendsFollowUp, assessableCount, deviantCount, locale }),
     validatedOnToddlers: false,
     reassures: false,
     thresholdStatus: "design_choice_not_validated_cutoff",

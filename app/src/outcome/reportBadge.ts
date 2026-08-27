@@ -1,3 +1,33 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
+
+const COPY: Record<Locale, {
+  technicalPass: string;
+  technicalFail: string;
+  refer: string;
+  withheld: string;
+  demoRefer: string;
+  demoNoRefer: string;
+  measured: string;
+}> = {
+  id: {
+    technicalPass: "LULUS TEKNIS · TANPA SKOR",
+    technicalFail: "BELUM LULUS · TANPA SKOR",
+    refer: "PERIKSA LANJUT",
+    withheld: "REKAMAN DITAHAN",
+    demoRefer: "PERAGAAN · PERIKSA LANJUT",
+    demoNoRefer: "PERAGAAN · TANPA REKOMENDASI",
+    measured: "TERUKUR",
+  },
+  en: {
+    technicalPass: "TECHNICAL PASS · NO SCORE",
+    technicalFail: "NOT PASSED · NO SCORE",
+    refer: "EXAMINE FURTHER",
+    withheld: "RECORDING WITHHELD",
+    demoRefer: "DEMONSTRATION · EXAMINE FURTHER",
+    demoNoRefer: "DEMONSTRATION · NO RECOMMENDATION",
+    measured: "MEASURED",
+  },
+};
 import type { SessionOutcome } from "./sessionOutcome";
 
 export type ReportBadgeTone = "research" | "refer" | "withheld" | "demonstration" | "monitor";
@@ -23,23 +53,24 @@ export function reportBadge(input: {
   outcome: SessionOutcome;
   demonstrationMode: boolean;
   recommendsFollowUp: boolean;
-}): { tone: ReportBadgeTone; label: string } {
+}, locale: Locale = DEFAULT_LOCALE): { tone: ReportBadgeTone; label: string } {
+  const copy = COPY[locale];
   if (input.engineeringStudy) {
     return {
       tone: "research",
-      label: input.qualityPassed ? "LULUS TEKNIS · TANPA SKOR" : "BELUM LULUS · TANPA SKOR",
+      label: copy[input.qualityPassed ? "technicalPass" : "technicalFail"],
     };
   }
   // A real referral, which only a validated protocol can produce.
-  if (input.outcome.emitsReferral) return { tone: "refer", label: "PERIKSA LANJUT" };
-  if (input.outcome.kind === "WITHHELD") return { tone: "withheld", label: "REKAMAN DITAHAN" };
+  if (input.outcome.emitsReferral) return { tone: "refer", label: copy.refer };
+  if (input.outcome.kind === "WITHHELD") return { tone: "withheld", label: copy.withheld };
   if (input.demonstrationMode) {
     // Phrased off the composite rule rather than off a signal count, so the
     // label stays true when one of two signals deviates and the rule still
     // does not fire.
     return input.recommendsFollowUp
-      ? { tone: "demonstration", label: "PERAGAAN · PERIKSA LANJUT" }
-      : { tone: "demonstration", label: "PERAGAAN · TANPA REKOMENDASI" };
+      ? { tone: "demonstration", label: copy.demoRefer }
+      : { tone: "demonstration", label: copy.demoNoRefer };
   }
-  return { tone: "monitor", label: "TERUKUR" };
+  return { tone: "monitor", label: copy.measured };
 }

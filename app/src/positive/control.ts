@@ -1,3 +1,68 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
+
+const CONTROL_COPY: Record<Locale, {
+  attemptRange: string;
+  attemptMax: (max: number) => string;
+  speakerNeedsName: string;
+}> = {
+  id: {
+    attemptRange: "Nomor percobaan harus 1, 2, atau 3",
+    attemptMax: (max) => `Percobaan maksimal ${max} per peserta per kondisi`,
+    speakerNeedsName: "Speaker dipakai tetapi nama panggilan belum diisi",
+  },
+  en: {
+    attemptRange: "The attempt number must be 1, 2, or 3",
+    attemptMax: (max) => `At most ${max} attempts per participant per condition`,
+    speakerNeedsName: "A speaker is in use but no call name has been entered",
+  },
+};
+
+const INTRO_COPY: Record<Locale, {
+  control: { audience: string; task: string; detail: string; steps: string[] };
+  engineering: (gateB: boolean) => { audience: string; task: string; detail: string; steps: string[] };
+  field: { audience: string; task: string; detail: string; steps: string[] };
+}> = {
+  id: {
+    control: {
+      audience: "Peserta dewasa · kontrol positif",
+      task: "Duduk santai dan lihat layar.",
+      detail: "Instruksi untuk sesi ini sudah disampaikan operator secara lisan. Tidak ada yang perlu diklik.",
+      steps: ["Duduk santai", "Lihat layar", "Tanpa klik"],
+    },
+    engineering: (gateB) => ({
+      audience: `Peserta dewasa · ${gateB ? "Gate B" : "Gate A"}`,
+      task: "Ikuti petunjuk sosial di layar.",
+      detail: "Amati wajah, lalu ikuti arah mata, kepala, atau tangan ke benda yang dituju. Tidak perlu mengklik.",
+      steps: ["Lihat wajah", "Ikuti arah cue", "Tanpa klik"],
+    }),
+    field: {
+      audience: "Instruksi untuk pengasuh",
+      task: "Tugas anak hanya menonton.",
+      detail: "Posisikan anak dengan nyaman dan biarkan responsnya alami. Jangan menyebut sisi layar, warna, atau meminta anak melihat ke arah tertentu.",
+      steps: ["Duduk nyaman", "Biarkan menonton", "Tanpa mengarahkan"],
+    },
+  },
+  en: {
+    control: {
+      audience: "Adult participant · positive control",
+      task: "Sit comfortably and look at the screen.",
+      detail: "The instructions for this session were given verbally by the operator. There is nothing to click.",
+      steps: ["Sit comfortably", "Watch the screen", "No clicking"],
+    },
+    engineering: (gateB) => ({
+      audience: `Adult participant · ${gateB ? "Gate B" : "Gate A"}`,
+      task: "Follow the social cues on screen.",
+      detail: "Watch the face, then follow the eye, head, or hand direction to the object indicated. There is nothing to click.",
+      steps: ["Watch the face", "Follow the cue", "No clicking"],
+    }),
+    field: {
+      audience: "Instructions for the caregiver",
+      task: "The child's only task is to watch.",
+      detail: "Settle the child comfortably and let their response be natural. Do not name a side of the screen, a colour, or ask the child to look anywhere in particular.",
+      steps: ["Sit comfortably", "Let them watch", "No prompting"],
+    },
+  },
+};
 import type { GeoprefOutcome } from "../geopref/score";
 import { nameCallTimeline, type StimulusPhase } from "../stimulus/protocol";
 import {
@@ -40,18 +105,20 @@ export const MAX_POSITIVE_CONTROL_ATTEMPTS = 3;
 export function positiveControlBlockers(
   meta: PositiveControlMeta,
   session: { callName: string } = { callName: "" },
+  locale: Locale = DEFAULT_LOCALE,
 ): string[] {
+  const copy = CONTROL_COPY[locale];
   if (!Number.isInteger(meta.attempt) || meta.attempt < 1) {
-    return ["Nomor percobaan harus 1, 2, atau 3"];
+    return [copy.attemptRange];
   }
   if (meta.attempt > MAX_POSITIVE_CONTROL_ATTEMPTS) {
-    return [`Percobaan maksimal ${MAX_POSITIVE_CONTROL_ATTEMPTS} per peserta per kondisi`];
+    return [copy.attemptMax(MAX_POSITIVE_CONTROL_ATTEMPTS)];
   }
   // The name only matters once a speaker is declared. Without one no call is
   // delivered at all, so an empty field is the correct state rather than a
   // missing one — and never a reason to stop a session at a Posyandu table.
   if (meta.speakerBehind && !session.callName.trim()) {
-    return ["Speaker dipakai tetapi nama panggilan belum diisi"];
+    return [copy.speakerNeedsName];
   }
   return [];
 }
@@ -154,27 +221,9 @@ export function stimulusIntroCopy(input: {
   engineering: boolean;
   positiveControl: PositiveControlMeta | null;
   gateB?: boolean;
-}): StimulusIntroCopy {
-  if (input.positiveControl) {
-    return {
-      audience: "Peserta dewasa · kontrol positif",
-      task: "Duduk santai dan lihat layar.",
-      detail: "Instruksi untuk sesi ini sudah disampaikan operator secara lisan. Tidak ada yang perlu diklik.",
-      steps: ["Duduk santai", "Lihat layar", "Tanpa klik"],
-    };
-  }
-  if (input.engineering) {
-    return {
-      audience: `Peserta dewasa · ${input.gateB ? "Gate B" : "Gate A"}`,
-      task: "Ikuti petunjuk sosial di layar.",
-      detail: "Amati wajah, lalu ikuti arah mata, kepala, atau tangan ke benda yang dituju. Tidak perlu mengklik.",
-      steps: ["Lihat wajah", "Ikuti arah cue", "Tanpa klik"],
-    };
-  }
-  return {
-    audience: "Instruksi untuk pengasuh",
-    task: "Tugas anak hanya menonton.",
-    detail: "Posisikan anak dengan nyaman dan biarkan responsnya alami. Jangan menyebut sisi layar, warna, atau meminta anak melihat ke arah tertentu.",
-    steps: ["Duduk nyaman", "Biarkan menonton", "Tanpa mengarahkan"],
-  };
+}, locale: Locale = DEFAULT_LOCALE): StimulusIntroCopy {
+  const copy = INTRO_COPY[locale];
+  if (input.positiveControl) return copy.control;
+  if (input.engineering) return copy.engineering(input.gateB === true);
+  return copy.field;
 }

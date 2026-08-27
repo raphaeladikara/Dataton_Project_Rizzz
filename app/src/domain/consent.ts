@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 import type { SessionAuditLog } from "../audit/sessionLog";
 
 type SessionPurpose = SessionAuditLog["purpose"];
@@ -33,7 +34,65 @@ export type ConsentInput = {
  * is holding up a dead button, so the same list drives both the disabled state
  * and the message shown above it. They can never drift apart.
  */
-export function consentBlockers(input: ConsentInput): string[] {
+
+const COPY: Record<Locale, {
+  participantId: string;
+  childId: string;
+  site: string;
+  operator: string;
+  consent: string;
+  age: (min: number, max: number) => string;
+  researchConsent: string;
+  bridgeMeta: string;
+  pairId: string;
+  visitId: string;
+  deviceId: string;
+  referenceDevice: string;
+  screenWidth: string;
+  screenHeight: string;
+  viewingDistance: string;
+}> = {
+  id: {
+    participantId: "ID peserta pseudonim belum diisi",
+    childId: "ID anak pseudonim belum diisi",
+    site: "Lokasi layanan belum diisi",
+    operator: "ID operator belum diisi",
+    consent: "Persetujuan layanan belum dicentang",
+    age: (min, max) => `Usia harus antara ${min} dan ${max} bulan`,
+    researchConsent: "Persetujuan riset Gate B belum dicentang",
+    bridgeMeta: "Metadata pasangan Gate B belum diisi",
+    pairId: "ID pasangan belum diisi",
+    visitId: "ID kunjungan belum diisi",
+    deviceId: "ID perangkat belum diisi",
+    referenceDevice: "Perangkat pembanding belum diisi",
+    screenWidth: "Lebar layar harus minimal 50 mm",
+    screenHeight: "Tinggi layar harus minimal 50 mm",
+    viewingDistance: "Jarak pandang harus minimal 200 mm",
+  },
+  en: {
+    participantId: "Pseudonymous participant ID is empty",
+    childId: "Pseudonymous child ID is empty",
+    site: "Service location is empty",
+    operator: "Operator ID is empty",
+    consent: "Service consent is not ticked",
+    age: (min, max) => `Age must be between ${min} and ${max} months`,
+    researchConsent: "Gate B research consent is not ticked",
+    bridgeMeta: "Gate B pair metadata is empty",
+    pairId: "Pair ID is empty",
+    visitId: "Visit ID is empty",
+    deviceId: "Device ID is empty",
+    referenceDevice: "Reference device is empty",
+    screenWidth: "Screen width must be at least 50 mm",
+    screenHeight: "Screen height must be at least 50 mm",
+    viewingDistance: "Viewing distance must be at least 200 mm",
+  },
+};
+
+export function consentBlockers(
+  input: ConsentInput,
+  locale: Locale = DEFAULT_LOCALE,
+): string[] {
+  const copy = COPY[locale];
   const isEngineering = input.purpose === "gate_a_adult" || input.purpose === "gate_b_bridge";
   // A stage demonstration runs the child flow on a consenting adult, so it
   // wants every gate the real session has except the one that asks the
@@ -43,34 +102,34 @@ export function consentBlockers(input: ConsentInput): string[] {
   const blockers: string[] = [];
 
   if (!input.childId.trim()) {
-    blockers.push(isAdultParticipant ? "ID peserta pseudonim belum diisi" : "ID anak pseudonim belum diisi");
+    blockers.push(isAdultParticipant ? copy.participantId : copy.childId);
   }
-  if (!input.site.trim()) blockers.push("Lokasi layanan belum diisi");
-  if (!input.operator.trim()) blockers.push("ID operator belum diisi");
-  if (!input.consented) blockers.push("Persetujuan layanan belum dicentang");
+  if (!input.site.trim()) blockers.push(copy.site);
+  if (!input.operator.trim()) blockers.push(copy.operator);
+  if (!input.consented) blockers.push(copy.consent);
 
   if (!isAdultParticipant) {
     const age = Number(input.ageMonths);
     if (!input.ageMonths.trim() || !Number.isFinite(age) || age < CHILD_AGE_MIN_MONTHS || age > CHILD_AGE_MAX_MONTHS) {
-      blockers.push(`Usia harus antara ${CHILD_AGE_MIN_MONTHS} dan ${CHILD_AGE_MAX_MONTHS} bulan`);
+      blockers.push(copy.age(CHILD_AGE_MIN_MONTHS, CHILD_AGE_MAX_MONTHS));
     }
   }
 
   if (input.purpose === "gate_b_bridge") {
-    if (!input.researchConsent) blockers.push("Persetujuan riset Gate B belum dicentang");
+    if (!input.researchConsent) blockers.push(copy.researchConsent);
     const bridge = input.bridge;
     if (!bridge) {
-      blockers.push("Metadata pasangan Gate B belum diisi");
+      blockers.push(copy.bridgeMeta);
     } else {
-      if (!bridge.pairId.trim()) blockers.push("ID pasangan belum diisi");
-      if (!bridge.visitId.trim()) blockers.push("ID kunjungan belum diisi");
-      if (!bridge.deviceId.trim()) blockers.push("ID perangkat belum diisi");
-      if (!bridge.referenceDevice.trim()) blockers.push("Perangkat pembanding belum diisi");
+      if (!bridge.pairId.trim()) blockers.push(copy.pairId);
+      if (!bridge.visitId.trim()) blockers.push(copy.visitId);
+      if (!bridge.deviceId.trim()) blockers.push(copy.deviceId);
+      if (!bridge.referenceDevice.trim()) blockers.push(copy.referenceDevice);
       // Viewing geometry converts pixel error into degrees, so a plausible
       // value is required before the pair can be compared at all.
-      if (!(bridge.screenWidthMm >= 50)) blockers.push("Lebar layar harus minimal 50 mm");
-      if (!(bridge.screenHeightMm >= 50)) blockers.push("Tinggi layar harus minimal 50 mm");
-      if (!(bridge.viewingDistanceMm >= 200)) blockers.push("Jarak pandang harus minimal 200 mm");
+      if (!(bridge.screenWidthMm >= 50)) blockers.push(copy.screenWidth);
+      if (!(bridge.screenHeightMm >= 50)) blockers.push(copy.screenHeight);
+      if (!(bridge.viewingDistanceMm >= 200)) blockers.push(copy.viewingDistance);
     }
   }
 

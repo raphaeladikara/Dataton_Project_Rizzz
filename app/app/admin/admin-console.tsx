@@ -13,6 +13,7 @@ import {
 } from "../../src/ui/icons";
 import styles from "./admin.module.css";
 import { GATE_EVIDENCE_STATUS } from "../../src/validation/evidenceStatus";
+import { gateCopy } from "../../src/validation/evidenceStatusCopy";
 import { DEFAULT_GATE_C_SIMULATION, simulateGateC } from "../../src/validation/gateCSimulation";
 import {
   SCORED_TRIAL_COUNT,
@@ -38,19 +39,35 @@ import {
   SplitBar,
   SubtenseCompare,
   TrialStrip,
-  num,
   useChartMotion,
 } from "./charts";
+import { LanguageToggle } from "../../src/i18n/LanguageToggle";
+import { useT } from "../../src/i18n/useT";
+import { isMessageKey, type MessageKey } from "../../src/i18n/dictionary";
+import { decimal } from "../../src/i18n/format";
 
-type Metric = readonly [label: string, value: string, note: string];
+/**
+ * A metric cell as the page stores it: two dictionary keys and a value.
+ *
+ * The value is sometimes a plain number ("100") that reads the same in both
+ * languages and sometimes a decimal that does not ("2,2°" / "2.2°"). Rather
+ * than have two kinds of metric, every value is either a raw number the page
+ * formats with Intl, or a key resolved like any other string.
+ */
+type Metric = {
+  label: MessageKey;
+  /** A number formatted at render, or a dictionary key, or a literal. */
+  value: MessageKey | { readonly n: number; readonly digits: number; readonly unit?: string } | string;
+  note: MessageKey;
+};
 
 const GATE_A_METRICS: readonly Metric[] = [
-  ["Total sesi", "100", "25 peserta · 4 sesi per orang"],
-  ["Sesi selesai", "94%", "6 ditahan, semuanya dikenali sistem"],
-  ["Galat median", "2,2°", "Ambang kelulusan ≤3°"],
-  ["Frame valid", "96,4%", "Wajah dan mata terbaca"],
-  ["Dropout gaze", "3,6%", "Sanity check lulus 96 dari 100"],
-  ["Mode luring", "100%", "Nol crash sepanjang pengujian"],
+  { label: "admin.gateA.mTotal", value: "100", note: "admin.gateA.mTotalNote" },
+  { label: "admin.gateA.mDone", value: "94%", note: "admin.gateA.mDoneNote" },
+  { label: "admin.gateA.mError", value: { n: 2.2, digits: 1, unit: "°" }, note: "admin.gateA.mErrorNote" },
+  { label: "admin.gateA.mFrames", value: { n: 96.4, digits: 1, unit: "%" }, note: "admin.gateA.mFramesNote" },
+  { label: "admin.gateA.mDropout", value: { n: 3.6, digits: 1, unit: "%" }, note: "admin.gateA.mDropoutNote" },
+  { label: "admin.gateA.mOffline", value: "100%", note: "admin.gateA.mOfflineNote" },
 ];
 
 /**
@@ -59,27 +76,27 @@ const GATE_A_METRICS: readonly Metric[] = [
  * angle, and putting them on one plot would invent a relationship between them.
  */
 const GATE_A_CONDITIONS = [
-  { label: "Cahaya normal", sessions: 50, success: 98, error: 1.9 },
-  { label: "Cahaya redup", sessions: 25, success: 88, error: 2.8 },
-  { label: "Tanpa kacamata", sessions: 70, success: 97, error: 2.0 },
-  { label: "Dengan kacamata", sessions: 30, success: 87, error: 2.9 },
-] as const;
+  { label: "admin.gateA.condNormalLight", sessions: 50, success: 98, error: 1.9 },
+  { label: "admin.gateA.condDimLight", sessions: 25, success: 88, error: 2.8 },
+  { label: "admin.gateA.condNoGlasses", sessions: 70, success: 97, error: 2.0 },
+  { label: "admin.gateA.condGlasses", sessions: 30, success: 87, error: 2.9 },
+] as const satisfies readonly { label: MessageKey; sessions: number; success: number; error: number }[];
 
 /** The six sessions that produced no report, and why each one did not. */
 const GATE_A_OUTCOMES = [
-  { label: "Selesai dan melaporkan", value: 94, color: "var(--teal-500)" },
-  { label: "Pantulan kacamata", value: 3, color: "var(--slate-700)" },
-  { label: "Wajah terlalu miring", value: 2, color: "var(--slate-500)" },
-  { label: "Orientasi layar berubah", value: 1, color: "var(--slate-200)" },
-] as const;
+  { label: "admin.gateA.outReported", value: 94, color: "var(--teal-500)" },
+  { label: "admin.gateA.outGlasses", value: 3, color: "var(--slate-700)" },
+  { label: "admin.gateA.outTilt", value: 2, color: "var(--slate-500)" },
+  { label: "admin.gateA.outOrientation", value: 1, color: "var(--slate-200)" },
+] as const satisfies readonly { label: MessageKey; value: number; color: string }[];
 
 const GATE_B_METRICS: readonly Metric[] = [
-  ["Pasangan direkam", "30", "Aliran browser simultan"],
-  ["Pasangan siap", "27", "Valid pair rate 90%"],
-  ["Galat median", "44,159 px", "0,040997 ternormalisasi"],
-  ["Agreement AOI", "99,7118%", "Dihitung ulang dari koordinat mentah"],
-  ["AOI utama cocok", "27/27", "Seluruh pasangan siap"],
-  ["Ditahan", "3", "Tetap ikut dihitung, tidak dibuang"],
+  { label: "admin.gateB.mPairs", value: "30", note: "admin.gateB.mPairsNote" },
+  { label: "admin.gateB.mReady", value: "27", note: "admin.gateB.mReadyNote" },
+  { label: "admin.gateB.mError", value: "admin.gateB.mErrorValue", note: "admin.gateB.mErrorNote" },
+  { label: "admin.gateB.mAoi", value: "admin.gateB.mAoiValue", note: "admin.gateB.mAoiNote" },
+  { label: "admin.gateB.mPrimary", value: "27/27", note: "admin.gateB.mPrimaryNote" },
+  { label: "admin.gateB.mHeld", value: "3", note: "admin.gateB.mHeldNote" },
 ];
 
 /**
@@ -88,84 +105,90 @@ const GATE_B_METRICS: readonly Metric[] = [
  * background AOI takes the de-emphasis step, because that is what it is.
  */
 const AOI_DISTRIBUTION = [
-  { label: "Wajah", webgazer: 17.1628, neurogaze: 17.1374, color: "var(--chart-1)" },
-  { label: "Target kiri", webgazer: 32.7535, neurogaze: 32.8137, color: "var(--chart-2)" },
-  { label: "Target kanan", webgazer: 33.2116, neurogaze: 33.2336, color: "var(--chart-3)" },
-  { label: "Latar", webgazer: 16.872, neurogaze: 16.8152, color: "var(--chart-rest)" },
-] as const;
+  { label: "admin.gateB.aoiFace", webgazer: 17.1628, neurogaze: 17.1374, color: "var(--chart-1)" },
+  { label: "admin.gateB.aoiLeft", webgazer: 32.7535, neurogaze: 32.8137, color: "var(--chart-2)" },
+  { label: "admin.gateB.aoiRight", webgazer: 33.2116, neurogaze: 33.2336, color: "var(--chart-3)" },
+  { label: "admin.gateB.aoiBackground", webgazer: 16.872, neurogaze: 16.8152, color: "var(--chart-rest)" },
+] as const satisfies readonly { label: MessageKey; webgazer: number; neurogaze: number; color: string }[];
 
 const GATE_C_METRICS: readonly Metric[] = [
-  ["Lintasan tatapan", "547", "Citra 640 × 480"],
-  ["ID partisipan", "54", "Pemisahan data per anak"],
-  ["AUC tingkat anak", "0,8819", "95% CI 0,774–0,968"],
-  ["Target Gate C", "87,8% / 80,8%", "Perochon dkk. 2023, kamera tablet"],
+  { label: "admin.gateC.mScanpaths", value: "547", note: "admin.gateC.mScanpathsNote" },
+  { label: "admin.gateC.mParticipants", value: "54", note: "admin.gateC.mParticipantsNote" },
+  { label: "admin.gateC.mAuc", value: "admin.gateC.mAucValue", note: "admin.gateC.mAucNote" },
+  { label: "admin.gateC.mTarget", value: "admin.gateC.mTargetValue", note: "admin.gateC.mTargetNote" },
 ];
 
 const STIMULUS_METRICS: readonly Metric[] = [
-  ["Durasi total", `${STIMULUS_TOTAL_SECONDS} detik`, "Tanpa speaker, blok panggilan nama tidak dijalankan"],
-  ["Percobaan berskor", String(SCORED_TRIAL_COUNT), "4 jenis isyarat × kiri dan kanan"],
-  ["Epok pra-isyarat", "1,7 detik", "Tanpa informasi arah sama sekali"],
-  ["Jendela respons", "3,3 detik", "Latensi gaze following < 1,5 detik"],
+  { label: "admin.scene.mDuration", value: "admin.scene.mDurationValue", note: "admin.scene.mDurationNote" },
+  { label: "admin.scene.mTrials", value: String(SCORED_TRIAL_COUNT), note: "admin.scene.mTrialsNote" },
+  { label: "admin.scene.mPreCue", value: "admin.scene.mPreCueValue", note: "admin.scene.mPreCueNote" },
+  { label: "admin.scene.mResponse", value: "admin.scene.mResponseValue", note: "admin.scene.mResponseNote" },
 ];
 
 const TRIAL_TIMELINE = [
-  ["0,0–1,2 dtk", "Istirahat", "Model menunduk ke meja. Tangan di bawah tepi meja, tidak ada arah sama sekali."],
-  ["1,2 dtk", "Sinyal ostensif", "Kepala terangkat, kontak mata, alis naik, senyum. Mengundang sebelum ada isyarat."],
-  ["1,7 dtk", "Isyarat arah", "Wajah kembali netral. Mata bergerak lebih dulu, kepala menyusul, tangan terakhir."],
-  ["1,7–5,0 dtk", "Jendela respons", "Adegan dibekukan. Seluruh pandangan pada periode ini dihitung sebagai respons."],
-] as const;
+  ["admin.scene.tl1Time", "admin.scene.tl1Title", "admin.scene.tl1Note"],
+  ["admin.scene.tl2Time", "admin.scene.tl2Title", "admin.scene.tl2Note"],
+  ["admin.scene.tl3Time", "admin.scene.tl3Title", "admin.scene.tl3Note"],
+  ["admin.scene.tl4Time", "admin.scene.tl4Title", "admin.scene.tl4Note"],
+] as const satisfies readonly (readonly [MessageKey, MessageKey, MessageKey])[];
 
 /** Confound controls. Each one names what it removes, then why that matters. */
 const DESIGN_CHOICES = [
-  ["Dua objek identik", "Objek berbeda membuat anak bisa sekadar menyukai salah satunya. Identik menyisakan isyarat sosial sebagai satu-satunya pembeda."],
-  ["Objek tidak pernah bergerak", "Gerakan menarik pandangan secara refleks. Objek diam memastikan yang terukur adalah respons terhadap ajakan."],
-  ["Pra-isyarat benar-benar netral", "Model menunduk, tangan di bawah meja. Tidak ada informasi kiri–kanan sebelum onset, jadi pembanding pra-isyarat sah dipakai."],
-  ["Pupil gelap di atas sklera terang", "Polaritas kontras mata yang lazim membawa efek gaze following; polaritas terbalik jauh lebih lemah. Dijaga uji kontrak, bukan pilihan gaya."],
-  ["Mata benar-benar bergerak", "Bola mata bergeser 16 px pada onset, transisi 240 ms berjeda 50 ms — mata berangkat lebih dulu daripada kepala dan tangan, seperti isyarat manusia."],
-  ["Ostensif dulu, arah kemudian", "Bayi mengikuti tatapan setelah sinyal komunikatif, bukan setelah animasi yang sekadar menarik perhatian."],
-  ["Isyarat berupa perubahan status", "Animasi berulang menjadi sumber gerakan tersendiri. Di sini isyarat adalah satu perpindahan pose pada milidetik yang dideklarasikan protokol."],
-  ["Blok isyarat tanpa suara", "Percobaan arah sengaja bisu supaya yang terukur murni tatapan. Respons nama diukur di bloknya sendiri."],
-  ["Urutan diseimbangkan tiap sesi", "Urutan kiri–kanan tetap membuat anak yang sekadar memindai mencetak nilai seperti anak yang benar-benar mengikuti. Urutan diacak dari id sesi, bukan dipilih operator."],
-  ["Gerak diam hanya napas dan kedip", "Wajah beku terasa mati dan kehilangan perhatian. Kedip dan napas simetris di tengah, jadi tidak menarik pandangan ke satu sisi."],
-] as const;
+  ["admin.choice1", "admin.choice1Body"],
+  ["admin.choice2", "admin.choice2Body"],
+  ["admin.choice3", "admin.choice3Body"],
+  ["admin.choice4", "admin.choice4Body"],
+  ["admin.choice5", "admin.choice5Body"],
+  ["admin.choice6", "admin.choice6Body"],
+  ["admin.choice7", "admin.choice7Body"],
+  ["admin.choice8", "admin.choice8Body"],
+  ["admin.choice9", "admin.choice9Body"],
+  ["admin.choice10", "admin.choice10Body"],
+] as const satisfies readonly (readonly [MessageKey, MessageKey])[];
 
 // ── Kontrol positif · research/hasil/kontrol_positif/ringkasan.json ─────────
 const POSITIVE_CONTROL_METRICS: readonly Metric[] = [
-  ["Peserta", "12", "Dewasa, menyetujui untuk dirinya sendiri"],
-  ["Sesi berbeda", "23", "Pada 3 perangkat, 4 peserta per perangkat"],
-  ["Lolos kriteria mutu", "15", "Attrition 35%, dilaporkan apa adanya"],
-  ["Aturan menyala pada menonton biasa", "0 / 9", "Angka yang paling penting di tabel ini"],
+  { label: "admin.pc.mParticipants", value: "12", note: "admin.pc.mParticipantsNote" },
+  { label: "admin.pc.mSessions", value: "23", note: "admin.pc.mSessionsNote" },
+  { label: "admin.pc.mPassed", value: "15", note: "admin.pc.mPassedNote" },
+  { label: "admin.pc.mFired", value: "0 / 9", note: "admin.pc.mFiredNote" },
 ];
 
+/**
+ * Every cell here is a quoted result, not a computed one, so each is a key.
+ * The alternative — storing numbers and formatting them — would be wrong for
+ * the mixed cells ("8 dari 8", "5,8 × 10⁻⁴") and would give the table two
+ * different provenances for values that all came from the same JSON.
+ */
 const POSITIVE_CONTROL_SIGNALS = [
   {
-    signal: "Preferensi geometrik",
-    biasa: "0,34",
-    biasaRange: "0,08–0,73",
-    produksi: "0,94",
-    produksiRange: "0,89–1,00",
-    margin: "+0,16",
-    p: "5,8 × 10⁻⁴",
+    signal: "admin.pc.sigGeometric",
+    ordinary: "admin.pcRow1.ordinary",
+    ordinaryRange: "admin.pcRow1.ordinaryRange",
+    produced: "admin.pcRow1.produced",
+    producedRange: "admin.pcRow1.producedRange",
+    margin: "admin.pcRow1.margin",
+    p: "admin.pcRow1.p",
   },
   {
-    signal: "Percobaan masuk target",
-    biasa: "8 dari 8",
-    biasaRange: "5–8",
-    produksi: "0 dari 8",
-    produksiRange: "0–1",
-    margin: "4 percobaan",
-    p: "6,3 × 10⁻⁴",
+    signal: "admin.pc.sigTrials",
+    ordinary: "admin.pcRow2.ordinary",
+    ordinaryRange: "admin.pcRow2.ordinaryRange",
+    produced: "admin.pcRow2.produced",
+    producedRange: "admin.pcRow2.producedRange",
+    margin: "admin.pcRow2.margin",
+    p: "admin.pcRow2.p",
   },
   {
-    signal: "Sebaran tatapan fase isyarat",
-    biasa: "0,31",
-    biasaRange: "0,07–0,40",
-    produksi: "0,05",
-    produksiRange: "0,03–0,06",
-    margin: "+0,008",
-    p: "2,0 × 10⁻⁴",
+    signal: "admin.pc.sigDispersion",
+    ordinary: "admin.pcRow3.ordinary",
+    ordinaryRange: "admin.pcRow3.ordinaryRange",
+    produced: "admin.pcRow3.produced",
+    producedRange: "admin.pcRow3.producedRange",
+    margin: "admin.pcRow3.margin",
+    p: "admin.pcRow3.p",
   },
-] as const;
+] as const satisfies readonly Record<string, MessageKey>[];
 
 /**
  * Small multiples, one axis per signal, because the three are measured in
@@ -174,78 +197,78 @@ const POSITIVE_CONTROL_SIGNALS = [
  */
 const POSITIVE_CONTROL_RANGES = [
   {
-    label: "Preferensi geometrik",
+    label: "admin.pc.sigGeometric",
     domain: [0, 1] as const,
-    ticks: ["0", "0,5", "1,0"],
-    a: { from: 0.08, to: 0.73, display: "0,08–0,73" },
-    b: { from: 0.89, to: 1.0, display: "0,89–1,00" },
-    gap: "+0,16",
+    ticks: ["admin.pcRange1.tick0", "admin.pcRange1.tick1", "admin.pcRange1.tick2"],
+    a: { from: 0.08, to: 0.73, display: "admin.pcRow1.ordinaryRange" },
+    b: { from: 0.89, to: 1.0, display: "admin.pcRow1.producedRange" },
+    gap: "admin.pcRow1.margin",
   },
   {
-    label: "Percobaan masuk target",
+    label: "admin.pc.sigTrials",
     domain: [0, 8] as const,
-    ticks: ["0", "4", "8"],
-    a: { from: 5, to: 8, display: "5–8 dari 8" },
-    b: { from: 0, to: 1, display: "0–1 dari 8" },
-    gap: "4 percobaan",
+    ticks: ["admin.pcRange2.tick0", "admin.pcRange2.tick1", "admin.pcRange2.tick2"],
+    a: { from: 5, to: 8, display: "admin.pcRange2.aDisplay" },
+    b: { from: 0, to: 1, display: "admin.pcRange2.bDisplay" },
+    gap: "admin.pcRow2.margin",
   },
   {
-    label: "Sebaran tatapan fase isyarat",
+    label: "admin.pc.sigDispersion",
     domain: [0, 0.5] as const,
-    ticks: ["0", "0,25", "0,50"],
-    a: { from: 0.07, to: 0.4, display: "0,07–0,40" },
-    b: { from: 0.03, to: 0.06, display: "0,03–0,06" },
-    gap: "+0,008",
+    ticks: ["admin.pcRange3.tick0", "admin.pcRange3.tick1", "admin.pcRange3.tick2"],
+    a: { from: 0.07, to: 0.4, display: "admin.pcRow3.ordinaryRange" },
+    b: { from: 0.03, to: 0.06, display: "admin.pcRow3.producedRange" },
+    gap: "admin.pcRow3.margin",
   },
 ] as const;
 
 const POSITIVE_CONTROL_CONFOUNDS = [
-  ["Panel geometrik selalu di kanan", "Pada seluruh 24 sesi, dan urutan isyarat identik pada seluruhnya, karena kedua skema counterbalancing diturunkan dari kolom identitas yang terisi sama. Preferensi geometrik karena itu tidak terpisah dari bias melirik kanan di data ini."],
-  ["Identitas peserta tidak terekam", "Tidak ada analisis berpasangan. Grup validasi silang adalah perangkat, bukan orang — lebih kasar daripada yang diminta protokol, dan lebih ketat."],
-  ["Urutan kondisi tidak diseimbangkan", "Disengaja: instruksi kondisi kedua tidak dapat ditarik kembali. Efek urutan karena itu tidak dapat dipisahkan dari efek kondisi."],
-] as const;
+  ["admin.pc.confound1", "admin.pc.confound1Body"],
+  ["admin.pc.confound2", "admin.pc.confound2Body"],
+  ["admin.pc.confound3", "admin.pc.confound3Body"],
+] as const satisfies readonly (readonly [MessageKey, MessageKey])[];
 
 // ── Validasi klip GeoPref · app/public/stimuli/…ccby.json ───────────────────
 const CLIP_CONTAINER: readonly Metric[] = [
-  ["Trek video", "1", "avc1, 640 × 360, 502 frame"],
-  ["Trek audio", "0", "Senyap sesuai protokol, bukan audio yang hilang"],
-  ["Durasi", "16,75 dtk", "Seperlima protokol terbit 90 detik"],
-  ["Lisensi", "CC BY 4.0", "Moore dkk. 2018, Additional file 2"],
+  { label: "admin.clip.mVideo", value: "1", note: "admin.clip.mVideoNote" },
+  { label: "admin.clip.mAudio", value: "0", note: "admin.clip.mAudioNote" },
+  { label: "admin.clip.mDuration", value: "admin.clip.mDurationValue", note: "admin.clip.mDurationNote" },
+  { label: "admin.clip.mLicense", value: "CC BY 4.0", note: "admin.clip.mLicenseNote" },
 ];
 
 const CLIP_ASSETS = [
   {
-    title: "Cuplikan Complex Social",
-    duration: "16,75 dtk",
+    title: "admin.clip.asset1Title",
+    duration: "admin.clip.asset1Duration",
     status: "shipped" as const,
-    statusLabel: "Dikirim",
-    operating: "Tidak ada preseden operasional",
-    note: "Satu dari lima adegan video contoh publik. Karena itu validatedProtocol bernilai false dan ambang 69% ditahan.",
+    statusLabel: "admin.clip.asset1Status",
+    operating: "admin.clip.asset1Operating",
+    note: "admin.clip.asset1Note",
   },
   {
-    title: "GeoPref asli 62,22 detik",
-    duration: "62,22 dtk",
+    title: "admin.clip.asset2Title",
+    duration: "admin.clip.asset2Duration",
     status: "requested" as const,
-    statusLabel: "Diminta",
-    operating: "Sensitivitas 17% · spesifisitas 98%",
-    note: "Wen dkk. 2022, n=1.863, usia 12–48 bulan. Ini tes yang ambang 69% benar-benar divalidasi padanya.",
+    statusLabel: "admin.clip.asset2Status",
+    operating: "admin.clip.asset2Operating",
+    note: "admin.clip.asset2Note",
   },
   {
-    title: "Complex Social 90 detik",
-    duration: "90 dtk",
+    title: "admin.clip.asset3Title",
+    duration: "admin.clip.asset3Duration",
     status: "requested" as const,
-    statusLabel: "Diminta",
-    operating: "Sensitivitas 18% · spesifisitas 97%",
-    note: "Moore dkk. 2018, AUC 0,74. Ambang 69% dibawa apa adanya demi konsistensi, bukan dioptimasi ulang.",
+    statusLabel: "admin.clip.asset3Status",
+    operating: "admin.clip.asset3Operating",
+    note: "admin.clip.asset3Note",
   },
 ] as const;
 
 /** What the cutoff was derived on, next to what the app actually plays. */
 const CLIP_DURATIONS = [
-  { label: "Dikirim", sublabel: "Cuplikan Complex Social", value: 16.75, display: "16,75 dtk", tone: "warn" as const },
-  { label: "GeoPref asli", sublabel: "Wen dkk. 2022", value: 62.22, display: "62,22 dtk", tone: "calm" as const },
-  { label: "Complex Social", sublabel: "Moore dkk. 2018", value: 90, display: "90 dtk", tone: "calm" as const },
-];
+  { label: "admin.clip.durShipped", sublabel: "admin.clip.durShippedSub", value: 16.75, display: "admin.clip.durShippedValue", tone: "warn" as const },
+  { label: "admin.clip.durOriginal", sublabel: "admin.clip.durOriginalSub", value: 62.22, display: "admin.clip.durOriginalValue", tone: "calm" as const },
+  { label: "admin.clip.durComplex", sublabel: "admin.clip.durComplexSub", value: 90, display: "admin.clip.durComplexValue", tone: "calm" as const },
+] as const satisfies readonly { label: MessageKey; sublabel: MessageKey; value: number; display: MessageKey; tone: "warn" | "calm" }[];
 
 /**
  * The trial strip reads its geometry from the protocol module rather than the
@@ -258,36 +281,41 @@ const TRIAL_OSTENSIVE_MS = SCORED_TRIAL?.ostensiveOnsetMs ?? 1200;
 const TRIAL_CUE_MS = SCORED_TRIAL?.cueOnsetMs ?? 1700;
 
 const TRIAL_BANDS = [
-  { label: "Istirahat", fromMs: 0, toMs: TRIAL_OSTENSIVE_MS, tone: "rest" as const },
-  { label: "Sinyal ostensif", fromMs: TRIAL_OSTENSIVE_MS, toMs: TRIAL_CUE_MS, tone: "ostensive" as const },
-  { label: "Jendela respons", fromMs: TRIAL_CUE_MS, toMs: TRIAL_MS, tone: "response" as const },
-];
+  { label: "admin.scene.bandRest", fromMs: 0, toMs: TRIAL_OSTENSIVE_MS, tone: "rest" as const },
+  { label: "admin.scene.bandOstensive", fromMs: TRIAL_OSTENSIVE_MS, toMs: TRIAL_CUE_MS, tone: "ostensive" as const },
+  { label: "admin.scene.bandResponse", fromMs: TRIAL_CUE_MS, toMs: TRIAL_MS, tone: "response" as const },
+] as const satisfies readonly { label: MessageKey; fromMs: number; toMs: number; tone: "rest" | "ostensive" | "response" }[];
 
+/**
+ * Section ids stay Indonesian: they are anchor fragments, and a link someone
+ * bookmarked or pasted into a review comment should not stop resolving because
+ * the reader switched language.
+ */
 const NAV_GROUPS = [
   {
-    group: "Ringkasan",
-    items: [{ id: "ringkasan", label: "Status gerbang" }],
+    group: "admin.nav.summaryGroup",
+    items: [{ id: "ringkasan", label: "admin.nav.summary" }],
   },
   {
     // The rail carries pass state too. A reader who lands mid-page should not
     // have to scroll back to the summary to learn which gates are still open.
-    group: "Gerbang validasi",
+    group: "admin.nav.gatesGroup",
     items: [
-      { id: "gate-a", label: "A · Teknis", state: "passed" },
-      { id: "gate-b", label: "B · Kesetaraan", state: "passed" },
-      { id: "gate-c", label: "C · Klinis", state: "open" },
-      { id: "gate-d", label: "D · Operasional", state: "open" },
+      { id: "gate-a", label: "admin.nav.gateA", state: "passed" },
+      { id: "gate-b", label: "admin.nav.gateB", state: "passed" },
+      { id: "gate-c", label: "admin.nav.gateC", state: "open" },
+      { id: "gate-d", label: "admin.nav.gateD", state: "open" },
     ],
   },
   {
-    group: "Bukti lapangan",
-    items: [{ id: "kontrol-positif", label: "Kontrol positif" }],
+    group: "admin.nav.fieldGroup",
+    items: [{ id: "kontrol-positif", label: "admin.nav.positiveControl" }],
   },
   {
-    group: "Instrumen",
+    group: "admin.nav.instrumentGroup",
     items: [
-      { id: "klip-geopref", label: "Validasi klip GeoPref" },
-      { id: "adegan-vektor", label: "Adegan vektor" },
+      { id: "klip-geopref", label: "admin.nav.clip" },
+      { id: "adegan-vektor", label: "admin.nav.scene" },
     ],
   },
 ] as const;
@@ -295,13 +323,21 @@ const NAV_GROUPS = [
 const SECTION_IDS = NAV_GROUPS.flatMap((group) => group.items.map((item) => item.id));
 
 function Metrics({ items, columns = 4 }: { items: readonly Metric[]; columns?: 3 | 4 }) {
+  const { t, bcp47 } = useT();
+  const render = (value: Metric["value"]) => {
+    if (typeof value === "object") return `${decimal(value.n, value.digits, bcp47)}${value.unit ?? ""}`;
+    // A real membership test, not a prefix guess: anything that is not a key is
+    // a bare figure reading identically in both languages ("100", "27/27") and
+    // is printed as written.
+    return isMessageKey(value) ? t(value) : value;
+  };
   return (
     <div className={styles.metrics} data-columns={columns}>
-      {items.map(([label, value, note]) => (
-        <article key={label}>
-          <small>{label}</small>
-          <strong>{value}</strong>
-          <span>{note}</span>
+      {items.map((item) => (
+        <article key={item.label}>
+          <small>{t(item.label)}</small>
+          <strong>{render(item.value)}</strong>
+          <span>{t(item.note)}</span>
         </article>
       ))}
     </div>
@@ -323,6 +359,7 @@ function SectionHead({
   status?: string;
   tone?: "passed" | "open" | "warn" | "neutral";
 }) {
+  const { t } = useT();
   return (
     <header className={styles.sectionHead}>
       <div>
@@ -330,7 +367,7 @@ function SectionHead({
           {gate ? (
             <span className={styles.gateMark} data-gate={gate}>
               <span aria-hidden="true">{gate}</span>
-              <span className={styles.srOnly}>Gate {gate}:</span>
+              <span className={styles.srOnly}>{t("admin.gatePrefix", { gate })}</span>
             </span>
           ) : null}
           {title}
@@ -364,6 +401,7 @@ function Note({
 }
 
 export function AdminConsole() {
+  const { t, locale, bcp47 } = useT();
   const [gateCSimulationInput, setGateCSimulationInput] = useState(DEFAULT_GATE_C_SIMULATION);
   const gateCSimulation = useMemo(() => simulateGateC(gateCSimulationInput), [gateCSimulationInput]);
   const [activeSection, setActiveSection] = useState<string>(SECTION_IDS[0]);
@@ -403,12 +441,11 @@ export function AdminConsole() {
     };
   }, []);
 
-  const percent = (value: number, digits = 1) =>
-    `${(value * 100).toFixed(digits).replace(".", ",")}%`;
+  const percent = (value: number, digits = 1) => `${decimal(value * 100, digits, bcp47)}%`;
 
   return (
     <div className={styles.shell}>
-      <a className={styles.skip} href="#ringkasan">Lewati ke isi utama</a>
+      <a className={styles.skip} href="#ringkasan">{t("admin.skip")}</a>
 
       <aside className={styles.sidebar} data-open={navOpen}>
         <div className={styles.sidebarTop}>
@@ -422,16 +459,19 @@ export function AdminConsole() {
             aria-expanded={navOpen}
             aria-controls="panel-nav"
           >
-            {navOpen ? "Tutup" : "Menu"}
+            {t(navOpen ? "admin.navClose" : "nav.menu")}
           </button>
         </div>
 
-        <p className={styles.sidebarRole}>Panel teknis</p>
+        <div className={styles.sidebarRoleRow}>
+          <p className={styles.sidebarRole}>{t("admin.role")}</p>
+          <LanguageToggle />
+        </div>
 
-        <nav id="panel-nav" className={styles.nav} aria-label="Bagian panel">
+        <nav id="panel-nav" className={styles.nav} aria-label={t("admin.navAria")}>
           {NAV_GROUPS.map(({ group, items }) => (
             <div key={group} className={styles.navGroup}>
-              <p className={styles.navGroupLabel}>{group}</p>
+              <p className={styles.navGroupLabel}>{t(group)}</p>
               {items.map((item) => (
                 <a
                   key={item.id}
@@ -442,7 +482,7 @@ export function AdminConsole() {
                   {"state" in item ? (
                     <i className={styles.navState} data-state={item.state} aria-hidden="true" />
                   ) : null}
-                  {item.label}
+                  {t(item.label)}
                 </a>
               ))}
             </div>
@@ -450,8 +490,8 @@ export function AdminConsole() {
         </nav>
 
         <div className={styles.sidebarFoot}>
-          <Link href="/validation">Bukti publik <IconArrowRight size={13} /></Link>
-          <p>Diperbarui {GATE_EVIDENCE_STATUS.updatedAt}</p>
+          <Link href="/validation">{t("admin.publicEvidence")} <IconArrowRight size={13} /></Link>
+          <p>{t("admin.updatedAt", { date: GATE_EVIDENCE_STATUS.updatedAt })}</p>
         </div>
       </aside>
 
@@ -461,19 +501,16 @@ export function AdminConsole() {
             fragment of something else. */}
         <header className={styles.pageHead}>
           <div>
-            <h1>Panel teknis Neurogaze</h1>
-            <p>
-              Bukti pengukuran di balik produk, ditulis untuk peninjau. Setiap angka membawa
-              sumbernya, dan setiap gerbang yang belum lulus disebut belum lulus.
-            </p>
+            <h1>{t("admin.title")}</h1>
+            <p>{t("admin.lead")}</p>
           </div>
           <dl className={styles.pageHeadMeta}>
             <div>
-              <dt>Diperbarui</dt>
+              <dt>{t("admin.updated")}</dt>
               <dd>{GATE_EVIDENCE_STATUS.updatedAt}</dd>
             </div>
             <div>
-              <dt>Versi stimulus</dt>
+              <dt>{t("admin.stimulusVersion")}</dt>
               <dd>{STIMULUS_VERSION}</dd>
             </div>
           </dl>
@@ -483,18 +520,18 @@ export function AdminConsole() {
         <section id="ringkasan" className={styles.section} aria-labelledby="ringkasan-title">
           <SectionHead
             id="ringkasan"
-            title="Status gerbang validasi"
-            lead="Halaman ini memisahkan pengukuran teknis dari pengalaman peserta. Tidak ada skor ASD dan tidak ada keputusan klinis di sini."
+            title={t("admin.summary.title")}
+            lead={t("admin.summary.lead")}
           />
 
           <Figure
-            title="Dua dari empat gerbang lulus"
-            note="Gerbangnya berurutan: masing-masing mengandaikan yang sebelumnya sudah lulus. A dan B mengukur instrumennya. C dan D mengukur apa yang terjadi ketika instrumen itu dibawa ke anak dan ke meja Posyandu — dan keduanya belum dijalankan."
+            title={t("admin.summary.figureTitle")}
+            note={t("admin.summary.figureNote")}
           >
             <GateLadder
               gates={GATE_EVIDENCE_STATUS.gates.map((gate) => ({
                 id: gate.id,
-                label: gate.title,
+                label: gateCopy(gate.id, locale).title,
                 passed: gate.status === "passed",
               }))}
             />
@@ -503,26 +540,25 @@ export function AdminConsole() {
           <div className={styles.gateGrid}>
             {GATE_EVIDENCE_STATUS.gates.map((gate) => {
               const passed = gate.id === "A" || gate.id === "B";
+              const text = gateCopy(gate.id, locale);
               return (
                 <article key={gate.id} className={styles.gateCard} data-state={passed ? "passed" : "open"}>
                   <div className={styles.gateCardTop}>
                     <span className={styles.gateMark} data-gate={gate.id}>{gate.id}</span>
                     <span className={styles.statusPill} data-tone={passed ? "passed" : "open"}>
                       {passed ? <IconCheck size={12} /> : null}
-                      {gate.statusLabel}
+                      {text.statusLabel}
                     </span>
                   </div>
-                  <h3>{gate.title}</h3>
-                  <p>{gate.statement}</p>
+                  <h3>{text.title}</h3>
+                  <p>{text.statement}</p>
                 </article>
               );
             })}
           </div>
 
-          <Note kind="limit" title="Batas kesimpulan">
-            Gate A membuktikan kelayakan teknis dan Gate B membuktikan agreement terhadap
-            WebGazer.js. Keduanya tidak membuktikan akurasi diagnosis ASD; klaim klinis
-            tetap menunggu kohort balita dengan hasil klinis independen yang dinilai buta.
+          <Note kind="limit" title={t("admin.summary.limitTitle")}>
+            {t("admin.summary.limitBody")}
           </Note>
         </section>
 
@@ -531,9 +567,9 @@ export function AdminConsole() {
           <SectionHead
             id="gate-a"
             gate="A"
-            title="Akuisisi stabil pada 100 sesi lintas kondisi"
-            lead="Menguji apakah kamera tablet dapat mendeteksi wajah dan iris, membedakan arah, menjalankan kalibrasi dan stimulus penuh, menahan hasil gagal, serta tetap bekerja luring."
-            status="Lulus · 100 sesi"
+            title={t("admin.gateA.title")}
+            lead={t("admin.gateA.lead")}
+            status={t("admin.gateA.status")}
             tone="passed"
           />
 
@@ -541,88 +577,97 @@ export function AdminConsole() {
 
           <div className={styles.figures}>
             <Figure
-              title="Sesi berhasil menurut kondisi"
-              note="Persentase sesi yang selesai dan menghasilkan laporan. Garis tipis adalah ambang penyelesaian 90%."
+              title={t("admin.gateA.successTitle")}
+              note={t("admin.gateA.successNote")}
             >
               <BarRows
                 rows={GATE_A_CONDITIONS.map((row) => ({
-                  label: row.label,
-                  sublabel: `${row.sessions} sesi`,
+                  label: t(row.label),
+                  sublabel: t("admin.gateA.sessionsSuffix", { count: row.sessions }),
                   value: row.success,
                   display: `${row.success}%`,
                 }))}
                 max={100}
                 threshold={90}
-                thresholdLabel="Ambang penyelesaian 90%"
+                thresholdLabel={t("admin.gateA.successThreshold")}
               />
             </Figure>
 
             <Figure
-              title="Galat kalibrasi median menurut kondisi"
-              note="Derajat sudut pandang, lebih kecil lebih baik. Kacamata dan cahaya redup memakan hampir seluruh anggaran 3°, dan keduanya tetap di bawahnya."
+              title={t("admin.gateA.errorTitle")}
+              note={t("admin.gateA.errorNote")}
             >
               <BarRows
                 rows={GATE_A_CONDITIONS.map((row) => ({
-                  label: row.label,
+                  label: t(row.label),
                   value: row.error,
-                  display: `${num(row.error)}°`,
+                  display: `${decimal(row.error, 1, bcp47)}°`,
                 }))}
                 max={4}
                 threshold={3}
                 thresholdSide="max"
-                thresholdLabel="Ambang galat 3°"
+                thresholdLabel={t("admin.gateA.errorThreshold")}
               />
             </Figure>
           </div>
 
           <Figure
-            title="Ke mana 100 sesi bermuara"
-            note="Enam sesi tidak menghasilkan laporan, dan seluruhnya dikenali sistem. Menahan hasil adalah keluaran yang sah, bukan kegagalan."
+            title={t("admin.gateA.outcomeTitle")}
+            note={t("admin.gateA.outcomeNote")}
             legend={GATE_A_OUTCOMES.map((slice) => ({
-              label: slice.label,
+              label: t(slice.label),
               color: slice.color,
               value: String(slice.value),
             }))}
           >
             <SplitBar
               total={100}
-              segments={GATE_A_OUTCOMES.map((slice) => ({ ...slice, display: `${slice.value} sesi` }))}
+              segments={GATE_A_OUTCOMES.map((slice) => ({
+                label: t(slice.label),
+                value: slice.value,
+                color: slice.color,
+                display: t("admin.gateA.outcomeUnit", { count: slice.value }),
+              }))}
             />
           </Figure>
 
           <div className={styles.split}>
             <div className={styles.tableWrap}>
               <table>
-                <caption>Hasil menurut kondisi pengujian</caption>
+                <caption>{t("admin.gateA.tableCaption")}</caption>
                 <thead>
-                  <tr><th scope="col">Kondisi</th><th scope="col">Sesi</th><th scope="col">Berhasil</th><th scope="col">Galat median</th></tr>
+                  <tr><th scope="col">{t("admin.gateA.colCondition")}</th><th scope="col">{t("admin.gateA.colSessions")}</th><th scope="col">{t("admin.gateA.colSuccess")}</th><th scope="col">{t("admin.gateA.colError")}</th></tr>
                 </thead>
+                {/* Derived from the same table the charts above read, rather
+                    than typed out again: the two used to be able to disagree. */}
                 <tbody>
-                  <tr><td>Cahaya normal</td><td>50</td><td>49 · 98%</td><td>1,9°</td></tr>
-                  <tr><td>Cahaya redup</td><td>25</td><td>22 · 88%</td><td>2,8°</td></tr>
-                  <tr><td>Tanpa kacamata</td><td>70</td><td>68 · 97%</td><td>2,0°</td></tr>
-                  <tr><td>Dengan kacamata</td><td>30</td><td>26 · 87%</td><td>2,9°</td></tr>
+                  {GATE_A_CONDITIONS.map((row) => (
+                    <tr key={row.label}>
+                      <td>{t(row.label)}</td>
+                      <td>{row.sessions}</td>
+                      <td>{Math.round((row.sessions * row.success) / 100)} · {row.success}%</td>
+                      <td>{decimal(row.error, 1, bcp47)}°</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             <div className={styles.criteria}>
-              <h3>Kriteria kelulusan</h3>
+              <h3>{t("admin.passCriteria")}</h3>
               <ul>
-                <li>Galat median ≤ 3°</li>
-                <li>Bingkai wajah dan mata valid &gt; 85%</li>
-                <li>Penyelesaian sesi &gt; 90%</li>
-                <li>Tidak ada skor risiko dari sesi invalid</li>
-                <li>Fungsi utama tetap luring</li>
+                <li>{t("admin.gateA.crit1")}</li>
+                <li>{t("admin.gateA.crit2")}</li>
+                <li>{t("admin.gateA.crit3")}</li>
+                <li>{t("admin.gateA.crit4")}</li>
+                <li>{t("admin.gateA.crit5")}</li>
               </ul>
-              <p>Seluruh kriteria terpenuhi tanpa crash dan tanpa hasil risiko dari sesi invalid.</p>
+              <p>{t("admin.gateA.critNote")}</p>
             </div>
           </div>
 
-          <Note kind="source" title="Enam sesi tidak menghasilkan laporan">
-            Tiga karena pantulan kacamata, dua karena wajah terlalu miring, satu karena
-            orientasi layar berubah setelah kalibrasi. Seluruhnya dikenali sistem dan
-            diarahkan untuk dikoreksi atau dikalibrasi ulang — bukan diloloskan diam-diam.
+          <Note kind="source" title={t("admin.gateA.noteTitle")}>
+            {t("admin.gateA.noteBody")}
           </Note>
         </section>
 
@@ -631,9 +676,9 @@ export function AdminConsole() {
           <SectionHead
             id="gate-b"
             gate="B"
-            title="Aliran gaze sejalan dengan referensi WebGazer.js"
-            lead="Menguji agreement koordinat dan area perhatian antara aliran Neurogaze dan WebGazer.js 3.5.3 pada webapp yang sama, lewat kontrak setGazeListener."
-            status="Lulus · 27 dari 30"
+            title={t("admin.gateB.title")}
+            lead={t("admin.gateB.lead")}
+            status={t("admin.gateB.status")}
             tone="passed"
           />
 
@@ -641,39 +686,39 @@ export function AdminConsole() {
 
           <div className={styles.figures}>
             <Figure
-              title="Komposisi area perhatian"
-              note="Rata-rata 27 pasangan siap, aliran Neurogaze. Kedua target identik memang menerima porsi yang hampir sama — itu rancangannya, bukan kebetulan."
+              title={t("admin.gateB.donutTitle")}
+              note={t("admin.gateB.donutNote")}
               legend={AOI_DISTRIBUTION.map((area) => ({
-                label: area.label,
+                label: t(area.label),
                 color: area.color,
-                value: `${num(area.neurogaze, 1)}%`,
+                value: `${decimal(area.neurogaze, 1, bcp47)}%`,
               }))}
             >
               <Donut
                 slices={AOI_DISTRIBUTION.map((area) => ({
-                  label: area.label,
+                  label: t(area.label),
                   value: area.neurogaze,
                   color: area.color,
                 }))}
-                centre="66,0%"
-                centreNote="pada dua target"
+                centre={t("admin.gateB.donutCentre")}
+                centreNote={t("admin.gateB.donutCentreNote")}
               />
             </Figure>
 
             <Figure
-              title="Selisih Neurogaze terhadap WebGazer.js"
-              note="Poin persen, per area. Sumbunya berhenti di 0,08 pp supaya batangnya kelihatan sama sekali."
-              footnote="Selisih terbesar ada pada target kiri, 0,06 pp — satu bingkai dari sekitar 1.700. Kriteria kelulusan menuntut agreement AOI ≥ 95%; di sini tidak ada satu area pun yang meleset sepersepuluh poin persen."
+              title={t("admin.gateB.deltaTitle")}
+              note={t("admin.gateB.deltaNote")}
+              footnote={t("admin.gateB.deltaFootnote")}
             >
               <DeltaBars
                 domain={0.08}
-                domainLabel="0,08 pp"
+                domainLabel={t("admin.gateB.deltaDomainLabel")}
                 rows={AOI_DISTRIBUTION.map((area) => {
                   const delta = area.neurogaze - area.webgazer;
                   return {
-                    label: area.label,
+                    label: t(area.label),
                     value: delta,
-                    display: `${delta > 0 ? "+" : "−"}${num(Math.abs(delta), 3)}`,
+                    display: `${delta > 0 ? "+" : "−"}${decimal(Math.abs(delta), 3, bcp47)}`,
                   };
                 })}
               />
@@ -682,31 +727,31 @@ export function AdminConsole() {
 
           <div className={styles.figures}>
             <Figure
-              title="Galat median ternormalisasi"
-              note="Jarak koordinat antara kedua aliran, dibagi diagonal layar."
+              title={t("admin.gateB.meterTitle")}
+              note={t("admin.gateB.meterNote")}
             >
               <Meter
                 value={0.040997}
                 limit={0.05}
                 max={0.08}
-                display="0,040997"
-                limitLabel="Ambang kelulusan ≤ 0,05"
+                display={t("admin.gateB.meterDisplay")}
+                limitLabel={t("admin.gateB.meterLimit")}
               />
             </Figure>
 
             <Figure
-              title="Hasil 30 pasangan yang direkam"
-              note="Tiga pasangan ditahan karena mutu sinyal, dan tetap ikut dihitung dalam valid pair rate alih-alih dibuang dari penyebut."
+              title={t("admin.gateB.pairsTitle")}
+              note={t("admin.gateB.pairsNote")}
               legend={[
-                { label: "Siap dianalisis", color: "var(--teal-500)", value: "27" },
-                { label: "Ditahan", color: "var(--slate-500)", value: "3" },
+                { label: t("admin.gateB.pairsReady"), color: "var(--teal-500)", value: "27" },
+                { label: t("admin.gateB.pairsHeld"), color: "var(--slate-500)", value: "3" },
               ]}
             >
               <SplitBar
                 total={30}
                 segments={[
-                  { label: "Siap dianalisis", value: 27, display: "27 pasangan", color: "var(--teal-500)" },
-                  { label: "Ditahan", value: 3, display: "3", color: "var(--slate-500)" },
+                  { label: t("admin.gateB.pairsReady"), value: 27, display: t("admin.gateB.pairsReadyUnit"), color: "var(--teal-500)" },
+                  { label: t("admin.gateB.pairsHeld"), value: 3, display: "3", color: "var(--slate-500)" },
                 ]}
               />
             </Figure>
@@ -715,37 +760,37 @@ export function AdminConsole() {
           <div className={styles.split}>
             <div className={styles.tableWrap}>
               <table>
-                <caption>Distribusi area perhatian</caption>
+                <caption>{t("admin.gateB.tableCaption")}</caption>
                 <thead>
-                  <tr><th scope="col">Area</th><th scope="col">WebGazer</th><th scope="col">Neurogaze</th></tr>
+                  <tr><th scope="col">{t("admin.gateB.colArea")}</th><th scope="col">WebGazer</th><th scope="col">Neurogaze</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>Wajah</td><td>17,1628%</td><td>17,1374%</td></tr>
-                  <tr><td>Target kiri</td><td>32,7535%</td><td>32,8137%</td></tr>
-                  <tr><td>Target kanan</td><td>33,2116%</td><td>33,2336%</td></tr>
-                  <tr><td>Latar</td><td>16,8720%</td><td>16,8152%</td></tr>
+                  {AOI_DISTRIBUTION.map((area) => (
+                    <tr key={area.label}>
+                      <td>{t(area.label)}</td>
+                      <td>{decimal(area.webgazer, 4, bcp47)}%</td>
+                      <td>{decimal(area.neurogaze, 4, bcp47)}%</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             <div className={styles.criteria}>
-              <h3>Kriteria kelulusan</h3>
+              <h3>{t("admin.passCriteria")}</h3>
               <ul>
-                <li>Minimal 30 pasangan</li>
-                <li>Valid pair rate ≥ 90%</li>
-                <li>Galat median ternormalisasi ≤ 0,05</li>
-                <li>Agreement AOI rata-rata ≥ 95%</li>
-                <li>Agreement AOI utama ≥ 95%</li>
+                <li>{t("admin.gateB.crit1")}</li>
+                <li>{t("admin.gateB.crit2")}</li>
+                <li>{t("admin.gateB.crit3")}</li>
+                <li>{t("admin.gateB.crit4")}</li>
+                <li>{t("admin.gateB.crit5")}</li>
               </ul>
-              <p>Kesimpulan terbatas pada agreement terhadap WebGazer.js. Ia tidak menyatakan akurasi klinis ASD.</p>
+              <p>{t("admin.gateB.critNote")}</p>
             </div>
           </div>
 
-          <Note kind="source" title="Setiap angka diturunkan ulang dari koordinat mentah">
-            Agreement AOI yang dipublikasikan adalah 99,7118% hasil rekomputasi, bukan
-            99,7574% yang tersimpan di berkas ringkasan. Selisihnya muncul pada 4 dari 27
-            pasangan dan diterbitkan apa adanya, bukan didamaikan. ICC(A,1) 13 fitur
-            sebesar 0,505 tetap dilaporkan sebagai metrik deskriptif, bukan penentu kelulusan.
+          <Note kind="source" title={t("admin.gateB.noteTitle")}>
+            {t("admin.gateB.noteBody")}
           </Note>
         </section>
 
@@ -754,33 +799,33 @@ export function AdminConsole() {
           <SectionHead
             id="gate-c"
             gate="C"
-            title="Validasi prospektif belum dilakukan"
-            lead="Studi prospektif harus membandingkan Neurogaze dengan asesmen perkembangan, M-CHAT, dan diagnosis ahli yang dibutakan terhadap skor Neurogaze."
-            status="Terbuka"
+            title={t("admin.gateC.title")}
+            lead={t("admin.gateC.lead")}
+            status={t("admin.gateC.status")}
             tone="open"
           />
 
           <Metrics items={GATE_C_METRICS} />
 
           <Figure
-            title="AUC tingkat anak, dengan selang kepercayaannya"
-            note="Titik penuh adalah estimasi, batang adalah selang 95%. Sumbunya mulai dari tebakan acak, dan selangnya lebar karena hanya ada 54 anak."
+            title={t("admin.gateC.aucTitle")}
+            note={t("admin.gateC.aucNote")}
             legend={[
-              { label: "Selang 95%", color: "var(--teal-200)" },
-              { label: "Estimasi titik", color: "var(--teal-600)" },
+              { label: t("admin.gateC.legendInterval"), color: "var(--teal-200)" },
+              { label: t("admin.gateC.legendPoint"), color: "var(--teal-600)" },
             ]}
-            footnote="Angka ini berasal dari scanpath anak usia sekolah pada eye-tracker 250 Hz. Ia menyatakan sesuatu tentang dataset itu, bukan tentang balita di depan kamera tablet."
+            footnote={t("admin.gateC.aucFootnote")}
           >
             <IntervalPlot
               domain={[0.5, 1]}
-              ticks={["0,50 · acak", "0,75", "1,00"]}
+              ticks={[t("admin.gateC.tickRandom"), t("admin.gateC.tick75"), t("admin.gateC.tick100")]}
               intervals={[
                 {
-                  label: "Evaluasi memisahkan data tiap anak",
+                  label: t("admin.gateC.intervalLabel"),
                   from: 0.774,
                   to: 0.968,
                   point: 0.8819,
-                  display: "0,8819 · CI 0,774–0,968",
+                  display: t("admin.gateC.intervalDisplay"),
                 },
               ]}
             />
@@ -788,60 +833,52 @@ export function AdminConsole() {
 
           <div className={styles.split}>
             <div className={styles.prose}>
-              <h3>Data yang tersedia</h3>
-              <p>
-                Model awal memakai scanpath ASD/non-ASD dari anak usia sekolah, bukan kohort
-                balita Posyandu. Evaluasi yang memisahkan data tiap anak menghasilkan AUC OOF
-                0,8819 pada 54 anak — tetapi model menerima citra raster dari eye-tracker
-                250 Hz, dan tidak ada cara sah merekonstruksi masukan itu dari kamera 30 fps.
-              </p>
+              <h3>{t("admin.gateC.dataTitle")}</h3>
+              <p>{t("admin.gateC.dataBody")}</p>
               <p className={styles.linkRow}>
                 <a className={styles.link} href="https://doi.org/10.5220/0007402601030112" target="_blank" rel="noreferrer">
-                  Artikel Carette dkk. 2019 <IconArrowRight size={13} />
+                  {t("admin.gateC.linkPaper")} <IconArrowRight size={13} />
                 </a>
                 <a className={styles.link} href="https://figshare.com/articles/dataset/Visualization_of_Eye-Tracking_Scanpaths_in_Autism_Spectrum_Disorder_Image_Dataset/7073087/1" target="_blank" rel="noreferrer">
-                  Dataset di Figshare <IconArrowRight size={13} />
+                  {t("admin.gateC.linkDataset")} <IconArrowRight size={13} />
                 </a>
               </p>
             </div>
 
             <div className={styles.criteria} data-tone="open">
-              <h3>Kenapa belum lulus</h3>
+              <h3>{t("admin.gateC.whyOpen")}</h3>
               <ul>
-                <li>Belum ada balita prospektif usia 16–30 bulan</li>
-                <li>Belum ada hasil klinis independen yang dinilai buta</li>
-                <li>Rata-rata usia sumber 7,88 tahun</li>
-                <li>Perangkat sumber 250 Hz, bukan kamera tablet</li>
-                <li>Belum ada lokasi eksternal yang terpisah</li>
-                <li>Ambang klinis belum boleh ditetapkan</li>
+                <li>{t("admin.gateC.why1")}</li>
+                <li>{t("admin.gateC.why2")}</li>
+                <li>{t("admin.gateC.why3")}</li>
+                <li>{t("admin.gateC.why4")}</li>
+                <li>{t("admin.gateC.why5")}</li>
+                <li>{t("admin.gateC.why6")}</li>
               </ul>
             </div>
           </div>
 
-          <Note kind="claim" title="CNN wajah tidak dipakai">
-            MediaPipe hanya dipakai untuk menemukan wajah dan iris di perangkat. CNN wajah
-            mencapai AUC 0,932 — angka tertinggi di proyek ini — dan dibuang: enam dari enam
-            metadata tata kelola tidak tersedia, tidak ada ID partisipan, dan uji shortcut
-            menunjukkan statistik piksel saja sudah mencapai 0,751 dengan permutasi p = 0,005.
+          <Note kind="claim" title={t("admin.gateC.cnnTitle")}>
+            {t("admin.gateC.cnnBody")}
           </Note>
 
           <div className={styles.simulation} aria-labelledby="simulation-title">
             <div className={styles.simulationHead}>
               <div>
-                <h3 id="simulation-title">Simulasi kapasitas layanan</h3>
-                <p>Ubah kohort, prevalensi, dan cakupan teknis. Sensitivitas dan spesifisitas dikunci pada hasil notebook agar asumsinya selalu terlihat.</p>
+                <h3 id="simulation-title">{t("admin.sim.title")}</h3>
+                <p>{t("admin.sim.lead")}</p>
               </div>
-              <span className={styles.statusPill} data-tone="warn">Hanya simulasi</span>
+              <span className={styles.statusPill} data-tone="warn">{t("admin.sim.badge")}</span>
             </div>
 
             <div className={styles.simulationInputs}>
               <label>
-                <span>Ukuran kohort</span>
+                <span>{t("admin.sim.cohortSize")}</span>
                 <input type="number" min="1" max="1000000" step="1" value={gateCSimulationInput.cohortSize}
                   onChange={(event) => setGateCSimulationInput((current) => ({ ...current, cohortSize: Number(event.target.value) }))} />
               </label>
               <label>
-                <span>Prevalensi sasaran</span>
+                <span>{t("admin.sim.prevalence")}</span>
                 <div className={styles.inputSuffix}>
                   <input type="number" min="0" max="100" step="0.1" value={gateCSimulationInput.prevalence * 100}
                     onChange={(event) => setGateCSimulationInput((current) => ({ ...current, prevalence: Number(event.target.value) / 100 }))} />
@@ -849,7 +886,7 @@ export function AdminConsole() {
                 </div>
               </label>
               <label>
-                <span>Cakupan teknis</span>
+                <span>{t("admin.sim.coverage")}</span>
                 <div className={styles.inputSuffix}>
                   <input type="number" min="0" max="100" step="1" value={gateCSimulationInput.technicalCoverage * 100}
                     onChange={(event) => setGateCSimulationInput((current) => ({ ...current, technicalCoverage: Number(event.target.value) / 100 }))} />
@@ -857,68 +894,68 @@ export function AdminConsole() {
                 </div>
               </label>
               <label>
-                <span>Sensitivitas kandidat</span>
-                <div className={styles.inputSuffix}><input value="84,62" disabled /><b>%</b></div>
+                <span>{t("admin.sim.sensitivity")}</span>
+                <div className={styles.inputSuffix}><input value={t("admin.sim.sensitivityValue")} disabled /><b>%</b></div>
               </label>
               <label>
-                <span>Spesifisitas kandidat</span>
-                <div className={styles.inputSuffix}><input value="75,00" disabled /><b>%</b></div>
+                <span>{t("admin.sim.specificity")}</span>
+                <div className={styles.inputSuffix}><input value={t("admin.sim.specificityValue")} disabled /><b>%</b></div>
               </label>
               <label>
-                <span>Ambang notebook</span>
-                <input value="0,476" disabled />
+                <span>{t("admin.sim.threshold")}</span>
+                <input value={t("admin.sim.thresholdValue")} disabled />
               </label>
             </div>
 
             <div className={styles.metrics} data-columns={4}>
-              <article><small>Dapat dinilai</small><strong>{gateCSimulation.assessable.toFixed(0)}</strong><span>{gateCSimulation.withheld.toFixed(0)} sesi ditahan</span></article>
-              <article><small>Rujukan diperkirakan</small><strong>{percent(gateCSimulation.referralRate)}</strong><span>{(gateCSimulation.truePositive + gateCSimulation.falsePositive).toFixed(1)} dari yang dinilai</span></article>
-              <article><small>PPV pada prevalensi ini</small><strong>{percent(gateCSimulation.positivePredictiveValue)}</strong><span>Bukan PPV terobservasi</span></article>
-              <article><small>Rujukan per true positive</small><strong>{Number.isFinite(gateCSimulation.referralsPerTruePositive) ? gateCSimulation.referralsPerTruePositive.toFixed(1).replace(".", ",") : "n/a"}</strong><span>Proyeksi beban layanan</span></article>
+              <article><small>{t("admin.sim.assessable")}</small><strong>{gateCSimulation.assessable.toFixed(0)}</strong><span>{t("admin.sim.withheld", { count: gateCSimulation.withheld.toFixed(0) })}</span></article>
+              <article><small>{t("admin.sim.referralRate")}</small><strong>{percent(gateCSimulation.referralRate)}</strong><span>{t("admin.sim.ofAssessed", { count: decimal(gateCSimulation.truePositive + gateCSimulation.falsePositive, 1, bcp47) })}</span></article>
+              <article><small>{t("admin.sim.ppv")}</small><strong>{percent(gateCSimulation.positivePredictiveValue)}</strong><span>{t("admin.sim.ppvNote")}</span></article>
+              <article><small>{t("admin.sim.perTruePositive")}</small><strong>{Number.isFinite(gateCSimulation.referralsPerTruePositive) ? decimal(gateCSimulation.referralsPerTruePositive, 1, bcp47) : "n/a"}</strong><span>{t("admin.sim.perTruePositiveNote")}</span></article>
             </div>
 
             <div className={styles.figures}>
               <Figure
-                title="Ke mana skenario ini menempatkan setiap anak"
-                note="Baris adalah keadaan sebenarnya, kolom adalah keputusan aturan. Sel yang mahal ada di diagonal berlawanan."
+                title={t("admin.sim.matrixTitle")}
+                note={t("admin.sim.matrixNote")}
               >
                 <ConfusionMatrix
-                  truePositive={num(gateCSimulation.truePositive)}
-                  falseNegative={num(gateCSimulation.falseNegative)}
-                  falsePositive={num(gateCSimulation.falsePositive)}
-                  trueNegative={num(gateCSimulation.trueNegative)}
+                  truePositive={decimal(gateCSimulation.truePositive, 1, bcp47)}
+                  falseNegative={decimal(gateCSimulation.falseNegative, 1, bcp47)}
+                  falsePositive={decimal(gateCSimulation.falsePositive, 1, bcp47)}
+                  trueNegative={decimal(gateCSimulation.trueNegative, 1, bcp47)}
                 />
               </Figure>
 
               <Figure
-                title="Dari kohort ke rujukan yang benar"
-                note="Setiap baris adalah bagian dari baris di atasnya, digambar pada skala yang sama."
+                title={t("admin.sim.funnelTitle")}
+                note={t("admin.sim.funnelNote")}
               >
                 <FunnelBars
                   total={gateCSimulation.cohortSize}
                   steps={[
                     {
-                      label: "Kohort",
+                      label: t("admin.sim.stepCohort"),
                       value: gateCSimulation.cohortSize,
-                      display: gateCSimulation.cohortSize.toLocaleString("id-ID"),
+                      display: gateCSimulation.cohortSize.toLocaleString(bcp47),
                       tone: "calm",
                     },
                     {
-                      label: "Dapat dinilai",
+                      label: t("admin.sim.stepAssessable"),
                       value: gateCSimulation.assessable,
                       display: gateCSimulation.assessable.toFixed(0),
                       tone: "calm",
                     },
                     {
-                      label: "Dirujuk",
+                      label: t("admin.sim.stepReferred"),
                       value: gateCSimulation.truePositive + gateCSimulation.falsePositive,
                       display: (gateCSimulation.truePositive + gateCSimulation.falsePositive).toFixed(0),
                       tone: "warn",
                     },
                     {
-                      label: "Rujukan tepat",
+                      label: t("admin.sim.stepCorrect"),
                       value: gateCSimulation.truePositive,
-                      display: num(gateCSimulation.truePositive),
+                      display: decimal(gateCSimulation.truePositive, 1, bcp47),
                       tone: "good",
                     },
                   ]}
@@ -928,8 +965,8 @@ export function AdminConsole() {
 
             <div className={styles.figures}>
               <Figure
-                title="Harga satu rujukan yang tepat"
-                note="Satu titik satu rujukan. Titik hijau adalah anak yang memang jadi sasaran; sisanya keluarga yang diminta datang lagi tanpa perlu."
+                title={t("admin.sim.ratioTitle")}
+                note={t("admin.sim.ratioNote")}
               >
                 <RatioDots
                   total={
@@ -939,16 +976,16 @@ export function AdminConsole() {
                   }
                   note={
                     Number.isFinite(gateCSimulation.referralsPerTruePositive)
-                      ? `${num(gateCSimulation.referralsPerTruePositive)} rujukan per satu sasaran yang terjaring. Itulah beban yang harus ditanggung Puskesmas untuk setiap anak yang benar-benar perlu diperiksa lanjut.`
-                      : "Pada skenario ini tidak ada sasaran yang terjaring, jadi rasionya tidak terdefinisi."
+                      ? t("admin.sim.ratioBody", { ratio: decimal(gateCSimulation.referralsPerTruePositive, 1, bcp47) })
+                      : t("admin.sim.ratioUndefined")
                   }
                 />
               </Figure>
 
               <Figure
-                title="PPV runtuh saat prevalensi turun"
-                note="Sensitivitas dan spesifisitas dikunci; hanya prevalensi yang bergerak. Arahkan kursor untuk membaca titik lain pada kurva."
-                footnote="Inilah alasan ambang klinis tidak boleh ditetapkan dari AUC saja. Tes yang sama berpindah dari berguna ke membanjiri layanan hanya karena kohortnya berubah."
+                title={t("admin.sim.ppvTitle")}
+                note={t("admin.sim.ppvCurveNote")}
+                footnote={t("admin.sim.ppvFootnote")}
               >
                 <PpvCurve
                   sensitivity={gateCSimulation.sensitivity}
@@ -958,19 +995,17 @@ export function AdminConsole() {
               </Figure>
             </div>
 
-            <Note kind="limit" title="Interpretasi skenario saat ini">
-              Dengan {gateCSimulation.cohortSize.toLocaleString("id-ID")} anak, prevalensi{" "}
-              {percent(gateCSimulation.prevalence)}, dan cakupan{" "}
-              {percent(gateCSimulation.technicalCoverage, 0)}, perhitungan memperkirakan{" "}
-              {percent(gateCSimulation.referralRate)} peserta yang dapat dinilai akan dirujuk. PPV
-              diperkirakan {percent(gateCSimulation.positivePredictiveValue)}, sehingga jumlah
-              rujukan keliru perlu menjadi tolok ukur Gate C — bukan hasil studi, melainkan
-              aritmetika atas asumsi yang terlihat di atas.
+            <Note kind="limit" title={t("admin.sim.interpretTitle")}>
+              {t("admin.sim.interpretBody", {
+                cohort: gateCSimulation.cohortSize.toLocaleString(bcp47),
+                prevalence: percent(gateCSimulation.prevalence),
+                coverage: percent(gateCSimulation.technicalCoverage, 0),
+                referralRate: percent(gateCSimulation.referralRate),
+                ppv: percent(gateCSimulation.positivePredictiveValue),
+              })}
             </Note>
 
-            <p className={styles.simulationFoot}>
-              Angka desimal adalah nilai harapan matematis, bukan jumlah anak yang benar-benar diperiksa.
-            </p>
+            <p className={styles.simulationFoot}>{t("admin.sim.foot")}</p>
           </div>
         </section>
 
@@ -979,43 +1014,34 @@ export function AdminConsole() {
           <SectionHead
             id="gate-d"
             gate="D"
-            title="Uji lapangan belum dilakukan"
-            lead="Dasar prosedurnya ada di literatur; yang belum ada adalah bukti bahwa kader Posyandu dapat menjalankannya dengan perangkat dan alur layanan yang benar-benar mereka punya."
-            status="Terbuka"
+            title={t("admin.gateD.title")}
+            lead={t("admin.gateD.lead")}
+            status={t("admin.gateD.status")}
             tone="open"
           />
 
           <div className={styles.split}>
             <div className={styles.prose}>
-              <h3>Bukti kelayakan prosedur</h3>
-              <p>
-                Cilia dkk. menjalankan eye-tracking pada anak dengan posisi fleksibel sekitar
-                60 cm dari layar — di kursi, di pangkuan orang tua, atau di kursi makan anak —
-                dengan instruksi minimal dan kalibrasi lima titik. Carette dkk. melaporkan anak
-                dapat menonton rangkaian stimulus sekitar lima menit dengan kalibrasi dan verifikasi.
-              </p>
-              <p>
-                Neurogaze menambahkan pemeriksaan kualitas, kontrol jeda dan berhenti,
-                pemrosesan lokal, serta penahanan hasil saat sinyal tidak valid.
-              </p>
+              <h3>{t("admin.gateD.feasibility")}</h3>
+              <p>{t("admin.gateD.body1")}</p>
+              <p>{t("admin.gateD.body2")}</p>
             </div>
 
             <div className={styles.criteria} data-tone="open">
-              <h3>Yang masih dibutuhkan lapangan</h3>
+              <h3>{t("admin.gateD.needed")}</h3>
               <ul>
-                <li>5 Posyandu</li>
-                <li>20 kader</li>
-                <li>200 sesi anak</li>
-                <li>3 jenis tablet Android</li>
-                <li>Tingkat penyelesaian dan durasi nyata</li>
-                <li>Pemahaman laporan dan penerimaan orang tua</li>
+                <li>{t("admin.gateD.need1")}</li>
+                <li>{t("admin.gateD.need2")}</li>
+                <li>{t("admin.gateD.need3")}</li>
+                <li>{t("admin.gateD.need4")}</li>
+                <li>{t("admin.gateD.need5")}</li>
+                <li>{t("admin.gateD.need6")}</li>
               </ul>
             </div>
           </div>
 
-          <Note kind="limit" title="Batas klaim">
-            Kedua artikel di atas tidak menguji kader, kamera tablet, mode luring, maupun alur
-            rujukan Neurogaze. Kemudahan penggunaan di lapangan karena itu belum dapat diklaim.
+          <Note kind="limit" title={t("admin.gateD.limitTitle")}>
+            {t("admin.gateD.limitBody")}
           </Note>
         </section>
 
@@ -1023,92 +1049,87 @@ export function AdminConsole() {
         <section id="kontrol-positif" className={styles.section} aria-labelledby="kontrol-positif-title">
           <SectionHead
             id="kontrol-positif"
-            title="Kontrol positif: instrumennya merespons"
-            lead="Beri instrumen sinyal yang diketahui ada, lalu periksa apakah ia merespons. Direkam 19 Agustus 2026 lewat aplikasi yang dikirim, lalu dihitung ulang dari jejak mentah oleh skrip terpisah."
-            status="Terukur"
+            title={t("admin.pc.title")}
+            lead={t("admin.pc.lead")}
+            status={t("admin.pc.status")}
             tone="passed"
           />
 
           <Metrics items={POSITIVE_CONTROL_METRICS} />
 
           <Figure
-            title="Jarak antara dua kondisi, per sinyal"
-            note="Tiap sinyal memakai sumbunya sendiri karena satuannya berbeda. Yang dibaca adalah lebar celah di antara kedua batang, bukan panjang batangnya."
+            title={t("admin.pc.rangeTitle")}
+            note={t("admin.pc.rangeNote")}
             legend={[
-              { label: "Menonton biasa", color: "var(--slate-500)" },
-              { label: "Pola diproduksi", color: "var(--coral-500)" },
+              { label: t("admin.pc.condOrdinary"), color: "var(--slate-500)" },
+              { label: t("admin.pc.condProduced"), color: "var(--coral-500)" },
             ]}
-            footnote="Ketiga celah terbuka penuh: tidak ada satu pun sesi biasa yang menyentuh rentang sesi produksi pada sinyal mana pun."
+            footnote={t("admin.pc.rangeFootnote")}
           >
             <RangeStrips
-              strips={POSITIVE_CONTROL_RANGES.map((strip) => ({ ...strip, domain: strip.domain }))}
-              aLabel="Menonton biasa"
-              bLabel="Pola diproduksi"
+              strips={POSITIVE_CONTROL_RANGES.map((strip) => ({
+                label: t(strip.label),
+                domain: strip.domain,
+                ticks: strip.ticks.map((tick) => t(tick)),
+                a: { from: strip.a.from, to: strip.a.to, display: t(strip.a.display) },
+                b: { from: strip.b.from, to: strip.b.to, display: t(strip.b.display) },
+                gap: t(strip.gap),
+              }))}
+              aLabel={t("admin.pc.condOrdinary")}
+              bLabel={t("admin.pc.condProduced")}
             />
           </Figure>
 
           <div className={styles.tableWrap}>
             <table>
-              <caption>Pemisahan tiap sinyal keputusan antara dua kondisi perilaku</caption>
+              <caption>{t("admin.pc.tableCaption")}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Sinyal</th>
-                  <th scope="col">Menonton biasa</th>
-                  <th scope="col">Pola diproduksi</th>
-                  <th scope="col">Jarak terdekat</th>
-                  <th scope="col">p</th>
+                  <th scope="col">{t("admin.pc.colSignal")}</th>
+                  <th scope="col">{t("admin.pc.condOrdinary")}</th>
+                  <th scope="col">{t("admin.pc.condProduced")}</th>
+                  <th scope="col">{t("admin.pc.colMargin")}</th>
+                  <th scope="col">{t("admin.pc.colP")}</th>
                 </tr>
               </thead>
               <tbody>
                 {POSITIVE_CONTROL_SIGNALS.map((row) => (
                   <tr key={row.signal}>
-                    <th scope="row">{row.signal}</th>
-                    <td>{row.biasa}<small>{row.biasaRange}</small></td>
-                    <td>{row.produksi}<small>{row.produksiRange}</small></td>
-                    <td data-emphasis="true">{row.margin}</td>
-                    <td>{row.p}</td>
+                    <th scope="row">{t(row.signal)}</th>
+                    <td>{t(row.ordinary)}<small>{t(row.ordinaryRange)}</small></td>
+                    <td>{t(row.produced)}<small>{t(row.producedRange)}</small></td>
+                    <td data-emphasis="true">{t(row.margin)}</td>
+                    <td>{t(row.p)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <Note kind="source" title="Kolom yang penting adalah jarak terdekat, bukan AUC">
-            Ketiga sinyal ber-AUC 1,00, tetapi itu hanya berarti tidak ada pasangan yang
-            tertukar urutannya. Jarak terdekat menyebut selebar apa celahnya dalam satuan
-            sinyal itu sendiri: sesi biasa dengan preferensi geometrik tertinggi ada di 0,73,
-            sesi produksi terendah di 0,89.
+          <Note kind="source" title={t("admin.pc.noteTitle")}>
+            {t("admin.pc.noteBody")}
           </Note>
 
           <div className={styles.split}>
             <div className={styles.prose}>
-              <h3>Aturan komposit</h3>
-              <p>
-                <strong>Sebagaimana dikirim</strong> — tidak menyala pada kondisi mana pun, dan
-                tidak akan pernah bisa. Aturannya menuntut dua sinyal menyimpang; preferensi
-                geometrik berstatus tidak dapat dinilai selama klip berlisensi lebih pendek
-                daripada protokol asal ambangnya. Nol di kedua baris adalah keadaan aturannya,
-                bukan pengukuran tentang peserta.
-              </p>
-              <p>
-                <strong>Mode demonstrasi</strong> — ambang yang sama diterapkan pada klip pendek
-                itu, semata supaya pertanyaan &ldquo;apakah aturannya merespons&rdquo; punya jawaban.
-              </p>
+              <h3>{t("admin.pc.ruleTitle")}</h3>
+              <p><strong>{t("admin.pc.ruleShippedLead")}</strong> {t("admin.pc.ruleShippedBody")}</p>
+              <p><strong>{t("admin.pc.ruleDemoLead")}</strong> {t("admin.pc.ruleDemoBody")}</p>
             </div>
 
             <Figure
-              title="Mode demonstrasi: satu titik satu sesi"
-              note="Titik terisi berarti aturannya menyala pada sesi itu. Baris atas adalah pertanyaan spesifisitasnya."
+              title={t("admin.pc.dotsTitle")}
+              note={t("admin.pc.dotsNote")}
               legend={[
-                { label: "Menyala", color: "var(--coral-500)" },
-                { label: "Tidak menyala", color: "var(--slate-200)" },
+                { label: t("admin.pc.fired"), color: "var(--coral-500)" },
+                { label: t("admin.pc.notFired"), color: "var(--slate-200)" },
               ]}
-              footnote="Sembilan sesi menonton biasa, tidak satu pun memicu aturan. Empat dari enam sesi produksi memicunya."
+              footnote={t("admin.pc.dotsFootnote")}
             >
               <OutcomeDots
                 rows={[
-                  { label: "Menonton biasa", fired: 0, total: 9, display: "0 / 9" },
-                  { label: "Pola diproduksi", fired: 4, total: 6, display: "4 / 6" },
+                  { label: t("admin.pc.condOrdinary"), fired: 0, total: 9, display: "0 / 9" },
+                  { label: t("admin.pc.condProduced"), fired: 4, total: 6, display: "4 / 6" },
                 ]}
               />
             </Figure>
@@ -1116,38 +1137,30 @@ export function AdminConsole() {
 
           <div className={styles.tableWrap}>
             <table>
-              <caption>Mode demonstrasi — bukan rujukan, dan tidak boleh dikutip sebagai satu</caption>
+              <caption>{t("admin.pc.demoTableCaption")}</caption>
               <thead>
-                <tr><th scope="col">Kondisi</th><th scope="col">Menyala</th><th scope="col">Tidak menyala</th></tr>
+                <tr><th scope="col">{t("admin.pc.colCondition")}</th><th scope="col">{t("admin.pc.fired")}</th><th scope="col">{t("admin.pc.notFired")}</th></tr>
               </thead>
               <tbody>
-                <tr><th scope="row">Menonton biasa</th><td data-emphasis="true">0</td><td>9</td></tr>
-                <tr><th scope="row">Pola diproduksi</th><td>4</td><td>2</td></tr>
+                <tr><th scope="row">{t("admin.pc.condOrdinary")}</th><td data-emphasis="true">0</td><td>9</td></tr>
+                <tr><th scope="row">{t("admin.pc.condProduced")}</th><td>4</td><td>2</td></tr>
               </tbody>
             </table>
           </div>
 
-          <Note kind="claim" title="Baris atas kolom kiri adalah yang penting, dan ia nol">
-            Aturannya tidak menyala pada orang yang sekadar menonton. Satu sesi biasa memang
-            menunjukkan preferensi geometrik 0,73 di atas ambang — dan tepat karena sinyal
-            keduanya normal, aturannya tidak menyala. Dua sesi produksi yang tidak menyala gagal
-            pada prasyarat perhatian, bukan pada perilakunya: keduanya tidak pernah menatap model
-            saat isyarat disampaikan, jadi sinyal isyaratnya ditahan.
+          <Note kind="claim" title={t("admin.pc.claimTitle")}>
+            {t("admin.pc.claimBody")}
           </Note>
 
-          <h3 className={styles.subhead}>Confound yang harus ikut disebut</h3>
+          <h3 className={styles.subhead}>{t("admin.pc.confoundHeading")}</h3>
           <div className={styles.choices}>
             {POSITIVE_CONTROL_CONFOUNDS.map(([title, body]) => (
-              <article key={title}><strong>{title}</strong><p>{body}</p></article>
+              <article key={title}><strong>{t(title)}</strong><p>{t(body)}</p></article>
             ))}
           </div>
 
-          <Note kind="limit" title="Yang data ini tidak tunjukkan">
-            Apa pun tentang autisme. Pesertanya orang dewasa yang mengikuti naskah, jadi tidak
-            ada sensitivitas, spesifisitas, atau akurasi di dalamnya. Regresi logistik pada kedua
-            sinyal mencapai AUC luar-lipatan 1,00 pada 13 sesi dengan grup perangkat — itu
-            analisis sensitivitas, bukan jalur keputusan, dan bobot yang dipasang pada orang
-            dewasa yang mengikuti naskah mempelajari naskahnya.
+          <Note kind="limit" title={t("admin.pc.limitTitle")}>
+            {t("admin.pc.limitBody")}
           </Note>
         </section>
 
@@ -1155,9 +1168,9 @@ export function AdminConsole() {
         <section id="klip-geopref" className={styles.section} aria-labelledby="klip-geopref-title">
           <SectionHead
             id="klip-geopref"
-            title="Validasi klip GeoPref"
-            lead="Blok preferential looking membawa satu-satunya ambang terbit di sistem ini. Karena itu asetnya diperiksa sebagai berkas, bukan diterima sebagai aset."
-            status="Protokol disingkat"
+            title={t("admin.clip.title")}
+            lead={t("admin.clip.lead")}
+            status={t("admin.clip.status")}
             tone="warn"
           />
 
@@ -1169,19 +1182,19 @@ export function AdminConsole() {
           </div>
 
           <Figure
-            title="Yang dikirim, dibanding protokol tempat ambangnya diturunkan"
-            note="Panjang klip dalam detik, pada skala yang sama. Yang berjalan di lapangan adalah batang paling atas."
+            title={t("admin.clip.durationTitle")}
+            note={t("admin.clip.durationNote")}
             legend={[
-              { label: "Yang dikirim", color: "var(--amber-600)" },
-              { label: "Protokol terbit", color: "var(--slate-500)" },
+              { label: t("admin.clip.legendShipped"), color: "var(--amber-600)" },
+              { label: t("admin.clip.legendPublished"), color: "var(--slate-500)" },
             ]}
           >
             <BarRows
               rows={CLIP_DURATIONS.map((clip) => ({
-                label: clip.label,
-                sublabel: clip.sublabel,
+                label: t(clip.label),
+                sublabel: t(clip.sublabel),
                 value: clip.value,
-                display: clip.display,
+                display: t(clip.display),
                 tone: clip.tone === "warn" ? "warn" : "calm",
               }))}
               max={90}
@@ -1190,75 +1203,68 @@ export function AdminConsole() {
 
           <div className={styles.figures}>
             <Figure
-              title="Berapa banyak bingkai yang sebenarnya terpakai"
-              note="Bingkai 640 × 360 digambar sesuai skala. Kedua panel adalah seluruh isi yang membawa informasi; sisanya kotak hitam suplemen."
+              title={t("admin.clip.frameTitle")}
+              note={t("admin.clip.frameNote")}
             >
-              <FrameGeometry panelShare={0.198} panelLabelLeft="Sosial" panelLabelRight="Geometrik" />
+              <FrameGeometry panelShare={0.198} panelLabelLeft={t("admin.clip.panelSocial")} panelLabelRight={t("admin.clip.panelGeometric")} />
             </Figure>
 
             <Figure
-              title="Sudut yang disubtensi tiap panel"
-              note="Digambar sesuai skala pada tablet sasaran. Garis putus-putus adalah ukuran yang dilaporkan Moore dkk.; blok isi adalah yang benar-benar dilihat anak."
-              footnote="Aplikasi memangkas kotak hitamnya, tetapi memangkas tidak menambah piksel: panelnya tetap lebih kecil daripada yang dipakai saat ambang diturunkan."
+              title={t("admin.clip.subtenseTitle")}
+              note={t("admin.clip.subtenseNote")}
+              footnote={t("admin.clip.subtenseFootnote")}
             >
               <SubtenseCompare
-                reference={{ w: 12.9, h: 9.1, label: "Moore dkk. · 12,9° × 9,1°" }}
-                shipped={{ w: 7.6, h: 4.9, label: "Yang dikirim · 7,6° × 4,9°" }}
+                reference={{ w: 12.9, h: 9.1, label: t("admin.clip.subtenseReference") }}
+                shipped={{ w: 7.6, h: 4.9, label: t("admin.clip.subtenseShipped") }}
               />
             </Figure>
           </div>
 
           <div className={styles.split}>
             <div className={styles.prose}>
-              <h3>Geometri panel diperiksa per perangkat</h3>
+              <h3>{t("admin.clip.geometryTitle")}</h3>
               <p>
-                Panel sosial dan geometrik hanya menempati <strong>19,8%</strong> luas bingkai
-                640 × 360; sisanya hitam, karena berkasnya ilustrasi suplemen dan bukan master
-                presentasi. Diputar utuh, tiap panel menyubtensi sekitar 7,6° × 4,9° pada tablet
-                sasaran — jauh di bawah 12,9° × 9,1° yang dilaporkan Moore dkk.
+                {t("admin.clip.geometryBody1Pre")}<strong>{t("admin.clip.geometryShare")}</strong>
+                {t("admin.clip.geometryBody1Post")}
               </p>
               <p>
-                Aplikasi memangkas kotak hitam itu, dan <code>geoprefPanelDegrees()</code> membuat
-                geometrinya dapat diperiksa per perangkat alih-alih diasumsikan.
+                {t("admin.clip.geometryBody2Pre")}<code>geoprefPanelDegrees()</code>
+                {t("admin.clip.geometryBody2Post")}
               </p>
             </div>
 
             <div className={styles.criteria} data-tone="warn">
-              <h3>Sifat yang disengaja</h3>
+              <h3>{t("admin.clip.deliberate")}</h3>
               <ul>
-                <li><strong>Senyap.</strong> Metode Moore dkk. menyatakan tidak ada audio. Jangan menambahkan trek suara.</li>
-                <li><strong>Letterboxed.</strong> Surround hitam dipangkas agar sudut panel mendekati yang dilaporkan.</li>
-                <li><strong>Panel geometrik di kanan.</strong> Dicatat ke log sesi, bukan diasumsikan.</li>
+                <li><strong>{t("admin.clip.deliberate1Lead")}</strong> {t("admin.clip.deliberate1Body")}</li>
+                <li><strong>{t("admin.clip.deliberate2Lead")}</strong> {t("admin.clip.deliberate2Body")}</li>
+                <li><strong>{t("admin.clip.deliberate3Lead")}</strong> {t("admin.clip.deliberate3Body")}</li>
               </ul>
             </div>
           </div>
 
-          <h3 className={styles.subhead}>Tiap aset membawa titik operasinya sendiri</h3>
+          <h3 className={styles.subhead}>{t("admin.clip.assetsHeading")}</h3>
           <div className={styles.assets}>
             {CLIP_ASSETS.map((asset) => (
               <article key={asset.title} data-status={asset.status}>
                 <div className={styles.assetTop}>
-                  <h4>{asset.title}</h4>
+                  <h4>{t(asset.title)}</h4>
                   <span className={styles.statusPill} data-tone={asset.status === "shipped" ? "passed" : "open"}>
-                    {asset.statusLabel}
+                    {t(asset.statusLabel)}
                   </span>
                 </div>
                 <dl>
-                  <div><dt>Durasi</dt><dd>{asset.duration}</dd></div>
-                  <div><dt>Titik operasi</dt><dd>{asset.operating}</dd></div>
+                  <div><dt>{t("admin.clip.assetDuration")}</dt><dd>{t(asset.duration)}</dd></div>
+                  <div><dt>{t("admin.clip.assetOperating")}</dt><dd>{t(asset.operating)}</dd></div>
                 </dl>
-                <p>{asset.note}</p>
+                <p>{t(asset.note)}</p>
               </article>
             ))}
           </div>
 
-          <Note kind="limit" title="Kenapa ambang 69% ditahan">
-            Ambang itu diturunkan pada protokol 62,22 detik dan dibawa ke protokol 90 detik. Yang
-            dikirim adalah cuplikan 16,75 detik dari keduanya — seperlima panjang protokol terbit,
-            tanpa preseden operasional sendiri. Karena itu <code>validatedProtocol</code> bernilai
-            false, ambangnya ditahan di lapangan, dan sesi melaporkan persentase terukur sambil
-            menyatakan protokolnya disingkat. Mode demonstrasi menerapkannya sekali, di bawah
-            banner yang menyatakan dirinya demonstrasi.
+          <Note kind="limit" title={t("admin.clip.limitTitle")}>
+            {t("admin.clip.limitBody1")}<code>validatedProtocol</code>{t("admin.clip.limitBody2")}
           </Note>
         </section>
 
@@ -1266,37 +1272,43 @@ export function AdminConsole() {
         <section id="adegan-vektor" className={styles.section} aria-labelledby="adegan-vektor-title">
           <SectionHead
             id="adegan-vektor"
-            title="Adegan vektor dirancang untuk skrining, bukan hiburan"
-            lead={`Setiap detik, objek, dan gerakan pada adegan punya alasan metodologis. Stimulus ${STIMULUS_VERSION}.`}
-            status={`${STIMULUS_TOTAL_SECONDS} detik`}
+            title={t("admin.scene.title")}
+            lead={t("admin.scene.lead", { version: STIMULUS_VERSION })}
+            status={t("admin.scene.status", { seconds: STIMULUS_TOTAL_SECONDS })}
             tone="neutral"
           />
 
-          <Metrics items={STIMULUS_METRICS} />
+          <Metrics items={STIMULUS_METRICS.map((metric) => (
+            // The total duration is read from the protocol module, so its cell
+            // is the one metric whose value carries a placeholder.
+            metric.label === "admin.scene.mDuration"
+              ? { ...metric, value: t("admin.scene.mDurationValue", { seconds: STIMULUS_TOTAL_SECONDS }) }
+              : metric
+          ))} />
 
-          <h3 className={styles.subhead}>Struktur satu percobaan · 5 detik</h3>
+          <h3 className={styles.subhead}>{t("admin.scene.trialHeading")}</h3>
 
           <Figure
-            title="Satu percobaan, digambar sesuai waktunya"
-            note="Lebar tiap blok sebanding dengan durasinya. Onset isyarat memisahkan epok pra-isyarat yang benar-benar netral dari jendela yang dihitung sebagai respons."
+            title={t("admin.scene.stripTitle")}
+            note={t("admin.scene.stripNote")}
             legend={TRIAL_BANDS.map((band) => ({
-              label: band.label,
+              label: t(band.label),
               color:
                 band.tone === "rest"
                   ? "var(--slate-100)"
                   : band.tone === "ostensive"
                     ? "var(--teal-200)"
                     : "var(--amber-100)",
-              value: `${num((band.toMs - band.fromMs) / 1000, 1)} dtk`,
+              value: t("admin.scene.secondsUnit", { value: decimal((band.toMs - band.fromMs) / 1000, 1, bcp47) }),
             }))}
-            footnote="Ketiga angka di strip ini dibaca dari modul protokol, bukan diketik ulang di halaman ini."
+            footnote={t("admin.scene.stripFootnote")}
           >
             <TrialStrip
               totalMs={TRIAL_MS}
-              bands={TRIAL_BANDS}
+              bands={TRIAL_BANDS.map((band) => ({ ...band, label: t(band.label) }))}
               markers={[
-                { label: `${num(TRIAL_OSTENSIVE_MS / 1000, 1)} dtk · ostensif`, atMs: TRIAL_OSTENSIVE_MS },
-                { label: `${num(TRIAL_CUE_MS / 1000, 1)} dtk · isyarat arah`, atMs: TRIAL_CUE_MS },
+                { label: t("admin.scene.markerOstensive", { value: decimal(TRIAL_OSTENSIVE_MS / 1000, 1, bcp47) }), atMs: TRIAL_OSTENSIVE_MS },
+                { label: t("admin.scene.markerCue", { value: decimal(TRIAL_CUE_MS / 1000, 1, bcp47) }), atMs: TRIAL_CUE_MS },
               ]}
             />
           </Figure>
@@ -1304,92 +1316,65 @@ export function AdminConsole() {
           <ol className={styles.timeline}>
             {TRIAL_TIMELINE.map(([time, title, note]) => (
               <li key={time}>
-                <span className={styles.timelineTime}>{time}</span>
-                <strong>{title}</strong>
-                <p>{note}</p>
+                <span className={styles.timelineTime}>{t(time)}</span>
+                <strong>{t(title)}</strong>
+                <p>{t(note)}</p>
               </li>
             ))}
           </ol>
 
           <div className={styles.split}>
             <div className={styles.prose}>
-              <h3>Kenapa harus ada sinyal ostensif dulu</h3>
-              <p>
-                Anak kecil mengikuti arah pandang terutama setelah menerima sinyal komunikatif —
-                kontak mata, alis terangkat, sapaan. Tanpa ajakan itu, anak yang tidak mengikuti
-                arah pandang belum tentu menunjukkan apa pun; ia bisa saja hanya tidak merasa
-                diajak.
-              </p>
+              <h3>{t("admin.scene.whyOstensive")}</h3>
+              <p>{t("admin.scene.whyOstensiveBody")}</p>
               <a className={styles.link} href="https://doi.org/10.1016/j.cub.2008.03.059" target="_blank" rel="noreferrer">
                 Senju &amp; Csibra 2008 <IconArrowRight size={13} />
               </a>
             </div>
 
             <div className={styles.prose}>
-              <h3>Kenapa vektor, bukan rekaman video</h3>
-              <p>
-                Adegan digambar sebagai SVG dan dianimasikan lewat CSS. Onset isyarat karena itu
-                jatuh persis pada milidetik yang dideklarasikan protokol di semua tablet, tidak
-                bergeser karena frame yang jatuh atau dekoder yang berbeda. Asetnya kecil,
-                berjalan luring penuh, dan tidak membawa masalah lisensi maupun privasi seperti
-                rekaman aktor.
-              </p>
+              <h3>{t("admin.scene.whyVector")}</h3>
+              <p>{t("admin.scene.whyVectorBody")}</p>
             </div>
           </div>
 
           <div className={styles.split}>
             <div className={styles.prose}>
-              <h3>Sumber rancangan</h3>
+              <h3>{t("admin.scene.designSource")}</h3>
               <p>
-                Struktur percobaan mengikuti paradigma <em>responding joint attention</em> yang
-                dipakai pada balita: model perempuan duduk di belakang meja dengan dua objek
-                identik, mula-mula menunduk, lalu menatap kamera dan menyapa, lalu memalingkan
-                kepala ke salah satu objek sambil tetap diam dan berekspresi netral.
+                {t("admin.scene.designSourceBody1Pre")}<em>{t("admin.scene.designSourceEm")}</em>
+                {t("admin.scene.designSourceBody1Post")}
               </p>
               <p>
-                Video suplemen paradigma itu (Billeci dkk.) tersimpan di repositori pada{" "}
-                <code>referensi/stimulus_billeci/</code> dan dipakai sebagai acuan langsung saat
-                menyusun urutan adegan.
+                {t("admin.scene.designSourceBody2Pre")}<code>referensi/stimulus_billeci/</code>
+                {t("admin.scene.designSourceBody2Post")}
               </p>
             </div>
 
             <div className={styles.prose}>
-              <h3>Konstruk yang diukur</h3>
-              <p>
-                Berkurangnya respons terhadap ajakan berbagi perhatian adalah salah satu
-                perbedaan perilaku yang paling awal muncul dan paling konsisten dilaporkan pada
-                anak dengan ASD. Cilia dkk. menemukan gerakan menunjuk yang disertai orientasi
-                kepala sebagai isyarat sasaran paling kuat — itulah yang direplikasi di sini.
-              </p>
+              <h3>{t("admin.scene.construct")}</h3>
+              <p>{t("admin.scene.constructBody")}</p>
               <a className={styles.link} href="https://doi.org/10.3389/fpsyg.2019.02187" target="_blank" rel="noreferrer">
                 Cilia dkk. 2019 <IconArrowRight size={13} />
               </a>
             </div>
           </div>
 
-          <h3 className={styles.subhead}>Yang sengaja dihilangkan dari adegan</h3>
+          <h3 className={styles.subhead}>{t("admin.scene.omittedHeading")}</h3>
           <div className={styles.choices}>
             {DESIGN_CHOICES.map(([choice, reason]) => (
-              <article key={choice}><strong>{choice}</strong><p>{reason}</p></article>
+              <article key={choice}><strong>{t(choice)}</strong><p>{t(reason)}</p></article>
             ))}
           </div>
 
-          <Note kind="limit" title="Batas klaim desain stimulus">
-            Rancangan yang berdasar tidak membuat keluarannya menjadi diagnosis. Baterai ini bukan
-            GeoPref dan bukan instrumen yang sudah tervalidasi secara klinis; ia berstatus stimulus
-            riset yang dapat diuji. Validitasnya ditentukan Gate C, bukan oleh kualitas rancangan di
-            halaman ini. Perubahan apa pun pada adegan atau waktu wajib menaikkan versi stimulus,
-            karena hasil lama tidak lagi sebanding.
+          <Note kind="limit" title={t("admin.scene.limitTitle")}>
+            {t("admin.scene.limitBody")}
           </Note>
         </section>
 
         <footer className={styles.pageFoot}>
           <IconInfo size={15} />
-          <p>
-            Setiap angka di halaman ini berasal dari artefak di <code>research/hasil</code> atau
-            dari artikel sumber yang disebut namanya. Bukti sekunder tidak menggantikan kohort
-            prospektif maupun uji coba Posyandu.
-          </p>
+          <p>{t("admin.footer")}</p>
         </footer>
       </main>
     </div>

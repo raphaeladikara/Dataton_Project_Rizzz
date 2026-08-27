@@ -1,3 +1,4 @@
+import type { Locale } from "../i18n/locale";
 export type CameraErrorKind =
   | "permission_denied"
   | "camera_not_found"
@@ -30,6 +31,32 @@ function errorName(error: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+const CAMERA_ERRORS_EN: Record<CameraErrorKind, string> = {
+  permission_denied:
+    "Camera permission was denied. Allow camera access for this site in your browser settings, then try again.",
+  camera_not_found:
+    "No camera found. Connect or enable a front-facing camera, then try again.",
+  camera_busy:
+    "The camera is in use by another application. Close any app or tab using it, then try again.",
+  insecure_context:
+    "The camera requires HTTPS or http://localhost. Open this page over an HTTPS connection, then try again.",
+  unsupported_browser:
+    "This browser or WebView does not support camera access. Open the page in a recent version of Chrome, Edge, or Safari, then try again.",
+  unsupported_constraints:
+    "The camera cannot meet this session's resolution requirement. Choose a different camera or check the device's resolution settings, then try again.",
+  request_timeout:
+    "The camera did not respond within 12 seconds. Check camera permissions and connection, then try again.",
+  request_interrupted:
+    "The camera request stopped before it finished. Try again; if it keeps happening, reload the page.",
+  unknown:
+    "The camera could not be opened. Check camera permissions, close other apps using the camera, then try again.",
+};
+
+/** The message for a kind, in the reader's language. */
+export function cameraErrorMessage(kind: CameraErrorKind, locale: Locale): string {
+  return locale === "en" ? CAMERA_ERRORS_EN[kind] : CAMERA_ERRORS[kind].message;
 }
 
 const CAMERA_ERRORS: Record<CameraErrorKind, CameraErrorInfo> = {
