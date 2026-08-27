@@ -15,9 +15,31 @@ import { GATE_EVIDENCE_STATUS } from "../../src/validation/evidenceStatus";
 import { DEFAULT_GATE_C_SIMULATION, simulateGateC } from "../../src/validation/gateCSimulation";
 import {
   SCORED_TRIAL_COUNT,
+  STIMULUS_PHASES,
   STIMULUS_TOTAL_SECONDS,
   STIMULUS_VERSION,
 } from "../../src/stimulus/protocol";
+import {
+  BarRows,
+  ConfusionMatrix,
+  DeltaBars,
+  Donut,
+  Figure,
+  FrameGeometry,
+  FunnelBars,
+  GateLadder,
+  IntervalPlot,
+  Meter,
+  OutcomeDots,
+  PpvCurve,
+  RangeStrips,
+  RatioDots,
+  SplitBar,
+  SubtenseCompare,
+  TrialStrip,
+  num,
+  useChartMotion,
+} from "./charts";
 
 type Metric = readonly [label: string, value: string, note: string];
 
@@ -30,6 +52,26 @@ const GATE_A_METRICS: readonly Metric[] = [
   ["Mode luring", "100%", "Nol crash sepanjang pengujian"],
 ];
 
+/**
+ * Same four rows as the table below the chart, plotted. Two figures rather than
+ * one with two scales: completion is a percentage and calibration error is an
+ * angle, and putting them on one plot would invent a relationship between them.
+ */
+const GATE_A_CONDITIONS = [
+  { label: "Cahaya normal", sessions: 50, success: 98, error: 1.9 },
+  { label: "Cahaya redup", sessions: 25, success: 88, error: 2.8 },
+  { label: "Tanpa kacamata", sessions: 70, success: 97, error: 2.0 },
+  { label: "Dengan kacamata", sessions: 30, success: 87, error: 2.9 },
+] as const;
+
+/** The six sessions that produced no report, and why each one did not. */
+const GATE_A_OUTCOMES = [
+  { label: "Selesai dan melaporkan", value: 94, color: "var(--teal-500)" },
+  { label: "Pantulan kacamata", value: 3, color: "var(--slate-700)" },
+  { label: "Wajah terlalu miring", value: 2, color: "var(--slate-500)" },
+  { label: "Orientasi layar berubah", value: 1, color: "var(--slate-200)" },
+] as const;
+
 const GATE_B_METRICS: readonly Metric[] = [
   ["Pasangan direkam", "30", "Aliran browser simultan"],
   ["Pasangan siap", "27", "Valid pair rate 90%"],
@@ -38,6 +80,18 @@ const GATE_B_METRICS: readonly Metric[] = [
   ["AOI utama cocok", "27/27", "Seluruh pasangan siap"],
   ["Ditahan", "3", "Tetap ikut dihitung, tidak dibuang"],
 ];
+
+/**
+ * Attention shares from the same 27 ready pairs the table reports. Hue here does
+ * identity work only, so the three panels take the local categorical slots; the
+ * background AOI takes the de-emphasis step, because that is what it is.
+ */
+const AOI_DISTRIBUTION = [
+  { label: "Wajah", webgazer: 17.1628, neurogaze: 17.1374, color: "var(--chart-1)" },
+  { label: "Target kiri", webgazer: 32.7535, neurogaze: 32.8137, color: "var(--chart-2)" },
+  { label: "Target kanan", webgazer: 33.2116, neurogaze: 33.2336, color: "var(--chart-3)" },
+  { label: "Latar", webgazer: 16.872, neurogaze: 16.8152, color: "var(--chart-rest)" },
+] as const;
 
 const GATE_C_METRICS: readonly Metric[] = [
   ["Lintasan tatapan", "547", "Citra 640 × 480"],
@@ -112,6 +166,38 @@ const POSITIVE_CONTROL_SIGNALS = [
   },
 ] as const;
 
+/**
+ * Small multiples, one axis per signal, because the three are measured in
+ * different units. A shared axis would put "8 percobaan" and "0,73 preferensi"
+ * on the same ruler and make the gaps look comparable when they are not.
+ */
+const POSITIVE_CONTROL_RANGES = [
+  {
+    label: "Preferensi geometrik",
+    domain: [0, 1] as const,
+    ticks: ["0", "0,5", "1,0"],
+    a: { from: 0.08, to: 0.73, display: "0,08–0,73" },
+    b: { from: 0.89, to: 1.0, display: "0,89–1,00" },
+    gap: "+0,16",
+  },
+  {
+    label: "Percobaan masuk target",
+    domain: [0, 8] as const,
+    ticks: ["0", "4", "8"],
+    a: { from: 5, to: 8, display: "5–8 dari 8" },
+    b: { from: 0, to: 1, display: "0–1 dari 8" },
+    gap: "4 percobaan",
+  },
+  {
+    label: "Sebaran tatapan fase isyarat",
+    domain: [0, 0.5] as const,
+    ticks: ["0", "0,25", "0,50"],
+    a: { from: 0.07, to: 0.4, display: "0,07–0,40" },
+    b: { from: 0.03, to: 0.06, display: "0,03–0,06" },
+    gap: "+0,008",
+  },
+] as const;
+
 const POSITIVE_CONTROL_CONFOUNDS = [
   ["Panel geometrik selalu di kanan", "Pada seluruh 24 sesi, dan urutan isyarat identik pada seluruhnya, karena kedua skema counterbalancing diturunkan dari kolom identitas yang terisi sama. Preferensi geometrik karena itu tidak terpisah dari bias melirik kanan di data ini."],
   ["Identitas peserta tidak terekam", "Tidak ada analisis berpasangan. Grup validasi silang adalah perangkat, bukan orang — lebih kasar daripada yang diminta protokol, dan lebih ketat."],
@@ -153,18 +239,43 @@ const CLIP_ASSETS = [
   },
 ] as const;
 
+/** What the cutoff was derived on, next to what the app actually plays. */
+const CLIP_DURATIONS = [
+  { label: "Dikirim", sublabel: "Cuplikan Complex Social", value: 16.75, display: "16,75 dtk", tone: "warn" as const },
+  { label: "GeoPref asli", sublabel: "Wen dkk. 2022", value: 62.22, display: "62,22 dtk", tone: "calm" as const },
+  { label: "Complex Social", sublabel: "Moore dkk. 2018", value: 90, display: "90 dtk", tone: "calm" as const },
+];
+
+/**
+ * The trial strip reads its geometry from the protocol module rather than the
+ * copy beside it, so a timing change cannot leave the picture describing a trial
+ * the app no longer runs.
+ */
+const SCORED_TRIAL = STIMULUS_PHASES.find((phase) => phase.scored);
+const TRIAL_MS = SCORED_TRIAL?.durationMs ?? 5000;
+const TRIAL_OSTENSIVE_MS = SCORED_TRIAL?.ostensiveOnsetMs ?? 1200;
+const TRIAL_CUE_MS = SCORED_TRIAL?.cueOnsetMs ?? 1700;
+
+const TRIAL_BANDS = [
+  { label: "Istirahat", fromMs: 0, toMs: TRIAL_OSTENSIVE_MS, tone: "rest" as const },
+  { label: "Sinyal ostensif", fromMs: TRIAL_OSTENSIVE_MS, toMs: TRIAL_CUE_MS, tone: "ostensive" as const },
+  { label: "Jendela respons", fromMs: TRIAL_CUE_MS, toMs: TRIAL_MS, tone: "response" as const },
+];
+
 const NAV_GROUPS = [
   {
     group: "Ringkasan",
     items: [{ id: "ringkasan", label: "Status gerbang" }],
   },
   {
+    // The rail carries pass state too. A reader who lands mid-page should not
+    // have to scroll back to the summary to learn which gates are still open.
     group: "Gerbang validasi",
     items: [
-      { id: "gate-a", label: "A · Teknis" },
-      { id: "gate-b", label: "B · Kesetaraan" },
-      { id: "gate-c", label: "C · Klinis" },
-      { id: "gate-d", label: "D · Operasional" },
+      { id: "gate-a", label: "A · Teknis", state: "passed" },
+      { id: "gate-b", label: "B · Kesetaraan", state: "passed" },
+      { id: "gate-c", label: "C · Klinis", state: "open" },
+      { id: "gate-d", label: "D · Operasional", state: "open" },
     ],
   },
   {
@@ -257,6 +368,8 @@ export function AdminConsole() {
   const [activeSection, setActiveSection] = useState<string>(SECTION_IDS[0]);
   const [navOpen, setNavOpen] = useState(false);
 
+  useChartMotion();
+
   // Scrollspy against a reading line a third of the way down the viewport: the
   // last section whose top has crossed it is the one being read. Deliberately
   // not an IntersectionObserver — sections here run 600–1700 px tall, so several
@@ -325,6 +438,9 @@ export function AdminConsole() {
                   aria-current={activeSection === item.id ? "true" : undefined}
                   onClick={() => setNavOpen(false)}
                 >
+                  {"state" in item ? (
+                    <i className={styles.navState} data-state={item.state} aria-hidden="true" />
+                  ) : null}
                   {item.label}
                 </a>
               ))}
@@ -339,6 +455,29 @@ export function AdminConsole() {
       </aside>
 
       <main className={styles.content}>
+        {/* The page had no h1 at all: the first heading a screen reader met was
+            the h2 of the summary section, so the document announced itself as a
+            fragment of something else. */}
+        <header className={styles.pageHead}>
+          <div>
+            <h1>Panel teknis Neurogaze</h1>
+            <p>
+              Bukti pengukuran di balik produk, ditulis untuk peninjau. Setiap angka membawa
+              sumbernya, dan setiap gerbang yang belum lulus disebut belum lulus.
+            </p>
+          </div>
+          <dl className={styles.pageHeadMeta}>
+            <div>
+              <dt>Diperbarui</dt>
+              <dd>{GATE_EVIDENCE_STATUS.updatedAt}</dd>
+            </div>
+            <div>
+              <dt>Versi stimulus</dt>
+              <dd>{STIMULUS_VERSION}</dd>
+            </div>
+          </dl>
+        </header>
+
         {/* ── Ringkasan ──────────────────────────────────────────────────── */}
         <section id="ringkasan" className={styles.section} aria-labelledby="ringkasan-title">
           <SectionHead
@@ -346,6 +485,19 @@ export function AdminConsole() {
             title="Status gerbang validasi"
             lead="Halaman ini memisahkan pengukuran teknis dari pengalaman peserta. Tidak ada skor ASD dan tidak ada keputusan klinis di sini."
           />
+
+          <Figure
+            title="Dua dari empat gerbang lulus"
+            note="Gerbangnya berurutan: masing-masing mengandaikan yang sebelumnya sudah lulus. A dan B mengukur instrumennya. C dan D mengukur apa yang terjadi ketika instrumen itu dibawa ke anak dan ke meja Posyandu — dan keduanya belum dijalankan."
+          >
+            <GateLadder
+              gates={GATE_EVIDENCE_STATUS.gates.map((gate) => ({
+                id: gate.id,
+                label: gate.title,
+                passed: gate.status === "passed",
+              }))}
+            />
+          </Figure>
 
           <div className={styles.gateGrid}>
             {GATE_EVIDENCE_STATUS.gates.map((gate) => {
@@ -385,6 +537,57 @@ export function AdminConsole() {
           />
 
           <Metrics items={GATE_A_METRICS} />
+
+          <div className={styles.figures}>
+            <Figure
+              title="Sesi berhasil menurut kondisi"
+              note="Persentase sesi yang selesai dan menghasilkan laporan. Garis tipis adalah ambang penyelesaian 90%."
+            >
+              <BarRows
+                rows={GATE_A_CONDITIONS.map((row) => ({
+                  label: row.label,
+                  sublabel: `${row.sessions} sesi`,
+                  value: row.success,
+                  display: `${row.success}%`,
+                }))}
+                max={100}
+                threshold={90}
+                thresholdLabel="Ambang penyelesaian 90%"
+              />
+            </Figure>
+
+            <Figure
+              title="Galat kalibrasi median menurut kondisi"
+              note="Derajat sudut pandang, lebih kecil lebih baik. Kacamata dan cahaya redup memakan hampir seluruh anggaran 3°, dan keduanya tetap di bawahnya."
+            >
+              <BarRows
+                rows={GATE_A_CONDITIONS.map((row) => ({
+                  label: row.label,
+                  value: row.error,
+                  display: `${num(row.error)}°`,
+                }))}
+                max={4}
+                threshold={3}
+                thresholdSide="max"
+                thresholdLabel="Ambang galat 3°"
+              />
+            </Figure>
+          </div>
+
+          <Figure
+            title="Ke mana 100 sesi bermuara"
+            note="Enam sesi tidak menghasilkan laporan, dan seluruhnya dikenali sistem. Menahan hasil adalah keluaran yang sah, bukan kegagalan."
+            legend={GATE_A_OUTCOMES.map((slice) => ({
+              label: slice.label,
+              color: slice.color,
+              value: String(slice.value),
+            }))}
+          >
+            <SplitBar
+              total={100}
+              segments={GATE_A_OUTCOMES.map((slice) => ({ ...slice, display: `${slice.value} sesi` }))}
+            />
+          </Figure>
 
           <div className={styles.split}>
             <div className={styles.tableWrap}>
@@ -435,6 +638,79 @@ export function AdminConsole() {
 
           <Metrics items={GATE_B_METRICS} />
 
+          <div className={styles.figures}>
+            <Figure
+              title="Komposisi area perhatian"
+              note="Rata-rata 27 pasangan siap, aliran Neurogaze. Kedua target identik memang menerima porsi yang hampir sama — itu rancangannya, bukan kebetulan."
+              legend={AOI_DISTRIBUTION.map((area) => ({
+                label: area.label,
+                color: area.color,
+                value: `${num(area.neurogaze, 1)}%`,
+              }))}
+            >
+              <Donut
+                slices={AOI_DISTRIBUTION.map((area) => ({
+                  label: area.label,
+                  value: area.neurogaze,
+                  color: area.color,
+                }))}
+                centre="66,0%"
+                centreNote="pada dua target"
+              />
+            </Figure>
+
+            <Figure
+              title="Selisih Neurogaze terhadap WebGazer.js"
+              note="Poin persen, per area. Sumbunya berhenti di 0,08 pp supaya batangnya kelihatan sama sekali."
+              footnote="Selisih terbesar ada pada target kiri, 0,06 pp — satu bingkai dari sekitar 1.700. Kriteria kelulusan menuntut agreement AOI ≥ 95%; di sini tidak ada satu area pun yang meleset sepersepuluh poin persen."
+            >
+              <DeltaBars
+                domain={0.08}
+                domainLabel="0,08 pp"
+                rows={AOI_DISTRIBUTION.map((area) => {
+                  const delta = area.neurogaze - area.webgazer;
+                  return {
+                    label: area.label,
+                    value: delta,
+                    display: `${delta > 0 ? "+" : "−"}${num(Math.abs(delta), 3)}`,
+                  };
+                })}
+              />
+            </Figure>
+          </div>
+
+          <div className={styles.figures}>
+            <Figure
+              title="Galat median ternormalisasi"
+              note="Jarak koordinat antara kedua aliran, dibagi diagonal layar."
+            >
+              <Meter
+                value={0.040997}
+                limit={0.05}
+                max={0.08}
+                display="0,040997"
+                limitLabel="Ambang kelulusan ≤ 0,05"
+              />
+            </Figure>
+
+            <Figure
+              title="Hasil 30 pasangan yang direkam"
+              note="Tiga pasangan ditahan karena mutu sinyal, dan tetap ikut dihitung dalam valid pair rate alih-alih dibuang dari penyebut."
+              legend={[
+                { label: "Siap dianalisis", color: "var(--teal-500)", value: "27" },
+                { label: "Ditahan", color: "var(--slate-500)", value: "3" },
+              ]}
+            >
+              <SplitBar
+                total={30}
+                segments={[
+                  { label: "Siap dianalisis", value: 27, display: "27 pasangan", color: "var(--teal-500)" },
+                  { label: "Ditahan", value: 3, display: "3", color: "var(--slate-500)" },
+                ]}
+              />
+            </Figure>
+          </div>
+
           <div className={styles.split}>
             <div className={styles.tableWrap}>
               <table>
@@ -484,6 +760,30 @@ export function AdminConsole() {
           />
 
           <Metrics items={GATE_C_METRICS} />
+
+          <Figure
+            title="AUC tingkat anak, dengan selang kepercayaannya"
+            note="Titik penuh adalah estimasi, batang adalah selang 95%. Sumbunya mulai dari tebakan acak, dan selangnya lebar karena hanya ada 54 anak."
+            legend={[
+              { label: "Selang 95%", color: "var(--teal-200)" },
+              { label: "Estimasi titik", color: "var(--teal-600)" },
+            ]}
+            footnote="Angka ini berasal dari scanpath anak usia sekolah pada eye-tracker 250 Hz. Ia menyatakan sesuatu tentang dataset itu, bukan tentang balita di depan kamera tablet."
+          >
+            <IntervalPlot
+              domain={[0.5, 1]}
+              ticks={["0,50 · acak", "0,75", "1,00"]}
+              intervals={[
+                {
+                  label: "Evaluasi memisahkan data tiap anak",
+                  from: 0.774,
+                  to: 0.968,
+                  point: 0.8819,
+                  display: "0,8819 · CI 0,774–0,968",
+                },
+              ]}
+            />
+          </Figure>
 
           <div className={styles.split}>
             <div className={styles.prose}>
@@ -576,11 +876,85 @@ export function AdminConsole() {
               <article><small>Rujukan per true positive</small><strong>{Number.isFinite(gateCSimulation.referralsPerTruePositive) ? gateCSimulation.referralsPerTruePositive.toFixed(1).replace(".", ",") : "n/a"}</strong><span>Proyeksi beban layanan</span></article>
             </div>
 
-            <div className={styles.matrix}>
-              <span><b>TP {gateCSimulation.truePositive.toFixed(1)}</b><small>terjaring</small></span>
-              <span><b>FN {gateCSimulation.falseNegative.toFixed(1)}</b><small>terlewat</small></span>
-              <span><b>FP {gateCSimulation.falsePositive.toFixed(1)}</b><small>rujukan non-ASD</small></span>
-              <span><b>TN {gateCSimulation.trueNegative.toFixed(1)}</b><small>tidak dirujuk</small></span>
+            <div className={styles.figures}>
+              <Figure
+                title="Ke mana skenario ini menempatkan setiap anak"
+                note="Baris adalah keadaan sebenarnya, kolom adalah keputusan aturan. Sel yang mahal ada di diagonal berlawanan."
+              >
+                <ConfusionMatrix
+                  truePositive={num(gateCSimulation.truePositive)}
+                  falseNegative={num(gateCSimulation.falseNegative)}
+                  falsePositive={num(gateCSimulation.falsePositive)}
+                  trueNegative={num(gateCSimulation.trueNegative)}
+                />
+              </Figure>
+
+              <Figure
+                title="Dari kohort ke rujukan yang benar"
+                note="Setiap baris adalah bagian dari baris di atasnya, digambar pada skala yang sama."
+              >
+                <FunnelBars
+                  total={gateCSimulation.cohortSize}
+                  steps={[
+                    {
+                      label: "Kohort",
+                      value: gateCSimulation.cohortSize,
+                      display: gateCSimulation.cohortSize.toLocaleString("id-ID"),
+                      tone: "calm",
+                    },
+                    {
+                      label: "Dapat dinilai",
+                      value: gateCSimulation.assessable,
+                      display: gateCSimulation.assessable.toFixed(0),
+                      tone: "calm",
+                    },
+                    {
+                      label: "Dirujuk",
+                      value: gateCSimulation.truePositive + gateCSimulation.falsePositive,
+                      display: (gateCSimulation.truePositive + gateCSimulation.falsePositive).toFixed(0),
+                      tone: "warn",
+                    },
+                    {
+                      label: "Rujukan tepat",
+                      value: gateCSimulation.truePositive,
+                      display: num(gateCSimulation.truePositive),
+                      tone: "good",
+                    },
+                  ]}
+                />
+              </Figure>
+            </div>
+
+            <div className={styles.figures}>
+              <Figure
+                title="Harga satu rujukan yang tepat"
+                note="Satu titik satu rujukan. Titik hijau adalah anak yang memang jadi sasaran; sisanya keluarga yang diminta datang lagi tanpa perlu."
+              >
+                <RatioDots
+                  total={
+                    Number.isFinite(gateCSimulation.referralsPerTruePositive)
+                      ? gateCSimulation.referralsPerTruePositive
+                      : 0
+                  }
+                  note={
+                    Number.isFinite(gateCSimulation.referralsPerTruePositive)
+                      ? `${num(gateCSimulation.referralsPerTruePositive)} rujukan per satu sasaran yang terjaring. Itulah beban yang harus ditanggung Puskesmas untuk setiap anak yang benar-benar perlu diperiksa lanjut.`
+                      : "Pada skenario ini tidak ada sasaran yang terjaring, jadi rasionya tidak terdefinisi."
+                  }
+                />
+              </Figure>
+
+              <Figure
+                title="PPV runtuh saat prevalensi turun"
+                note="Sensitivitas dan spesifisitas dikunci; hanya prevalensi yang bergerak. Arahkan kursor untuk membaca titik lain pada kurva."
+                footnote="Inilah alasan ambang klinis tidak boleh ditetapkan dari AUC saja. Tes yang sama berpindah dari berguna ke membanjiri layanan hanya karena kohortnya berubah."
+              >
+                <PpvCurve
+                  sensitivity={gateCSimulation.sensitivity}
+                  specificity={gateCSimulation.specificity}
+                  prevalence={gateCSimulation.prevalence}
+                />
+              </Figure>
             </div>
 
             <Note kind="limit" title="Interpretasi skenario saat ini">
@@ -656,6 +1030,22 @@ export function AdminConsole() {
 
           <Metrics items={POSITIVE_CONTROL_METRICS} />
 
+          <Figure
+            title="Jarak antara dua kondisi, per sinyal"
+            note="Tiap sinyal memakai sumbunya sendiri karena satuannya berbeda. Yang dibaca adalah lebar celah di antara kedua batang, bukan panjang batangnya."
+            legend={[
+              { label: "Menonton biasa", color: "var(--slate-500)" },
+              { label: "Pola diproduksi", color: "var(--coral-500)" },
+            ]}
+            footnote="Ketiga celah terbuka penuh: tidak ada satu pun sesi biasa yang menyentuh rentang sesi produksi pada sinyal mana pun."
+          >
+            <RangeStrips
+              strips={POSITIVE_CONTROL_RANGES.map((strip) => ({ ...strip, domain: strip.domain }))}
+              aLabel="Menonton biasa"
+              bLabel="Pola diproduksi"
+            />
+          </Figure>
+
           <div className={styles.tableWrap}>
             <table>
               <caption>Pemisahan tiap sinyal keputusan antara dua kondisi perilaku</caption>
@@ -705,18 +1095,35 @@ export function AdminConsole() {
               </p>
             </div>
 
-            <div className={styles.tableWrap}>
-              <table>
-                <caption>Mode demonstrasi — bukan rujukan, dan tidak boleh dikutip sebagai satu</caption>
-                <thead>
-                  <tr><th scope="col">Kondisi</th><th scope="col">Menyala</th><th scope="col">Tidak menyala</th></tr>
-                </thead>
-                <tbody>
-                  <tr><th scope="row">Menonton biasa</th><td data-emphasis="true">0</td><td>9</td></tr>
-                  <tr><th scope="row">Pola diproduksi</th><td>4</td><td>2</td></tr>
-                </tbody>
-              </table>
-            </div>
+            <Figure
+              title="Mode demonstrasi: satu titik satu sesi"
+              note="Titik terisi berarti aturannya menyala pada sesi itu. Baris atas adalah pertanyaan spesifisitasnya."
+              legend={[
+                { label: "Menyala", color: "var(--coral-500)" },
+                { label: "Tidak menyala", color: "var(--slate-200)" },
+              ]}
+              footnote="Sembilan sesi menonton biasa, tidak satu pun memicu aturan. Empat dari enam sesi produksi memicunya."
+            >
+              <OutcomeDots
+                rows={[
+                  { label: "Menonton biasa", fired: 0, total: 9, display: "0 / 9" },
+                  { label: "Pola diproduksi", fired: 4, total: 6, display: "4 / 6" },
+                ]}
+              />
+            </Figure>
+          </div>
+
+          <div className={styles.tableWrap}>
+            <table>
+              <caption>Mode demonstrasi — bukan rujukan, dan tidak boleh dikutip sebagai satu</caption>
+              <thead>
+                <tr><th scope="col">Kondisi</th><th scope="col">Menyala</th><th scope="col">Tidak menyala</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Menonton biasa</th><td data-emphasis="true">0</td><td>9</td></tr>
+                <tr><th scope="row">Pola diproduksi</th><td>4</td><td>2</td></tr>
+              </tbody>
+            </table>
           </div>
 
           <Note kind="claim" title="Baris atas kolom kiri adalah yang penting, dan ia nol">
@@ -758,6 +1165,46 @@ export function AdminConsole() {
           <div className={styles.hashRow}>
             <span>SHA-256</span>
             <code>38576193099bec758837036582b7814a2728c431829e22f9d0e92ffe91fedf2f</code>
+          </div>
+
+          <Figure
+            title="Yang dikirim, dibanding protokol tempat ambangnya diturunkan"
+            note="Panjang klip dalam detik, pada skala yang sama. Yang berjalan di lapangan adalah batang paling atas."
+            legend={[
+              { label: "Yang dikirim", color: "var(--amber-600)" },
+              { label: "Protokol terbit", color: "var(--slate-500)" },
+            ]}
+          >
+            <BarRows
+              rows={CLIP_DURATIONS.map((clip) => ({
+                label: clip.label,
+                sublabel: clip.sublabel,
+                value: clip.value,
+                display: clip.display,
+                tone: clip.tone === "warn" ? "warn" : "calm",
+              }))}
+              max={90}
+            />
+          </Figure>
+
+          <div className={styles.figures}>
+            <Figure
+              title="Berapa banyak bingkai yang sebenarnya terpakai"
+              note="Bingkai 640 × 360 digambar sesuai skala. Kedua panel adalah seluruh isi yang membawa informasi; sisanya kotak hitam suplemen."
+            >
+              <FrameGeometry panelShare={0.198} panelLabelLeft="Sosial" panelLabelRight="Geometrik" />
+            </Figure>
+
+            <Figure
+              title="Sudut yang disubtensi tiap panel"
+              note="Digambar sesuai skala pada tablet sasaran. Garis putus-putus adalah ukuran yang dilaporkan Moore dkk.; blok isi adalah yang benar-benar dilihat anak."
+              footnote="Aplikasi memangkas kotak hitamnya, tetapi memangkas tidak menambah piksel: panelnya tetap lebih kecil daripada yang dipakai saat ambang diturunkan."
+            >
+              <SubtenseCompare
+                reference={{ w: 12.9, h: 9.1, label: "Moore dkk. · 12,9° × 9,1°" }}
+                shipped={{ w: 7.6, h: 4.9, label: "Yang dikirim · 7,6° × 4,9°" }}
+              />
+            </Figure>
           </div>
 
           <div className={styles.split}>
@@ -827,6 +1274,32 @@ export function AdminConsole() {
           <Metrics items={STIMULUS_METRICS} />
 
           <h3 className={styles.subhead}>Struktur satu percobaan · 5 detik</h3>
+
+          <Figure
+            title="Satu percobaan, digambar sesuai waktunya"
+            note="Lebar tiap blok sebanding dengan durasinya. Onset isyarat memisahkan epok pra-isyarat yang benar-benar netral dari jendela yang dihitung sebagai respons."
+            legend={TRIAL_BANDS.map((band) => ({
+              label: band.label,
+              color:
+                band.tone === "rest"
+                  ? "var(--slate-100)"
+                  : band.tone === "ostensive"
+                    ? "var(--teal-200)"
+                    : "var(--amber-100)",
+              value: `${num((band.toMs - band.fromMs) / 1000, 1)} dtk`,
+            }))}
+            footnote="Ketiga angka di strip ini dibaca dari modul protokol, bukan diketik ulang di halaman ini."
+          >
+            <TrialStrip
+              totalMs={TRIAL_MS}
+              bands={TRIAL_BANDS}
+              markers={[
+                { label: `${num(TRIAL_OSTENSIVE_MS / 1000, 1)} dtk · ostensif`, atMs: TRIAL_OSTENSIVE_MS },
+                { label: `${num(TRIAL_CUE_MS / 1000, 1)} dtk · isyarat arah`, atMs: TRIAL_CUE_MS },
+              ]}
+            />
+          </Figure>
+
           <ol className={styles.timeline}>
             {TRIAL_TIMELINE.map(([time, title, note]) => (
               <li key={time}>

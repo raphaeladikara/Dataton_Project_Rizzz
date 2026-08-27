@@ -92,7 +92,9 @@
 }
 
 .nav a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 10px;
   border-radius: var(--r-xs);
   color: var(--ink-600);
@@ -102,6 +104,20 @@
   transition: background-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
 }
+/* Pass state in the rail. A filled dot passed, a ring is still open — shape
+   carries it as well as colour, so it survives a monochrome print. */
+.navState {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal-500);
+}
+.navState[data-state="open"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink-300);
+}
+
 .nav a:hover { background: var(--paper-2); color: var(--ink-800); }
 .nav a[aria-current="true"] {
   background: var(--paper);
@@ -132,6 +148,43 @@
 .content {
   min-width: 0;
   padding: clamp(28px, 4vw, 52px) var(--gutter) 64px;
+}
+
+.pageHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1080px;
+  margin: 0 auto 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--ink-800);
+}
+.pageHead h1 {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.pageHead p {
+  max-width: 56ch;
+  margin: 10px 0 0;
+  color: var(--ink-500);
+  font-size: var(--t-lead);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.pageHeadMeta { display: grid; gap: 10px; margin: 0; flex: 0 0 auto; }
+.pageHeadMeta dt { color: var(--ink-400); font-size: var(--t-micro); font-weight: 650; }
+.pageHeadMeta dd {
+  margin: 2px 0 0;
+  color: var(--ink-700);
+  font-family: var(--font-mono-stack);
+  font-size: var(--t-micro);
+  font-weight: 650;
 }
 
 .section {
@@ -271,6 +324,26 @@
 }
 .metrics span { margin-top: 6px; color: var(--ink-500); font-size: var(--t-micro); line-height: 1.45; }
 
+/* ── Figures ─────────────────────────────────────────────────────────────────
+   Charts sit on the same 12px rhythm as the metric tiles and the split layout,
+   so a section reads as one column of blocks rather than as prose with pictures
+   dropped into it. The 360px floor is the width below which a bar label and its
+   value stop fitting on one line.
+   -------------------------------------------------------------------------- */
+
+.figures {
+  display: grid;
+  /* min() rather than a bare 360px: on a 375 px screen a hard floor wider than
+     the column is what makes the whole page scroll sideways. */
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+.section > figure,
+.simulation > figure { margin-top: 16px; }
+
 /* ── Split layout: table beside criteria, prose beside prose ─────────────── */
 
 .split {
@@ -309,8 +382,52 @@
 .criteria[data-tone="open"] { background: var(--slate-50); }
 .criteria[data-tone="warn"] { background: var(--amber-50); }
 .criteria h3 { margin: 0 0 11px; font-size: var(--t-h4); font-weight: 700; }
-.criteria ul { display: grid; gap: 7px; margin: 0; padding-left: 18px; }
-.criteria li { color: var(--ink-700); font-size: var(--t-body); line-height: 1.5; }
+/* The marker is information, not decoration: a ticked circle is a criterion
+   already met, a hollow ring is one still outstanding, and a solid amber dot is
+   a deliberate property that was never a pass/fail question. Shape differs as
+   well as colour, so the distinction survives greyscale and CVD. */
+.criteria ul { display: grid; gap: 7px; margin: 0; padding-left: 0; list-style: none; }
+.criteria li {
+  position: relative;
+  padding-left: 25px;
+  color: var(--ink-700);
+  font-size: var(--t-body);
+  line-height: 1.5;
+}
+.criteria li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.22em;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--teal-500);
+}
+.criteria li::after {
+  content: "";
+  position: absolute;
+  left: 5.4px;
+  top: calc(0.22em + 3.6px);
+  width: 4px;
+  height: 7px;
+  border: solid var(--paper);
+  border-width: 0 1.7px 1.7px 0;
+  transform: rotate(45deg);
+}
+.criteria[data-tone="open"] li::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.6px var(--slate-500);
+}
+.criteria[data-tone="open"] li::after { content: none; }
+.criteria[data-tone="warn"] li::before {
+  width: 9px;
+  height: 9px;
+  top: 0.45em;
+  left: 3px;
+  background: var(--amber-600);
+}
+.criteria[data-tone="warn"] li::after { content: none; }
 .criteria p {
   margin: 14px 0 0;
   padding-top: 12px;
@@ -583,26 +700,6 @@
   pointer-events: none;
 }
 
-.matrix {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  overflow: hidden;
-  margin-top: 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--paper-2);
-}
-.matrix span { padding: 13px 15px; border-left: 1px solid var(--line-soft); }
-.matrix span:first-child { border-left: 0; }
-.matrix b, .matrix small { display: block; }
-.matrix b {
-  font-family: var(--font-mono-stack);
-  font-size: var(--t-h4);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.matrix small { margin-top: 3px; color: var(--ink-400); font-size: var(--t-micro); }
-
 .simulationFoot { margin: 12px 0 0; color: var(--ink-400); font-size: var(--t-micro); line-height: 1.5; }
 
 /* ── Page footer ─────────────────────────────────────────────────────────── */
@@ -671,11 +768,15 @@
   .section { scroll-margin-top: 76px; }
 }
 
+@media (max-width: 720px) {
+  .pageHead { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .pageHead h1 { font-size: 1.55rem; }
+  .pageHeadMeta { grid-template-columns: repeat(2, auto); gap: 10px 28px; }
+}
+
 @media (max-width: 560px) {
   .sectionHead { flex-direction: column; gap: 12px; }
   .simulationHead { flex-direction: column; gap: 12px; }
-  .matrix span { border-left: 0; border-top: 1px solid var(--line-soft); }
-  .matrix span:first-child { border-top: 0; }
 }
 
 /* ── Focus and reduced motion ────────────────────────────────────────────── */

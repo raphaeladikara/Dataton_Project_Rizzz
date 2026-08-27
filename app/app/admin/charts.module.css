@@ -1,0 +1,710 @@
+/* ==========================================================================
+   Chart primitives — Paper surface world.
+   --------------------------------------------------------------------------
+   Marks are thin, grids are hairlines, and the data is the only loud thing on
+   the page. Every colour resolves to a token in app/tokens.css.
+
+   Two colour jobs, kept apart:
+     · Status   — the mark means good or bad. Teal passes, coral is the hard
+                  limit, amber wants attention, slate is withheld by design.
+                  These are the same tokens the report uses, so a colour never
+                  means one thing on the panel and another on the result.
+     · Identity — the mark only means "which series". Three slots, fixed order,
+                  never cycled. Checked with the OKLab CVD separation gate
+                  rather than by eye: worst pair ΔE 12,2 under deuteranopia and
+                  17,5 under normal vision, all three above 3:1 on paper.
+                  A fourth series folds into --chart-rest instead of inventing
+                  a hue that collapses under CVD.
+   ========================================================================== */
+
+.figure {
+  --chart-1: var(--teal-400);
+  --chart-2: var(--indigo-500);
+  --chart-3: var(--amber-600);
+  --chart-rest: var(--slate-200);
+
+  --good: var(--teal-500);
+  --warn: var(--amber-600);
+  --bad: var(--coral-600);
+  --calm: var(--slate-200);
+
+  --track: var(--sand-100);
+  --hair: var(--line);
+
+  min-width: 0;
+  margin: 0;
+  padding: 17px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+}
+
+/* The hairline under the caption is what keeps a figure from reading as a
+   seventh kind of card on a page already full of bordered white boxes: chrome
+   above the rule, plotted data below it. */
+.figure figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.figure figcaption strong {
+  font-size: var(--t-body);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+.figure figcaption span {
+  color: var(--ink-500);
+  font-size: var(--t-micro);
+  line-height: 1.5;
+}
+
+.plot { min-width: 0; }
+
+.footnote {
+  margin: 13px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--ink-500);
+  font-size: var(--t-micro);
+  line-height: 1.55;
+}
+
+/* ── Legend ──────────────────────────────────────────────────────────────── */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.legend li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--ink-600);
+  font-size: var(--t-micro);
+  line-height: 1.4;
+}
+.legend i {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.legend i[data-shape="rule"] { width: 14px; height: 3px; border-radius: 2px; }
+.legend b {
+  color: var(--ink-800);
+  font-family: var(--font-mono-stack);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Bars ────────────────────────────────────────────────────────────────── */
+
+.barGrid { display: grid; gap: 11px; }
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(78px, 0.85fr) minmax(0, 2.4fr) minmax(46px, auto);
+  align-items: center;
+  gap: 12px;
+}
+
+.barLabel {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink-700);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.barLabel small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-400);
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
+.track,
+.deltaTrack,
+.funnelTrack,
+.meterTrack {
+  position: relative;
+  height: 12px;
+  border-radius: var(--r-pill);
+  background: var(--track);
+}
+
+/* The pass mark, drawn once per track so it reads as one rule down the chart. */
+.track[data-threshold]::after,
+.meterTrack::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: var(--thr);
+  width: 1px;
+  background: var(--ink-300);
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--good);
+  transform-origin: left center;
+}
+.fill[data-tone="good"] { background: var(--good); }
+.fill[data-tone="warn"] { background: var(--warn); }
+.fill[data-tone="bad"] { background: var(--bad); }
+.fill[data-tone="calm"] { background: var(--slate-500); }
+.fill[data-tone="series-1"] { background: var(--chart-1); }
+.fill[data-tone="series-2"] { background: var(--chart-2); }
+.fill[data-tone="series-3"] { background: var(--chart-3); }
+
+.barValue {
+  color: var(--ink-800);
+  font-family: var(--font-mono-stack);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.barValue[data-clears="false"] { color: var(--amber-700); }
+
+.thresholdKey {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  color: var(--ink-500);
+  font-size: var(--t-micro);
+}
+.thresholdKey i {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 12px;
+  background: var(--ink-300);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+
+/* ── Donut ───────────────────────────────────────────────────────────────── */
+
+.donutWrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 172px;
+}
+.donut { display: block; overflow: visible; }
+.arc { transform-origin: center; }
+
+.donutCentre {
+  position: absolute;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+}
+.donutCentre strong {
+  font-family: var(--font-mono-stack);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.donutCentre small {
+  max-width: 90px;
+  color: var(--ink-400);
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+/* ── Split bar ───────────────────────────────────────────────────────────── */
+
+.splitBar {
+  display: grid;
+  gap: 2px; /* surface gap — never a stroke around the segments */
+  height: 34px;
+  border-radius: var(--r-xs);
+  overflow: hidden;
+}
+.splitSegment {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  transform-origin: left center;
+}
+.splitSegment b {
+  color: var(--paper);
+  font-family: var(--font-mono-stack);
+  font-size: var(--t-micro);
+  font-weight: 700;
+}
+
+/* ── Delta bars ──────────────────────────────────────────────────────────── */
+
+.deltaWrap { display: grid; gap: 12px; }
+
+/* Shares the bar grid so the −/0/+ ticks land over the track, not beside it. */
+.deltaScale {
+  display: grid;
+  grid-template-columns: minmax(78px, 0.85fr) minmax(0, 2.4fr) minmax(46px, auto);
+  gap: 12px;
+  color: var(--ink-400);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+.deltaScale > b {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  font-weight: inherit;
+}
+
+.deltaTrack::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  width: 1px;
+  background: var(--ink-300);
+}
+
+.deltaFill {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  min-width: 3px;
+  border-radius: 4px;
+  background: var(--chart-2);
+}
+.deltaFill[data-sign="neg"] { background: var(--chart-3); }
+
+/* ── Meter ───────────────────────────────────────────────────────────────── */
+
+.meter { display: grid; gap: 10px; }
+.meterFoot { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.meterFoot b {
+  color: var(--ink-800);
+  font-family: var(--font-mono-stack);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.meterFoot span { color: var(--ink-500); font-size: var(--t-micro); text-align: right; }
+
+/* ── Confusion matrix ────────────────────────────────────────────────────── */
+
+.matrixGrid {
+  display: grid;
+  grid-template-columns: minmax(74px, auto) 1fr 1fr;
+  gap: 2px;
+}
+.matrixCorner { background: transparent; }
+.matrixHead,
+.matrixSide {
+  display: grid;
+  align-items: center;
+  padding: 6px 8px;
+  color: var(--ink-400);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.matrixHead { justify-items: center; }
+
+.matrixCell {
+  display: grid;
+  gap: 1px;
+  padding: 13px 14px;
+  border-radius: var(--r-xs);
+  background: var(--sand-50);
+}
+.matrixCell small {
+  color: var(--ink-400);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.matrixCell b {
+  font-family: var(--font-mono-stack);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.matrixCell em {
+  color: var(--ink-500);
+  font-size: 0.68rem;
+  font-style: normal;
+  line-height: 1.35;
+}
+.matrixCell[data-tone="good"] { background: var(--teal-50); }
+.matrixCell[data-tone="good"] b { color: var(--teal-700); }
+.matrixCell[data-tone="bad"] { background: var(--coral-50); }
+.matrixCell[data-tone="bad"] b { color: var(--coral-700); }
+.matrixCell[data-tone="warn"] { background: var(--amber-50); }
+.matrixCell[data-tone="warn"] b { color: var(--amber-700); }
+.matrixCell[data-tone="calm"] { background: var(--slate-50); }
+.matrixCell[data-tone="calm"] b { color: var(--slate-700); }
+
+/* ── Ratio dots ──────────────────────────────────────────────────────────── */
+
+.ratio { display: grid; gap: 11px; }
+.ratioDots { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.ratioDots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--amber-200);
+}
+.ratioDots i[data-hit] { background: var(--teal-500); box-shadow: 0 0 0 3px var(--teal-100); }
+.ratioDots b {
+  margin-left: 3px;
+  color: var(--ink-400);
+  font-family: var(--font-mono-stack);
+  font-size: var(--t-micro);
+  font-weight: 700;
+}
+.ratio p { margin: 0; color: var(--ink-600); font-size: var(--t-micro); line-height: 1.55; }
+
+/* ── Funnel ──────────────────────────────────────────────────────────────── */
+
+.funnel { display: grid; gap: 11px; }
+.funnelRow {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.9fr) minmax(0, 2.4fr) minmax(52px, auto);
+  align-items: center;
+  gap: 12px;
+}
+.funnelTrack { height: 14px; }
+
+/* ── Range strips ────────────────────────────────────────────────────────── */
+
+.strips { display: grid; gap: 18px; }
+.strip { display: grid; gap: 7px; }
+.stripLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0;
+  color: var(--ink-700);
+  font-size: var(--t-micro);
+  font-weight: 650;
+}
+.stripLabel small {
+  color: var(--ink-400);
+  font-family: var(--font-mono-stack);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.stripTrack {
+  position: relative;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: var(--track);
+}
+.stripRange {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  min-width: 6px;
+  border-radius: var(--r-pill);
+  transform-origin: center;
+}
+.stripRange[data-series="a"] { background: var(--slate-500); }
+.stripRange[data-series="b"] { background: var(--coral-500); }
+.stripRange[data-series="interval"] { background: var(--teal-200); }
+
+.stripPoint {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--teal-600);
+  box-shadow: 0 0 0 2px var(--paper);
+  transform: translateY(-50%);
+}
+.stripRule {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--ink-300);
+}
+
+/* ── Outcome dots ────────────────────────────────────────────────────────── */
+
+.outcomes { display: grid; gap: 12px; }
+.outcomeRow {
+  display: grid;
+  grid-template-columns: minmax(104px, auto) minmax(0, 1fr) minmax(58px, auto);
+  align-items: center;
+  gap: 12px;
+}
+.outcomeDots { display: flex; flex-wrap: wrap; gap: 5px; }
+.outcomeDots i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid var(--slate-200);
+  background: var(--paper);
+}
+.outcomeDots i[data-fired] { border-color: var(--coral-600); background: var(--coral-500); }
+
+.stripTicks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-400);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── PPV curve ───────────────────────────────────────────────────────────── */
+
+.curveWrap { display: grid; gap: 10px; }
+.curve { display: block; width: 100%; height: auto; touch-action: pan-y; }
+.grid { stroke: var(--line-soft); stroke-width: 1; }
+.tick {
+  fill: var(--ink-400);
+  font-family: var(--font-mono-stack);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.axisTitle { fill: var(--ink-300); font-family: var(--font-sans-stack); font-size: 9px; }
+.curveLine { fill: none; stroke: var(--chart-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.curveDot { fill: var(--teal-600); stroke: var(--paper); stroke-width: 2; }
+.crosshair { stroke: var(--ink-300); stroke-width: 1; }
+
+.curveRead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  color: var(--ink-600);
+  font-size: var(--t-micro);
+}
+.curveRead b {
+  color: var(--ink-800);
+  font-family: var(--font-mono-stack);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.curveRead span { margin-left: auto; color: var(--ink-400); font-size: 0.68rem; }
+
+/* ── Frame geometry ──────────────────────────────────────────────────────── */
+
+.frame { display: block; width: 100%; height: auto; }
+.frameBg { fill: var(--ink-900); }
+.framePanel { fill: var(--chart-2); }
+.framePanel[data-side="right"] { fill: var(--chart-3); }
+.frameLabel {
+  fill: var(--sand-200);
+  font-family: var(--font-sans-stack);
+  font-size: 13px;
+  font-weight: 600;
+}
+.frameNote {
+  fill: var(--ink-300);
+  font-family: var(--font-mono-stack);
+  font-size: 13px;
+}
+
+.subtense { display: block; width: 100%; max-width: 300px; height: auto; }
+.subtenseRef { fill: none; stroke: var(--ink-300); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.subtenseShipped { fill: var(--amber-100); stroke: var(--amber-600); stroke-width: 1.5; }
+.subtense .frameLabel { fill: var(--ink-500); font-size: 11px; }
+.subtense .frameLabel[data-tone="shipped"] { fill: var(--amber-700); font-weight: 700; }
+
+/* ── Trial strip ─────────────────────────────────────────────────────────── */
+
+.trial { display: grid; gap: 8px; }
+.trialBands { display: grid; gap: 2px; height: 44px; }
+.trialBand {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0 4px;
+  border-radius: var(--r-xs);
+  color: var(--ink-700);
+  font-size: var(--t-micro);
+  font-weight: 650;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  transform-origin: left center;
+}
+.trialBand[data-tone="rest"] { background: var(--slate-100); }
+.trialBand[data-tone="ostensive"] { background: var(--teal-200); color: var(--teal-800); }
+.trialBand[data-tone="response"] { background: var(--amber-100); color: var(--amber-700); }
+
+.trialAxis { position: relative; height: 30px; }
+.trialMarker { position: absolute; top: 0; transform: translateX(-50%); text-align: center; }
+.trialMarker i {
+  display: block;
+  width: 1px;
+  height: 9px;
+  margin: 0 auto;
+  background: var(--ink-300);
+}
+.trialMarker small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-500);
+  font-family: var(--font-mono-stack);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+.trialEnd {
+  position: absolute;
+  right: 0;
+  top: 12px;
+  color: var(--ink-400);
+  font-family: var(--font-mono-stack);
+  font-size: 0.68rem;
+}
+
+/* ── Gate ladder ─────────────────────────────────────────────────────────── */
+
+.ladder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ladder li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--sand-50);
+}
+.ladder li:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.ladder li:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.ladder li[data-state="passed"] { background: var(--teal-50); }
+.ladder li p { margin: 0; color: var(--ink-600); font-size: var(--t-micro); line-height: 1.35; }
+.ladder li[data-state="passed"] p { color: var(--teal-700); font-weight: 600; }
+
+.ladderMark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-xs);
+  color: var(--paper);
+  font-size: var(--t-micro);
+  font-weight: 750;
+}
+.ladderMark[data-gate="A"] { background: var(--teal-600); }
+.ladderMark[data-gate="B"] { background: var(--indigo-600); }
+.ladderMark[data-gate="C"] { background: var(--coral-600); }
+.ladderMark[data-gate="D"] { background: var(--amber-700); }
+.ladder li[data-state="open"] .ladderMark { background: var(--slate-200); color: var(--slate-700); }
+
+@media (max-width: 560px) {
+  .ladder li:first-child { border-radius: var(--r-sm) var(--r-sm) 0 0; }
+  .ladder li:last-child { border-radius: 0 0 var(--r-sm) var(--r-sm); }
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────────
+   Marks grow from their baseline once, on load, with a short per-mark stagger.
+   A bar reads as a length partly because you watched it become one.
+
+   Every rule below hangs off html[data-charts-ready], which useChartMotion sets
+   on mount and clears again once the longest sequence has finished. That is not
+   ceremony. A keyframe starting at scaleX(0) renders a blank chart anywhere the
+   animation is paused rather than played — a background tab, a print job, a
+   headless screenshot, or a browser with JS off — and this panel exists to be
+   printed and handed over. Outside that short window there is no animation to
+   pause, so the marks are simply at their final size.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-charts-ready]) .fill,
+  :global(html[data-charts-ready]) .deltaFill,
+  :global(html[data-charts-ready]) .stripRange,
+  :global(html[data-charts-ready]) .splitSegment,
+  :global(html[data-charts-ready]) .trialBand {
+    animation: growX 540ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+  :global(html[data-charts-ready]) .arc {
+    animation: sweep 620ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  :global(html[data-charts-ready]) .ratioDots i,
+  :global(html[data-charts-ready]) .outcomeDots i {
+    animation: pop 320ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 12ms);
+  }
+  :global(html[data-charts-ready]) .stripPoint {
+    animation: popCentred 380ms var(--ease-out) 180ms both;
+  }
+  :global(html[data-charts-ready]) .ladder li {
+    animation: riseIn 380ms var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+  :global(html[data-charts-ready]) .curveLine {
+    animation: draw 760ms var(--ease-out) both;
+    stroke-dasharray: 900;
+  }
+}
+
+@keyframes growX {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes sweep {
+  from { opacity: 0; transform: scale(0.93); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes popCentred {
+  from { opacity: 0; transform: translateY(-50%) scale(0.4); }
+  to { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes draw {
+  from { stroke-dashoffset: 900; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── Narrow screens ──────────────────────────────────────────────────────────
+   The label column gives up width first: a bar can lose a third of its length
+   and still be read, but a truncated condition name cannot.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .barRow { grid-template-columns: minmax(64px, 0.9fr) minmax(0, 1.6fr) minmax(42px, auto); gap: 9px; }
+  .funnelRow { grid-template-columns: minmax(72px, 0.9fr) minmax(0, 1.6fr) minmax(46px, auto); gap: 9px; }
+  .outcomeRow { grid-template-columns: minmax(78px, auto) minmax(0, 1fr) minmax(46px, auto); gap: 9px; }
+  .deltaScale { grid-template-columns: minmax(64px, 0.9fr) minmax(0, 1.6fr) minmax(42px, auto); gap: 9px; }
+  .matrixGrid { grid-template-columns: minmax(58px, auto) 1fr 1fr; }
+  .matrixCell { padding: 11px 10px; }
+  .trialBand { font-size: 0.68rem; }
+}
